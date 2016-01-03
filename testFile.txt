@@ -1,1 +1,9 @@
 For all your gitlab testing needs!
+step 1) "git pull"
+step 2) make your changes and ONLY MOVE ON WHEN THERE ARE NO BUGS IN YOUR CODE
+step 3) "git add [name of file]" if you made a new file otherwise skip this
+step
+step 4) "git commit -m "[insert your descriptive message about what you did]""
+step 5) "git push" 
+
+steps for when there are conflicts and merges will come later :P
