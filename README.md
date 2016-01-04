@@ -1,3 +1,3 @@
 this is the README
-AARON IS AWESOME
+AARON IS mediocre
 AARON is testing more git stuff bcuz hes lame.
