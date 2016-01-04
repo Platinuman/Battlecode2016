@@ -1,3 +1,3 @@
 this is the README
-AARON IS LAME
+AARON IS NOT LAME AT ALL
 AARON is testing more git stuff bcuz hes lame.
