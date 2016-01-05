@@ -2,8 +2,6 @@ package team061;
 
 import battlecode.common.*;
 
-import java.util.Random;
-
 public class RobotPlayer {
     
     public static void run(RobotController rc) throws exception {
