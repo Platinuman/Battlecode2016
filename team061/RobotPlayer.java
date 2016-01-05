@@ -2,41 +2,40 @@ package team061;
 
 import battlecode.common.*;
 
-public static void run(RobotController rc) throws exception {
-        Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-                Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
-        RobotType[] robotTypes = {RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
-                RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET};
-        Team myTeam = rc.getTeam();
-        Team enemyTeam = myTeam.opponent();
-	switch (rc.getType()){
-	case ARCHON:
-		botArchon.lopp(rc);
-		break;
-	
-	case GUARD:
-		botGuard.lopp(rc);
-		break;
+public class RobotPlayer {
+	public static void run(RobotController rc) throws Exception {
+		Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+		RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
+				RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET };
+		Team myTeam = rc.getTeam();
+		Team enemyTeam = myTeam.opponent();
+		switch (rc.getType()) {
+		case ARCHON:
+			BotArchon.loop(rc);
+			break;
 
-	case SCOUT:
-		botScout.lopp(rc);
-		break;
-	
-	case SOLDIER:
-		botSoldier.lopp(rc);
-		break;
+		case GUARD:
+			BotGuard.loop(rc);
+			break;
 
-	case TURRET:
-		botTurret.lopp(rc);
-		break;
+		case SCOUT:
+			BotScout.loop(rc);
+			break;
 
-	case VIPER:
-		botViper.lopp(rc);
-		break;
-	default:
-		throw new Exception("Unknown robot type!");
->>>>>>> 7f7e066530ede8170c1cb178a0709741fb6fb8ea
-        }
+		case SOLDIER:
+			BotSoldier.loop(rc);
+			break;
+
+		case TURRET:
+			BotTurret.loop(rc);
+			break;
+
+		case VIPER:
+			BotViper.loop(rc);
+			break;
+		default:
+			throw new Exception("Unknown robot type!");
+		}
 	}
-    }
 }
