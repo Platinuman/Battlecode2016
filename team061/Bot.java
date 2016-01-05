@@ -50,3 +50,5 @@ public class Bot {
         return false;
         */
     }
+}
+>>>>>>> 7f7e066530ede8170c1cb178a0709741fb6fb8ea
