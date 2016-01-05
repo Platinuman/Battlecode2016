@@ -18,3 +18,5 @@ error free now
 step 4b) //You found yourself in some scary screen cuz u didnt add a message
 step 4c)ESC :q!
 step 4d) try step 4 again...
+
+step 5b)Rejected! Start at step 1 again :)
