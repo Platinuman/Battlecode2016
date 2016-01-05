@@ -19,23 +19,23 @@ public class RobotPlayer {
 		break;
 	
 	case GUARD:
-		botArchon.lopp(rc);
+		botGuard.lopp(rc);
 		break;
 
 	case SCOUT:
-		botArchon.lopp(rc);
+		botScout.lopp(rc);
 		break;
 	
 	case SOLDIER:
-		botArchon.lopp(rc);
+		botSoldier.lopp(rc);
 		break;
 
 	case TURRET:
-		botArchon.lopp(rc);
+		botTurret.lopp(rc);
 		break;
 
 	case VIPER:
-		botArchon.lopp(rc);
+		botViper.lopp(rc);
 		break;
 	default:
 		throw new Exception("Unknown robot type!");
