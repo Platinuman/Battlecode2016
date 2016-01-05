@@ -6,29 +6,29 @@ public class RobotPlayer {
 
 	public static void run(RobotController rc) throws Exception {
 
-		switch (rc.getType()){
+		switch (rc.getType()) {
 		case ARCHON:
-			botArchon.loop(rc);
+			BotArchon.loop(rc);
 			break;
 
 		case GUARD:
-			botGuard.loop(rc);
+			BotGuard.loop(rc);
 			break;
 
 		case SCOUT:
-			botScout.loop(rc);
+			BotScout.loop(rc);
 			break;
 
 		case SOLDIER:
-			botSoldier.loop(rc);
+			BotSoldier.loop(rc);
 			break;
 
 		case TURRET:
-			botTurret.loop(rc);
+			BotTurret.loop(rc);
 			break;
 
 		case VIPER:
-			botViper.loop(rc);
+			BotViper.loop(rc);
 			break;
 		default:
 			throw new Exception("Unknown robot type!");
