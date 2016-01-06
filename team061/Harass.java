@@ -132,7 +132,7 @@ public class Harass extends Bot {
 
     private static boolean doMicro(RobotInfo[] nearbyEnemies, boolean shadowEnemyHarassers) throws GameActionException {
         if (nearbyEnemies.length == 0) {
-            RobotInfo[] moreEnemies = rc.senseNearbyRobots(63, them);
+            RobotInfo[] moreEnemies = rc.senseNearbyRobots(rc.getType().attackRadiusSquared, them);
             if (moreEnemies.length == 0) {
                 // Debug.indicate("micro", 0, "no enemies, no micro");
                 return false;
