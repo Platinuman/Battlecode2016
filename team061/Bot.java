@@ -4,8 +4,8 @@ import battlecode.common.*;
 
 public class Bot {
 	public static RobotController rc;
-	protected static Team us = rc.getTeam();
-	protected static Team them = us.opponent();
+	protected static Team us;
+	protected static Team them;
 
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
 
