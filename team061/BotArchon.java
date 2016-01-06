@@ -8,10 +8,10 @@ public class BotArchon extends Bot {
     public static void loop(RobotController theRC) throws GameActionException {
         Bot.init(theRC);
 //        Debug.init("micro");
-
+        Random rand = new Random(rc.getID());
         while (true) {
             try {
-                turn();
+                turn(rand);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -19,13 +19,12 @@ public class BotArchon extends Bot {
         }
     }
 
-    private static void turn() throws GameActionException {
+    private static void turn(Random rand) throws GameActionException {
     	Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
                 Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
         RobotType[] robotTypes = {RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
                 RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET};
         here = rc.getLocation();
-        Random rand = new Random(rc.getID());
         int fate = rand.nextInt(1000);
         // Check if this ARCHON's core is ready
         if (fate % 10 == 2) {

@@ -8,10 +8,10 @@ public class BotScout extends Bot {
     public static void loop(RobotController theRC) throws GameActionException {
         Bot.init(theRC);
 //        Debug.init("micro");
-
+        Random rand = new Random(rc.getID());
         while (true) {
             try {
-                turn();
+                turn(rand);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -19,7 +19,7 @@ public class BotScout extends Bot {
         }
     }
 
-    private static void turn() throws GameActionException {
+    private static void turn(Random rand) throws GameActionException {
     	here = rc.getLocation();
 		// This is a loop to prevent the run() method from returning. Because of
 		// the Clock.yield()
@@ -28,9 +28,8 @@ public class BotScout extends Bot {
 				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 		RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
 				RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET };
-		Random rand = new Random(rc.getID());
-		int fate = rand.nextInt(1000);
 		int myAttackRange = 0;
+		int fate = rand.nextInt(1000);
 		Team myTeam = rc.getTeam();
 		Team enemyTeam = myTeam.opponent();
 
