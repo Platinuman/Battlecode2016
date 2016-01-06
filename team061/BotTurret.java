@@ -24,7 +24,7 @@ public class BotTurret extends Bot {
     	int myAttackRange = rc.getType().attackRadiusSquared;
         here = rc.getLocation();
         if (rc.isWeaponReady()) {
-            Combat.shootAtNearbyEnemies(RobotType.TURRET);
+            Combat.shootAtNearbyEnemies();
         }
     }
 }

@@ -3,8 +3,9 @@ package team061;
 import battlecode.common.*;
 
 public class Combat extends Bot {
-	public static void shootAtNearbyEnemies(RobotType type) throws GameActionException {
-		int attackRadiusSq = rc.getType().attackRadiusSquared;
+	public static void shootAtNearbyEnemies() throws GameActionException {
+		RobotType type = rc.getType();
+		int attackRadiusSq = type.attackRadiusSquared;
 		RobotInfo[] enemies = rc.senseNearbyRobots(attackRadiusSq, them);
 		RobotInfo[] zombies = rc.senseNearbyRobots(attackRadiusSq, Team.ZOMBIE);
 
@@ -25,11 +26,11 @@ public class Combat extends Bot {
 		double maxPower = -1;
 		RobotInfo target = null;
 		for (RobotInfo enemy : enemies) {
-			if (enemy.type.attackPower > maxPower) {
+			if (enemy.type.attackPower > maxPower && rc.canAttackLocation(enemy.location)) {
 				maxPower = enemy.type.attackPower;
 				minHealth = enemy.health;
 				target = enemy;
-			} else if (enemy.attackPower == maxPower && enemy.health < minHealth) {
+			} else if (enemy.attackPower == maxPower && enemy.health < minHealth && rc.canAttackLocation(enemy.location)) {
 				minHealth = enemy.health;
 				target = enemy;
 			}

@@ -53,11 +53,19 @@ public class BotArchon extends Bot {
     	//If scrap && enemies aren't near move towards nearest scrap
     	//return dir of nearest scrap
     }
+    private static void repairBotMostInNeed() throws GameActionException{
+    	RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+    	if(allies.length > 0){
+    		RobotInfo mostInNeed = Util.leastHealth(allies);
+    		rc.repair(mostInNeed.location);
+    	}
+    }
     private static void turn(Random rand) throws GameActionException {
     	Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
                 Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
         RobotType[] robotTypes = {RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
                 RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET};
+        repairBotMostInNeed();
         here = rc.getLocation();
         int fate = rand.nextInt(1000);
         // Check if this ARCHON's core is ready

@@ -39,7 +39,7 @@ public class BotViper extends Bot {
 		// If this robot type can attack, check for enemies within range and
 		// attack one
 		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies(RobotType.VIPER);
+			Combat.shootAtNearbyEnemies();
 		}
 
 		if (rc.isCoreReady() && enemies.length == 0 && zombies.length == 0) {
