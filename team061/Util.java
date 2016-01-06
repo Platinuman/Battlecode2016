@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class Util extends Bot {
 
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
-        RobotInfo ret = null;
+        RobotInfo closest = null;
         int bestDistSq = 999999;
         for (int i = robots.length; i-- > 0;) {
             int distSq = toHere.distanceSquaredTo(robots[i].location);
@@ -29,4 +29,3 @@ public class Util extends Bot {
         return ret;
     }
 }
->>>>>>> 03fcacb5af2e42974fe1bb553e850e5892debc97
