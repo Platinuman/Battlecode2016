@@ -3,21 +3,21 @@ package team061;
 import battlecode.common.*;
 
 public class Bot {
-    public static RobotController rc;
-    protected static Team us;
-    protected static Team them;
+	public static RobotController rc;
+	protected static Team us = rc.getTeam();
+	protected static Team them = us.opponent();
 
-    protected static MapLocation here; // bot classes are responsible for keeping this up to date
+	protected static MapLocation here; // bot classes are responsible for keeping this up to date
 
-    protected static void init(RobotController theRC) throws GameActionException {
-        rc = theRC;
+	protected static void init(RobotController theRC) throws GameActionException {
+		rc = theRC;
 
-        us = rc.getTeam();
-        them = us.opponent();
+		us = rc.getTeam();
+		them = us.opponent();
 
-        here = rc.getLocation();
-    }
-    /*
+		here = rc.getLocation();
+	}
+	/*
     public static boolean inEnemyTowerOrHQRange(MapLocation loc, MapLocation[] enemyArchons) {
         if (loc.distanceSquaredTo(theirHQ) <= 52) {
             switch (enemyArchons.length) {
@@ -48,7 +48,5 @@ public class Bot {
         }
 
         return false;
-        */
-    }
-
-
+	 */
+}
