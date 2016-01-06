@@ -452,10 +452,10 @@ public class Harass extends Bot {
     static boolean firstTurn = true;
 
     public static void doHarass() throws GameActionException {
-        if (firstTurn) {
-            HarassNav.bugWallSide = rc.getID() % 2 == 0 ? HarassNav.WallSide.LEFT : HarassNav.WallSide.RIGHT;
-            firstTurn = false;
-        }
+        //if (firstTurn) {
+        //    HarassNav.bugWallSide = rc.getID() % 2 == 0 ? HarassNav.WallSide.LEFT : HarassNav.WallSide.RIGHT;
+        //    firstTurn = false;
+        //}
 
        
 
