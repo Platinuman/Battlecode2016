@@ -1,9 +1,10 @@
-package Battlecode2016.team061;
+package team061;
 
 import battlecode.common.*;
 import team061.Bot;
 import team061.Util;
 
+/*
 class SafetyPolicyHarass extends Bot implements NavSafetyPolicy {
     RobotInfo[] nearbyEnemies;
 
@@ -15,7 +16,7 @@ class SafetyPolicyHarass extends Bot implements NavSafetyPolicy {
         return Harass.isSafeToMoveTo(loc, nearbyEnemies);
     }
 }
-
+*/
 public class Harass extends Bot {
 
 
@@ -466,7 +467,7 @@ public class Harass extends Bot {
         }
 
         if (rc.isCoreReady()) {
-            NavSafetyPolicy safetyPolicy = new SafetyPolicyHarass(nearbyEnemies);
+       //     NavSafetyPolicy safetyPolicy = new SafetyPolicyHarass(nearbyEnemies);
        //     Nav.goTo(theirHQ, safetyPolicy);
         }
     }

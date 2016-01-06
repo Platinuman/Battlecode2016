@@ -11,13 +11,48 @@ public class BotArchon extends Bot {
         while (true) {
             try {
                 turn(rand);
+                //Direction dir = chooseMoveLocAndDir(rc.getLocation());
+                //rc.move(dir);
+                //RobotInfo[] ourUnits = rc.senseNearbyRobots(attackRadiusSq, us);
+                //RobitType neededUnit = checkNeededUnits(ourUnits);
+                //constructNeededUnits(neededUnits);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             Clock.yield();
         }
     }
-
+    private static void constructNeededUnits(RobotType neededUnit){ 
+    	// Check for sufficient parts
+          if (rc.hasBuildRequirements(neededUnit)) {
+              // Choose a random direction to try to build in
+              Direction dirToBuild = Direction.NORTH;
+              for (int i = 0; i < 8; i++) {
+                  // If possible, build in this direction
+                  if (rc.canBuild(dirToBuild,neededUnit)) {
+                      try{
+                	  rc.build(dirToBuild, neededUnit);
+                      } catch (Exception e ){e.printStackTrace();}
+                	  break;
+                  } else {
+                      // Rotate the direction to try
+                      dirToBuild = dirToBuild.rotateLeft();
+                  }
+              }
+          }
+              
+       }
+    private static void checkNeededUnits(RobotInfo[] ourUnits){
+    	//We need to pick unit ratios
+    	//Then produce more of whatever is needed most to achieve that ratio
+    }
+    private static void chooseMoveLocAndDir(MapLocation loc){
+    	//If enemies are near retreat
+    	//return opposite dir of nearest enemy
+    	//If scrap is near take it
+    	//If scrap && enemies aren't near move towards nearest scrap
+    	//return dir of nearest scrap
+    }
     private static void turn(Random rand) throws GameActionException {
     	Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
                 Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
