@@ -54,10 +54,12 @@ public class BotArchon extends Bot {
     	//return dir of nearest scrap
     }
     private static void repairBotMostInNeed() throws GameActionException{
-    	RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+    	RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.attackRadiusSquared, us);
     	if(allies.length > 0){
-    		RobotInfo mostInNeed = Util.leastHealth(allies);
-    		rc.repair(mostInNeed.location);
+    		RobotInfo mostInNeed = Util.leastHealth(allies, 1);
+    		if(mostInNeed != null){
+    			rc.repair(mostInNeed.location);
+    		}
     	}
     }
     private static void turn(Random rand) throws GameActionException {

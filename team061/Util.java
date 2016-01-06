@@ -17,11 +17,11 @@ public class Util extends Bot {
         return closest;
     }
     
-    public static RobotInfo leastHealth(RobotInfo[] robots) {
+    public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
         RobotInfo ret = null;
         double minHealth = 1e99;
         for(int i = robots.length; i --> 0; ) {
-            if(robots[i].health < minHealth) {
+            if(robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
                 minHealth = robots[i].health;
                 ret = robots[i];
             }
