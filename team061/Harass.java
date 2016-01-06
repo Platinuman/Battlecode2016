@@ -467,7 +467,7 @@ public class Harass extends Bot {
         }
 
         if (rc.isCoreReady()) {
-            NavSafetyPolicy safetyPolicy = new SafetyPolicyHarass(nearbyEnemies);
+       //     NavSafetyPolicy safetyPolicy = new SafetyPolicyHarass(nearbyEnemies);
        //     Nav.goTo(theirHQ, safetyPolicy);
         }
     }
