@@ -3,6 +3,8 @@ package team061;
 import battlecode.common.*;
 import java.lang.Math.*;
 
+//TODO: make "yell" method to do the actual broadcast too
+
 public enum MessageEncode {
 	TURRET_TARGET(0, new int[]{3, 7, 1, 2}, 2),// health, robotType, xloc, yloc
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),// radius squared
