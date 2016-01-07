@@ -19,14 +19,10 @@ public class BotTurret extends Bot {
     }
 
     private static void turn() throws GameActionException {
-    	Team myTeam = rc.getTeam();
-		Team enemyTeam = myTeam.opponent();
-    	int myAttackRange = rc.getType().attackRadiusSquared;
         here = rc.getLocation();
         if (rc.isWeaponReady()) {
             Combat.shootAtNearbyEnemies();
         }
-        Signal[] signals = rc.emptySignalQueue();
-        
+        Signal[] signals = rc.emptySignalQueue();        
     }
 }
