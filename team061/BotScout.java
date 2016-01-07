@@ -19,7 +19,8 @@ public class BotScout extends Bot {
     }
 
     private static void turn() throws GameActionException {
-    	RobotInfo[] enemyLocations = rc.senseHostileRobots(rc.getLocation(),RobotType.SCOUT.sensorRadiusSquared);
+    	
+	RobotInfo[] enemyLocations = rc.senseHostileRobots(rc.getLocation(),RobotType.SCOUT.sensorRadiusSquared);
     	
     }
 }
