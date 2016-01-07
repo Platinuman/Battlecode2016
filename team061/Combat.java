@@ -23,16 +23,19 @@ public class Combat extends Bot {
 			for (int i = locations.length; i-- > 0;) {
 				double attackPower = types[i].attackPower;
 				int health = healths[i];
+				Team targetTeam = Team.ZOMBIE;
 				Team team = Util.getTeam(types[i]);
 				MapLocation location = locations[i];
-				if (attackPower > maxPower && rc.canAttackLocation(location)) {
+				if (attackPower > maxPower && rc.canAttackLocation(location) || team == us.opponent() && targetTeam == Team.ZOMBIE) {
 					maxPower = attackPower;
 					minHealth = health;
-					targetLocation = locations[i];
+					targetTeam = team;
+					targetLocation = location;
 				} else if (attackPower == maxPower && health < minHealth && rc.canAttackLocation(location)) {
 					minHealth = health;
 					targetLocation = location;
-				}
+					targetTeam = team;
+				} 
 			}
 			if(targetLocation != null){
 				rc.attackLocation(targetLocation);
