@@ -129,7 +129,6 @@ public class BotArchon extends Bot {
     }
 
 	private static void aarons_shitty_strat() throws GameActionException {
-
 		constructNeededUnits(RobotType.TURRET);
 	}
 }
