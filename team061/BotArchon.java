@@ -58,6 +58,7 @@ public class BotArchon extends Bot {
     	if(allies.length > 0){
     		RobotInfo mostInNeed = Util.leastHealth(allies, 1);
     		if(mostInNeed != null){
+    			rc.setIndicatorString(0,"Repairing" + mostInNeed.location.toString());
     			rc.repair(mostInNeed.location);
     		}
     	}
@@ -76,12 +77,12 @@ public class BotArchon extends Bot {
             rc.broadcastMessageSignal(6370, 6147, 80);
         }
         Signal[] signals = rc.emptySignalQueue();
-        if (signals.length > 0) {
+       /* if (signals.length > 0) {
             // Set an indicator string that can be viewed in the client
             rc.setIndicatorString(0, "I received a signal this turn!");
         } else {
             rc.setIndicatorString(0, "I don't any signal buddies");
-        }
+        }*/
         if (rc.isCoreReady()) {
             if (fate < 800) {
                 // Choose a random direction to try to move in
