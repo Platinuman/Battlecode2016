@@ -26,5 +26,7 @@ public class BotTurret extends Bot {
         if (rc.isWeaponReady()) {
             Combat.shootAtNearbyEnemies();
         }
+        Signal[] signals = rc.emptySignalQueue();
+        
     }
 }
