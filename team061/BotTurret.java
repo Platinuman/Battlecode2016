@@ -59,5 +59,4 @@ public class BotTurret extends Bot {
 		indicesOfTargetSignals[signals.length] = count;
 		return indicesOfTargetSignals;
 	}
-	
 }

@@ -6,7 +6,6 @@ public class Bot {
 	public static RobotController rc;
 	protected static Team us;
 	protected static Team them;
-
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
 
 	protected static void init(RobotController theRC) throws GameActionException {
@@ -16,6 +15,7 @@ public class Bot {
 		them = us.opponent();
 
 		here = rc.getLocation();
+		//System.out.println(MessageEncode.TURRET_TARGET.decode(MessageEncode.TURRET_TARGET.encode(new int[]{69, RobotType.SOLDIER.ordinal(), 1234,4321}))[3]);
 	}
 	/*
     public static boolean inEnemyTowerOrHQRange(MapLocation loc, MapLocation[] enemyArchons) {
