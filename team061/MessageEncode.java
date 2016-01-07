@@ -5,8 +5,8 @@ import java.lang.Math.*;
 
 public enum MessageEncode {
 	TURRET_TARGET(0, new int[]{3, 7, 1, 2}, 2),// health, robotType, xloc, yloc
-	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),// radius squared (max dist to go from archon)
-	ALPHA_ARCHON_LOCATION(2, new int[]{1,2},0);
+	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),// radius squared
+	ALPHA_ARCHON_LOCATION(2, new int[]{1,2},0);// xloc , yloc
 	//note: don't forget to add to the whichStruct method when you add more encode keys
 
 	private final int reasonNumber;
