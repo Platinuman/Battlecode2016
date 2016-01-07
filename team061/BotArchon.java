@@ -29,11 +29,16 @@ public class BotArchon extends Bot {
 	private static void init(){
         Signal[] signals = rc.emptySignalQueue();
 		if (signals.length == 0){
-		//MessageEncode.ALPHA_ARCHON_LOCATION. broadcast ur location everywhere
+		MapLocation myLocation = rc.getLocation();
+		int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[]{myLocation.x,myLocation.y});
 		isAlphaArchon = true;
 		}
 		else{
-		//alpha = decoded location
+		for (int i = 0; i < signals.length; i++ ){
+				if (signals[i].getTeam() == us){
+					//check if its an archon signal
+				}
+		}
 		isAlphaArchon = false;
 		}
 	}
