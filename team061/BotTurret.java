@@ -3,9 +3,10 @@ package team061;
 import battlecode.common.*;
 
 public class BotTurret extends Bot {
+	static MapLocation alpha;
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
-
+		
 		// Debug.init("micro");
 
 		while (true) {
@@ -17,6 +18,20 @@ public class BotTurret extends Bot {
 			Clock.yield();
 		}
 	}
+	
+	private static void init() throws GameActionException {
+		Signal[] signals = rc.emptySignalQueue();
+		for (int i = 0; i < signals.length; i++) {
+			int[] message = signals[i].getMessage();
+			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
+				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
+				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				break;
+				// check if its an archon signal
+			}
+		}
+	}
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
@@ -24,7 +39,7 @@ public class BotTurret extends Bot {
 		attackIfApplicable(signals);
 	}
 
-	private static void attackIfApplicable(Signal[] signals) {
+	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
 		if (rc.isWeaponReady()) {
 			Combat.shootAtNearbyEnemies();
 			if (rc.isWeaponReady()) {
@@ -53,7 +68,7 @@ public class BotTurret extends Bot {
 		for (int i = 0; i < signals.length; i++) {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (msgType == MessageEncode.TURRET_TARGET) {
+			if (msgType == MessageEncode.TURRET_TARGET && signals[i].getTeam() == us) {
 				indicesOfTargetSignals[count] = i;
 				count++;
 			}
