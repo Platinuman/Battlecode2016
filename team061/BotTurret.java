@@ -5,6 +5,7 @@ import battlecode.common.*;
 public class BotTurret extends Bot {
     public static void loop(RobotController theRC) throws GameActionException {
         Bot.init(theRC);
+        
 //        Debug.init("micro");
 
         while (true) {
@@ -19,5 +20,9 @@ public class BotTurret extends Bot {
 
     private static void turn() throws GameActionException {
         here = rc.getLocation();
+        if (rc.isWeaponReady()) {
+            Combat.shootAtNearbyEnemies();
+        }
+        Signal[] signals = rc.emptySignalQueue();        
     }
 }
