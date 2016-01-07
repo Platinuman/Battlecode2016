@@ -4,8 +4,10 @@ import battlecode.common.*;
 import java.util.Random;
 
 public class BotArchon extends Bot {
+	MapLocation alpha;
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
+		init();
 		// Debug.init("micro");
 		Random rand = new Random(rc.getID());
 		while (true) {
@@ -23,7 +25,15 @@ public class BotArchon extends Bot {
 			Clock.yield();
 		}
 	}
-
+	private static void init(){
+        Signal[] signals = rc.emptySignalQueue();
+		if (signals.length == 0){
+		//MessageEncode.ALPHA_ARCHON_LOCATION. broadcast ur location everywhere
+		}
+		else{
+		//alpha = decoded location
+		}
+	}
 	private static void constructNeededUnits(RobotType neededUnit) {
 		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
@@ -78,13 +88,12 @@ public class BotArchon extends Bot {
                 RobotType.GUARD, RobotType.VIPER, RobotType.TURRET};
         repairBotMostInNeed();
         here = rc.getLocation();
-        int fate = rand.nextInt(1000);
+       // int fate = rand.nextInt(1000);
         // Check if this ARCHON's core is ready
-        if (fate % 10 == 2) {
+        //if (fate % 10 == 2) {
             // Send a message signal containing the data (6370, 6147)
-            rc.broadcastMessageSignal(6370, 6147, 80);
-        }
-        Signal[] signals = rc.emptySignalQueue();
+       //     rc.broadcastMessageSignal(6370, 6147, 80);
+        //}
        /* if (signals.length > 0) {
             // Set an indicator string that can be viewed in the client
             rc.setIndicatorString(0, "I received a signal this turn!");
@@ -124,6 +133,7 @@ public class BotArchon extends Bot {
                 }
             }*/
         if (rc.isCoreReady()) {
+		// if ur not <  2 of alpha archon Nav.goTo(alpha);
         	aarons_shitty_strat();
         }
     }
