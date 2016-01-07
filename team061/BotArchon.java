@@ -124,11 +124,19 @@ public class BotArchon extends Bot {
                 }
             }*/
         if (rc.isCoreReady()) {
-        	aarons_shitty_strat();
+        	aarons_shitty_strat(rand);
         }
     }
 
-	private static void aarons_shitty_strat() throws GameActionException {
+	private static void aarons_shitty_strat(Random rand) throws GameActionException {
 		constructNeededUnits(RobotType.TURRET);
+		Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+                Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
+		if (rc.isCoreReady()) {
+			Direction dir = directions[rand.nextInt(8)];
+			if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+                 rc.clearRubble(dir);
+		}
 	}
+}
 }
