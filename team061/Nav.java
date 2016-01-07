@@ -151,6 +151,15 @@ public class Nav extends Bot {
         bugWallSide = (bugWallSide == WallSide.LEFT ? WallSide.RIGHT : WallSide.LEFT);
         startBug();
     }
+    private static void bugTurn() throws GameActionException {
+        if (detectBugIntoEdge()) {
+            reverseBugWallFollowDir();
+        }
+        Direction dir = findBugMoveDir();
+        if (dir != null) {
+            bugMove(dir);
+        }
+    }
     private static boolean canEndBug() {
         if (bugMovesSinceSeenObstacle >= 4) return true;
         return (bugRotationCount <= 0 || bugRotationCount >= 8) && here.distanceSquaredTo(dest) <= bugStartDistSq;
