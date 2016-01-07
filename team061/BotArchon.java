@@ -5,6 +5,7 @@ import java.util.Random;
 
 public class BotArchon extends Bot {
 	MapLocation alpha;
+	boolean isAlphaArchon;
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		init();
@@ -29,9 +30,11 @@ public class BotArchon extends Bot {
         Signal[] signals = rc.emptySignalQueue();
 		if (signals.length == 0){
 		//MessageEncode.ALPHA_ARCHON_LOCATION. broadcast ur location everywhere
+		isAlphaArchon = true;
 		}
 		else{
 		//alpha = decoded location
+		isAlphaArchon = false;
 		}
 	}
 	private static void constructNeededUnits(RobotType neededUnit) {
@@ -139,6 +142,8 @@ public class BotArchon extends Bot {
     }
 
 	private static void aarons_shitty_strat() throws GameActionException {
+		//  if not near alpha archon move toward it
 		constructNeededUnits(RobotType.TURRET);
+			
 	}
 }
