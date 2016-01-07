@@ -28,4 +28,19 @@ public class Util extends Bot {
         }
         return ret;
     }
+    
+    public static Team getTeam(RobotType type){
+    	switch(type){
+    	case ARCHON:
+    	case GUARD:
+    	case SCOUT:
+    	case SOLDIER:
+    	case TTM:
+    	case TURRET:
+    	case VIPER:
+    		return us.opponent();
+    	default:
+    		return Team.ZOMBIE;
+    	}
+    }
 }
