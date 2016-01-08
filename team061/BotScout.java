@@ -11,7 +11,7 @@ public class BotScout extends Bot {
 	static boolean firstTurn = true;
 
 	public static void loop(RobotController theRC) throws GameActionException {
-		if(firstTurn){
+		if (firstTurn) {
 			firstTurn = false;
 			Clock.yield();
 		}
@@ -27,6 +27,7 @@ public class BotScout extends Bot {
 			Clock.yield();
 		}
 	}
+
 	private static void init() throws GameActionException {
 		atScoutLocation = false;
 		Signal[] signals = rc.emptySignalQueue();
@@ -39,8 +40,11 @@ public class BotScout extends Bot {
 				break;
 			}
 		}
-		preferredScoutLocations = new MapLocation[] {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2), alpha.add(4,2), alpha.add(4,-2),alpha.add(-4,2),alpha.add(-4,-2),alpha.add(2,4), alpha.add(2,-4),alpha.add(-2,4),alpha.add(-2,-4)};
+		preferredScoutLocations = new MapLocation[] { alpha.add(2, 2), alpha.add(2, -2), alpha.add(-2, 2),
+				alpha.add(-2, -2), alpha.add(4, 2), alpha.add(4, -2), alpha.add(-4, 2), alpha.add(-4, -2),
+				alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2, -4) };
 	}
+
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
@@ -48,28 +52,31 @@ public class BotScout extends Bot {
 			MapLocation loc = enemyRobots[i].location;
 			double health = enemyRobots[i].health;
 			RobotType type = enemyRobots[i].type;
-			int[] message = MessageEncode.TURRET_TARGET.encode(new int[]{(int)(health), type.ordinal(), loc.x, loc.y});
-			rc.broadcastMessageSignal(message[0],message[1],(int)(RobotType.SCOUT.sensorRadiusSquared*GameConstants.BROADCAST_RANGE_MULTIPLIER));
+			int[] message = MessageEncode.TURRET_TARGET
+					.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
+			rc.broadcastMessageSignal(message[0], message[1],
+					(int) (RobotType.SCOUT.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		}
-		
-		
-		if (!atScoutLocation){
-			for (int i = 0; i < preferredScoutLocations.length ; i++){
-				if (preferredScoutLocations[i].equals(here)){
+
+		if (!atScoutLocation) {
+			for (int i = 0; i < preferredScoutLocations.length; i++) {
+				if (preferredScoutLocations[i].equals(here)) {
 					atScoutLocation = true;
 				}
 			}
 		}
-		if (!atScoutLocation){
-			for (int i = 0; i < preferredScoutLocations.length ; i++){
-				if(!rc.isLocationOccupied(preferredScoutLocations[i]) && rc.onTheMap(preferredScoutLocations[i])){
-					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-					Nav.goTo(preferredScoutLocations[i], theSafety);
+
+		if (!atScoutLocation) {
+			if (rc.isCoreReady()) {
+				for (int i = 0; i < preferredScoutLocations.length; i++) {
+					if (!rc.isLocationOccupied(preferredScoutLocations[i]) && rc.onTheMap(preferredScoutLocations[i])) {
+						NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
+						Nav.goTo(preferredScoutLocations[i], theSafety);
+					}
 				}
 			}
-			
-			
+
 		}
-		
+
 	}
 }
