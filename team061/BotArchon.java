@@ -10,6 +10,20 @@ public class BotArchon extends Bot {
 	static int maxRange;
 	static int numScoutsCreated = 0;
 
+	private static boolean checkRubbleAndClear(Direction dir) {
+
+		if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			try {
+				rc.clearRubble(dir);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
+	}
+
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		init();
@@ -37,7 +51,7 @@ public class BotArchon extends Bot {
 		if (!signalsFromOurTeam(signals)) {
 			MapLocation myLocation = rc.getLocation();
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
-			rc.broadcastMessageSignal(myMsg[0],myMsg[1],10000);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 			isAlphaArchon = true;
 			alpha = myLocation;
 		} else {
@@ -55,20 +69,39 @@ public class BotArchon extends Bot {
 	}
 
 	private static Boolean signalsFromOurTeam(Signal[] signals) {
-		if(signals.length == 0){
+		if (signals.length == 0) {
 			return false;
-		}
-		else{
-			for (Signal sig: signals) {
-				if(sig.getTeam() == us)
+		} else {
+			for (Signal sig : signals) {
+				if (sig.getTeam() == us)
 					return true;
 			}
 		}
 		return false;
-		
 	}
 
-	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {//TODO if ur the alpha broadcast after u create // after u create if theres 8 spots increase max range by 1/2
+	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {// TODO
+																								// if
+																								// ur
+																								// the
+																								// alpha
+																								// broadcast
+																								// after
+																								// u
+																								// create
+																								// //
+																								// after
+																								// u
+																								// create
+																								// if
+																								// theres
+																								// 8
+																								// spots
+																								// increase
+																								// max
+																								// range
+																								// by
+																								// 1/2
 		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
@@ -86,15 +119,15 @@ public class BotArchon extends Bot {
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 					built = true;
 					break;
-				} else {
+				} else if (!checkRubbleAndClear(dirToBuild)) {
 					// Rotate the direction to try
 					dirToBuild = dirToBuild.rotateLeft();
 				}
 			}
-			if(isAlphaArchon && isSurrounded()){
+			if (isAlphaArchon && isSurrounded()) {
 				maxRange++;
-				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[]{maxRange});
-				rc.broadcastMessageSignal(message[0], message[1], maxRange*maxRange);
+				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
+				rc.broadcastMessageSignal(message[0], message[1], maxRange * maxRange);
 			}
 		}
 
@@ -105,7 +138,7 @@ public class BotArchon extends Bot {
 		Boolean surrounded = true;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = here.add(dir);
-			if(rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)){
+			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
 				surrounded = false;
 				break;
 			}
@@ -132,7 +165,8 @@ public class BotArchon extends Bot {
 		if (allies.length > 0) {
 			RobotInfo mostInNeed = Util.leastHealth(allies, 1);
 			if (mostInNeed != null) {
-				//rc.setIndicatorString(0, "Repairing" + mostInNeed.location.toString());
+				// rc.setIndicatorString(0, "Repairing" +
+				// mostInNeed.location.toString());
 				rc.repair(mostInNeed.location);
 			}
 		}
@@ -174,7 +208,6 @@ public class BotArchon extends Bot {
 		 */
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
-			
 			if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
 				aarons_shitty_strat();
 			} else {
@@ -187,7 +220,7 @@ public class BotArchon extends Bot {
 	private static void aarons_shitty_strat() throws GameActionException {
 		// alpha archon created scouts
 		RobotType needed = RobotType.TURRET;
-		if(isAlphaArchon && (numScoutsCreated < 4 || (rc.getRoundNum()>1500 && numScoutsCreated< 10))){
+		if (isAlphaArchon && (numScoutsCreated < 4 || (rc.getRoundNum() > 1500 && numScoutsCreated < 10))) {
 			needed = RobotType.SCOUT;
 		}
 		constructNeededUnits(needed);
