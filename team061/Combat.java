@@ -15,25 +15,27 @@ public class Combat extends Bot {
 		}
 		return target;
 	}
-	public static void shootBestEnemyTakingIntoAccountScoutInfo(MapLocation[] locations, double[] healths, RobotType[] types) throws GameActionException{
-		shootAtNearbyEnemies();
+	public static void shootBestEnemyTakingIntoAccountScoutInfo(MapLocation[] locations, int[] healths, RobotType[] types) throws GameActionException{
 		if(rc.isWeaponReady()){
 			double minHealth = 999999;
 			double maxPower = -1;
 			MapLocation targetLocation = null;
 			for (int i = locations.length; i-- > 0;) {
 				double attackPower = types[i].attackPower;
-				double health = healths[i];
+				int health = healths[i];
+				Team targetTeam = Team.ZOMBIE;
 				Team team = Util.getTeam(types[i]);
 				MapLocation location = locations[i];
-				if (attackPower > maxPower && rc.canAttackLocation(location)) {
+				if (attackPower > maxPower && rc.canAttackLocation(location) || team == us.opponent() && targetTeam == Team.ZOMBIE) {
 					maxPower = attackPower;
 					minHealth = health;
-					targetLocation = locations[i];
+					targetTeam = team;
+					targetLocation = location;
 				} else if (attackPower == maxPower && health < minHealth && rc.canAttackLocation(location)) {
 					minHealth = health;
 					targetLocation = location;
-				}
+					targetTeam = team;
+				} 
 			}
 			if(targetLocation != null){
 				rc.attackLocation(targetLocation);
