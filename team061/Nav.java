@@ -52,18 +52,8 @@ public class Nav extends Bot {
 		}
 		return true;
 	}
-	private static boolean checkRubbleAndClear(Direction dir){
-        
-		if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-	    try{
-			rc.clearRubble(dir);
-		    } catch (Exception e) {
-	            System.out.println(e.getMessage());
-	            e.printStackTrace();
-	        }
-            return true;
-		}  
-         return false;
+	private static boolean checkRubble(Direction dir){
+		return rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 	}
 	private static boolean canMove(Direction dir) {
 		return rc.canMove(dir) && safety.isSafeToMoveTo(here.add(dir));
@@ -213,24 +203,24 @@ public class Nav extends Bot {
 		}
 
 		// If DIRECT mode, try to go directly to target
-		boolean rubbleCleared = false;
-		checkRubbleAndClear(here.directionTo(dest));
 
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
-			 if(rubbleCleared){
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				bugState = BugState.BUG;
-				startBug();
-			 }
-			} else {
+				if(checkRubble(here.directionTo(dest))){
+					rc.clearRubble(here.directionTo(dest));
+				}
+				else{
+					bugState = BugState.BUG;
+					startBug();
+				}
+			} 
 				//checkRubbleAndClear(here.directionTo(dest));
 				// Debug.indicateAppend("nav", 1, "successful direct move; ");
-			}
 		}
 
 		// If that failed, or if bugging, bug
-		if (bugState == BugState.BUG && rubbleCleared) {
+		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
 		}
