@@ -81,28 +81,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {// TODO
-																								// if
-																								// ur
-																								// the
-																								// alpha
-																								// broadcast
-																								// after
-																								// u
-																								// create
-																								// //
-																								// after
-																								// u
-																								// create
-																								// if
-																								// theres
-																								// 8
-																								// spots
-																								// increase
-																								// max
-																								// range
-																								// by
-																								// 1/2
+	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {
 		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
