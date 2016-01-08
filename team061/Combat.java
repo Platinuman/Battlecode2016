@@ -26,7 +26,7 @@ public class Combat extends Bot {
 				Team targetTeam = Team.ZOMBIE;
 				Team team = Util.getTeam(types[i]);
 				MapLocation location = locations[i];
-				if (attackPower > maxPower && rc.canAttackLocation(location) || team == us.opponent() && targetTeam == Team.ZOMBIE) {
+				if (rc.canAttackLocation(location) && (attackPower > maxPower || (team == us.opponent() && targetTeam == Team.ZOMBIE))) {
 					maxPower = attackPower;
 					minHealth = health;
 					targetTeam = team;
