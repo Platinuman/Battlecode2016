@@ -7,6 +7,8 @@ import java.util.Random;
 public class BotArchon extends Bot {
 	static MapLocation alpha;
 	static boolean isAlphaArchon;
+	static int maxRange;
+	static int numScoutsCreated;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -30,13 +32,14 @@ public class BotArchon extends Bot {
 	}
 
 	private static void init() throws GameActionException {
+		maxRange = 2;
 		Signal[] signals = rc.emptySignalQueue();
-		//TODO make this check instead that signals from our queue are 0
-		if (signals.length == 0) {
+		if (!signalsFromOurTeam(signals)) {
 			MapLocation myLocation = rc.getLocation();
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
 			rc.broadcastMessageSignal(myMsg[0],myMsg[1],10000);
 			isAlphaArchon = true;
+			alpha = myLocation;
 		} else {
 			for (int i = 0; i < signals.length; i++) {
 				int[] message = signals[i].getMessage();
@@ -51,27 +54,64 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void constructNeededUnits(RobotType neededUnit) {//TODO if ur the alpha broadcast after u create // after u create if theres 8 spots increase max range by 1/2
+	private static Boolean signalsFromOurTeam(Signal[] signals) {
+		if(signals.length == 0){
+			return false;
+		}
+		else{
+			for (Signal sig: signals) {
+				if(sig.getTeam() == us)
+					return true;
+			}
+		}
+		return false;
+		
+	}
+
+	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {//TODO if ur the alpha broadcast after u create // after u create if theres 8 spots increase max range by 1/2
 		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
 			Direction dirToBuild = Direction.NORTH;
+			Boolean built = false;
 			for (int i = 0; i < 8; i++) {
 				// If possible, build in this direction
 				if (rc.canBuild(dirToBuild, neededUnit)) {
-					try {
-						rc.build(dirToBuild, neededUnit);
-					} catch (Exception e) {
-						e.printStackTrace();
+					rc.build(dirToBuild, neededUnit);
+					if (neededUnit == RobotType.SCOUT) {
+						numScoutsCreated++;
 					}
+					// tell the unit you just created the location
+					int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
+					built = true;
 					break;
 				} else {
 					// Rotate the direction to try
 					dirToBuild = dirToBuild.rotateLeft();
 				}
 			}
+			if(built && isAlphaArchon && isSurrounded()){
+				maxRange++;
+				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[]{maxRange});
+				rc.broadcastMessageSignal(message[0], message[1], maxRange);
+			}
 		}
 
+	}
+
+	private static boolean isSurrounded() throws GameActionException {
+		Direction dir = Direction.NORTH;
+		Boolean surrounded = true;
+		for (int i = 0; i < 8; i++) {
+			MapLocation newLoc = here.add(dir);
+			if(rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)){
+				surrounded = false;
+				break;
+			}
+			dir = dir.rotateLeft();
+		}
+		return surrounded;
 	}
 
 	private static void checkNeededUnits(RobotInfo[] ourUnits) {
@@ -145,7 +185,11 @@ public class BotArchon extends Bot {
 	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
-		// if not near alpha archon move toward it
+		// alpha archon created scouts
+		RobotType needed = RobotType.TURRET;
+		if(isAlphaArchon && numScoutsCreated < 4){
+			needed = RobotType.SCOUT;
+		}
 		constructNeededUnits(RobotType.TURRET);
 
 	}

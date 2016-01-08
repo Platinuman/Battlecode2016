@@ -8,8 +8,13 @@ public class BotScout extends Bot {
 	static MapLocation alpha;
 	static MapLocation[] preferredScoutLocations;
 	static boolean atScoutLocation;
+	static boolean firstTurn = true;
+
 	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
+		if(firstTurn){
+			firstTurn = false;
+			Clock.yield();
+		}
 		// Debug.init("micro");
 		init();
 		while (true) {
@@ -33,7 +38,7 @@ public class BotScout extends Bot {
 				break;
 			}
 		}
-		MapLocation[] preferredScoutLocations = {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2)};
+		MapLocation[] preferredScoutLocations = {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2), alpha.add(4,2), alpha.add(4,-2),alpha.add(-4,2),alpha.add(-4,-2),alpha.add(2,4), alpha.add(2,-4),alpha.add(-2,4),alpha.add(-2,-4)};
 	}
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
@@ -54,7 +59,7 @@ public class BotScout extends Bot {
 				}
 			}
 			for (int i = 0; i < preferredScoutLocations.length ; i++){
-				if(!rc.isLocationOccupied(preferredScoutLocations[i])){
+				if(!rc.isLocationOccupied(preferredScoutLocations[i]) && rc.onTheMap(preferredScoutLocations[i])){
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
 					Nav.goTo(preferredScoutLocations[i], theSafety);
 				}
