@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 public class BotTurret extends Bot {
 	static MapLocation alpha;
+	static int range;
+	static boolean isTTM;
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		
@@ -20,6 +22,8 @@ public class BotTurret extends Bot {
 	}
 	
 	private static void init() throws GameActionException {
+		isTTM = false;
+		range = 2;
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
 			int[] message = signals[i].getMessage();
@@ -28,7 +32,6 @@ public class BotTurret extends Bot {
 				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
-				// check if its an archon signal
 			}
 		}
 	}
@@ -36,7 +39,8 @@ public class BotTurret extends Bot {
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		Signal[] signals = rc.emptySignalQueue();
-		attackIfApplicable(signals);
+		attackIfApplicable(signals);//if the maxrange was sent update it // only do this if you are not a ttm
+		//if ur core is still ready (no enemies), and there is a u can move to a location that is farther from the alpha, (but also safe and within max range, pack up and move there
 	}
 
 	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
