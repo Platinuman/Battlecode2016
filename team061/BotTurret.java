@@ -83,7 +83,9 @@ public class BotTurret extends Bot {
 			MapLocation newLoc = here.add(dir);
 			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range){
+				RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.TURRET.sensorRadiusSquared);
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
+				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range && theSafety.isSafeToMoveTo(newLoc)){
 					if(!isTTM){
 						rc.pack();
 						isTTM = true;

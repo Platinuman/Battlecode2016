@@ -7,6 +7,7 @@ import battlecode.common.*;
 public class BotScout extends Bot {
 	static MapLocation alpha;
 	static MapLocation[] preferredScoutLocations;
+	static MapLocation dest;
 	static boolean atScoutLocation;
 	static boolean firstTurn = true;
 
@@ -64,19 +65,30 @@ public class BotScout extends Bot {
 			}
 		}
 
-		if (!atScoutLocation) {
+		if (!atScoutLocation && dest == null) {
 			if (rc.isCoreReady()) {
 				for (int i = 0; i < preferredScoutLocations.length; i++) {
 					MapLocation scoutLocation = preferredScoutLocations[i];
 					if (rc.canSense(scoutLocation)) {
 						if (!rc.isLocationOccupied(scoutLocation) && rc.onTheMap(scoutLocation)) {
 							NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-							Nav.goTo(preferredScoutLocations[i], theSafety);
+							if(theSafety.isSafeToMoveTo(scoutLocation)){
+								dest = scoutLocation;
+								Nav.goTo(scoutLocation, theSafety);
+							}
 						}
 					}
 				}
 			}
-
+		}
+		else if (!atScoutLocation && rc.isCoreReady()){
+			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
+			if(theSafety.isSafeToMoveTo(dest)){
+				Nav.goTo(dest, theSafety);
+			}
+			else{
+				dest = null;
+			}
 		}
 
 	}
