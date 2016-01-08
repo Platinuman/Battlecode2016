@@ -81,7 +81,7 @@ public enum MessageEncode {
 		int[] data = new int[whichDataToInclude.length];
 		int powerOfTwo = multiplyByTwo(1, howMuchSpaceDataNeeds[0]);
 		for ( int i = 0; i < whereToSplitData; i++){
-			System.out.println(Math.log(powerOfTwo)/Math.log(2) + " " + Math.log(multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]))/Math.log(2));
+			//System.out.println(Math.log(powerOfTwo)/Math.log(2) + " " + Math.log(multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]))/Math.log(2));
 			data[i] = mess[0]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1 || whichDataToInclude[i] == 2)	
 				data[i] -= 16000;

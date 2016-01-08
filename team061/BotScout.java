@@ -52,10 +52,8 @@ public class BotScout extends Bot {
 			MapLocation loc = enemyRobots[i].location;
 			double health = enemyRobots[i].health;
 			RobotType type = enemyRobots[i].type;
-			int[] message = MessageEncode.TURRET_TARGET
-					.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
-			rc.broadcastMessageSignal(message[0], message[1],
-					(int) (RobotType.SCOUT.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+			int[] message = MessageEncode.TURRET_TARGET.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
+			rc.broadcastMessageSignal(message[0], message[1], (int) (RobotType.SCOUT.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		}
 
 		if (!atScoutLocation) {
@@ -69,9 +67,12 @@ public class BotScout extends Bot {
 		if (!atScoutLocation) {
 			if (rc.isCoreReady()) {
 				for (int i = 0; i < preferredScoutLocations.length; i++) {
-					if (!rc.isLocationOccupied(preferredScoutLocations[i]) && rc.onTheMap(preferredScoutLocations[i])) {
-						NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-						Nav.goTo(preferredScoutLocations[i], theSafety);
+					MapLocation scoutLocation = preferredScoutLocations[i];
+					if (rc.canSense(scoutLocation)) {
+						if (!rc.isLocationOccupied(scoutLocation) && rc.onTheMap(scoutLocation)) {
+							NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
+							Nav.goTo(preferredScoutLocations[i], theSafety);
+						}
 					}
 				}
 			}
