@@ -34,6 +34,9 @@ public class BotTurret extends Bot {
 		range = 2;
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
+			if(signals[i].getTeam() == them){
+				continue;
+			}
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
@@ -80,10 +83,16 @@ public class BotTurret extends Bot {
 			MapLocation newLoc = here.add(dir);
 			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
 				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				if(rc.canMove(dir) && distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range*range){
-					rc.pack();
-					isTTM = true;
-					break;
+				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range*range){
+					if(!isTTM){
+						rc.pack();
+						isTTM = true;
+						break;
+					}
+					else if (rc.canMove(dir)){
+						rc.move(dir);
+						break;
+					}
 				}
 			}
 			dir = dir.rotateLeft();
@@ -93,11 +102,15 @@ public class BotTurret extends Bot {
 	private static boolean updateMaxRange(Signal[] signals) {
 		boolean rangeUpdated = false;
 		for (int i = 0; i < signals.length; i++) {
+			if(signals[i].getTeam() == them){
+				continue;
+			}
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
 				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
 				range = decodedMessage[0];
+				System.out.println(range);
 				rangeUpdated = true;
 				break;
 			}

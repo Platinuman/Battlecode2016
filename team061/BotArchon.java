@@ -94,7 +94,7 @@ public class BotArchon extends Bot {
 			if(built && isAlphaArchon && isSurrounded()){
 				maxRange++;
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[]{maxRange});
-				rc.broadcastMessageSignal(message[0], message[1], maxRange);
+				rc.broadcastMessageSignal(message[0], message[1], maxRange*maxRange);
 			}
 		}
 
