@@ -31,6 +31,7 @@ public class BotArchon extends Bot {
 
 	private static void init() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
+		//TODO make this check instead that signals from our queue are 0
 		if (signals.length == 0) {
 			MapLocation myLocation = rc.getLocation();
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
@@ -44,14 +45,13 @@ public class BotArchon extends Bot {
 					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
 					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 					break;
-					// check if its an archon signal
 				}
 			}
 			isAlphaArchon = false;
 		}
 	}
 
-	private static void constructNeededUnits(RobotType neededUnit) {
+	private static void constructNeededUnits(RobotType neededUnit) {//TODO if ur the alpha broadcast after u create // after u create if theres 8 spots increase max range by 1/2
 		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
@@ -134,7 +134,7 @@ public class BotArchon extends Bot {
 		 */
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
-			// if ur not < 2 of alpha archon Nav.goTo(alpha);
+			
 			if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
 				aarons_shitty_strat();
 			} else {
@@ -148,10 +148,5 @@ public class BotArchon extends Bot {
 		// if not near alpha archon move toward it
 		constructNeededUnits(RobotType.TURRET);
 
-<<<<<<< HEAD
-}
-}
-=======
 	}
 }
->>>>>>> e3de8b8de4b80bcb86051b7e15116bba517ab367

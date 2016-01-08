@@ -31,7 +31,6 @@ public class BotScout extends Bot {
 				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
-				// check if its an archon signal
 			}
 		}
 		MapLocation[] preferredScoutLocations = {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2)};
