@@ -91,7 +91,7 @@ public class BotArchon extends Bot {
 					dirToBuild = dirToBuild.rotateLeft();
 				}
 			}
-			if(built && isAlphaArchon && isSurrounded()){
+			if(isAlphaArchon && isSurrounded()){
 				maxRange++;
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[]{maxRange});
 				rc.broadcastMessageSignal(message[0], message[1], maxRange*maxRange);
@@ -187,7 +187,7 @@ public class BotArchon extends Bot {
 	private static void aarons_shitty_strat() throws GameActionException {
 		// alpha archon created scouts
 		RobotType needed = RobotType.TURRET;
-		if(isAlphaArchon && numScoutsCreated < 4){
+		if(isAlphaArchon && (numScoutsCreated < 4 || (rc.getRoundNum()>1500 && numScoutsCreated< 10))){
 			needed = RobotType.SCOUT;
 		}
 		constructNeededUnits(needed);

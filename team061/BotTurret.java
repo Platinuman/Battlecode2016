@@ -53,7 +53,7 @@ public class BotTurret extends Bot {
 			Signal[] signals = rc.emptySignalQueue();
 			attackIfApplicable(signals);
 			Boolean rangeUpdated = updateMaxRange(signals);
-			if (rangeUpdated || shouldMove) {
+			if (true || shouldMove) {
 				if (rc.isCoreReady()) {
 					moveToLocFartherThanAlphaIfPossible(here);
 					shouldMove = false;
@@ -83,7 +83,7 @@ public class BotTurret extends Bot {
 			MapLocation newLoc = here.add(dir);
 			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
 				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range*range){
+				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range){
 					if(!isTTM){
 						rc.pack();
 						isTTM = true;
