@@ -59,6 +59,8 @@ public class BotScout extends Bot {
 					atScoutLocation = true;
 				}
 			}
+		}
+		if (!atScoutLocation){
 			for (int i = 0; i < preferredScoutLocations.length ; i++){
 				if(!rc.isLocationOccupied(preferredScoutLocations[i]) && rc.onTheMap(preferredScoutLocations[i])){
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
