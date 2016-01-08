@@ -148,5 +148,10 @@ public class BotArchon extends Bot {
 		// if not near alpha archon move toward it
 		constructNeededUnits(RobotType.TURRET);
 
+<<<<<<< HEAD
 }
 }
+=======
+	}
+}
+>>>>>>> e3de8b8de4b80bcb86051b7e15116bba517ab367
