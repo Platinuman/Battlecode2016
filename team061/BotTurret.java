@@ -81,7 +81,7 @@ public class BotTurret extends Bot {
 		Direction dir = Direction.NORTH;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
 				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range){
 					if(!isTTM){
