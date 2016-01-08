@@ -15,6 +15,7 @@ public class BotTurret extends Bot {
 			Clock.yield();
 		}
 		Bot.init(theRC);
+		init();
 
 		// Debug.init("micro");
 

@@ -16,6 +16,7 @@ public class BotScout extends Bot {
 			Clock.yield();
 		}
 		// Debug.init("micro");
+		Bot.init(theRC);
 		init();
 		while (true) {
 			try {
