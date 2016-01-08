@@ -47,8 +47,7 @@ public class Nav extends Bot {
 	private static int bugMovesSinceSeenObstacle = 0;
 
 	private static boolean move(Direction dir) throws GameActionException {
-		if (rc.isCoreReady())
-			rc.move(dir);
+		rc.move(dir);
 		return true;
 	}
 

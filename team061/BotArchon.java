@@ -132,7 +132,7 @@ public class BotArchon extends Bot {
 		if (allies.length > 0) {
 			RobotInfo mostInNeed = Util.leastHealth(allies, 1);
 			if (mostInNeed != null) {
-				rc.setIndicatorString(0, "Repairing" + mostInNeed.location.toString());
+				//rc.setIndicatorString(0, "Repairing" + mostInNeed.location.toString());
 				rc.repair(mostInNeed.location);
 			}
 		}
