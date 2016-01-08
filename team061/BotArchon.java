@@ -190,7 +190,7 @@ public class BotArchon extends Bot {
 		if(isAlphaArchon && numScoutsCreated < 4){
 			needed = RobotType.SCOUT;
 		}
-		constructNeededUnits(RobotType.TURRET);
+		constructNeededUnits(needed);
 
 	}
 }
