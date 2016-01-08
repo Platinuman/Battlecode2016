@@ -53,14 +53,8 @@ public class BotTurret extends Bot {
 			Signal[] signals = rc.emptySignalQueue();
 			attackIfApplicable(signals);
 			Boolean rangeUpdated = updateMaxRange(signals);
-			if (true || shouldMove) {
-				if (rc.isCoreReady()) {
-					moveToLocFartherThanAlphaIfPossible(here);
-					shouldMove = false;
-				}
-				else{
-					shouldMove = true;
-				}
+			if (rc.isCoreReady()){
+				moveToLocFartherThanAlphaIfPossible(here);
 			}
 		}
 		else{

@@ -9,6 +9,7 @@ public class BotArchon extends Bot {
 	static boolean isAlphaArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
+	static int numTurretsCreated = 0;
 
 	private static boolean checkRubbleAndClear(Direction dir) {
 
@@ -114,6 +115,9 @@ public class BotArchon extends Bot {
 					if (neededUnit == RobotType.SCOUT) {
 						numScoutsCreated++;
 					}
+					else{
+						numTurretsCreated++;
+					}
 					// tell the unit you just created the location
 					int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
@@ -127,7 +131,7 @@ public class BotArchon extends Bot {
 			if (isAlphaArchon && isSurrounded()) {
 				maxRange++;
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-				rc.broadcastMessageSignal(message[0], message[1], maxRange * maxRange);
+				rc.broadcastMessageSignal(message[0], message[1], (maxRange+1) * (maxRange+1));
 			}
 		}
 
@@ -220,10 +224,18 @@ public class BotArchon extends Bot {
 	private static void aarons_shitty_strat() throws GameActionException {
 		// alpha archon created scouts
 		RobotType needed = RobotType.TURRET;
-		if (isAlphaArchon && (numScoutsCreated < 4 || (rc.getRoundNum() > 1500 && numScoutsCreated < 10))) {
+		if (isScoutNeeded()) {
 			needed = RobotType.SCOUT;
 		}
 		constructNeededUnits(needed);
 
+	}
+	
+	private static boolean isScoutNeeded(){
+		int numAlliesNear = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us).length;
+		if(numScoutsCreated <= (double)(numAlliesNear/15)){
+			return true;
+		}
+		return false;
 	}
 }
