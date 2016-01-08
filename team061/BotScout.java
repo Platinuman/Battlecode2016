@@ -135,7 +135,7 @@ public class BotScout extends Bot {
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
 				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
 				range = decodedMessage[0] + 1;
-				System.out.println(range);
+				//System.out.println(range);
 				rangeUpdated = true;
 				break;
 			}
