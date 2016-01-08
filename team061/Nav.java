@@ -213,13 +213,16 @@ public class Nav extends Bot {
 		}
 
 		// If DIRECT mode, try to go directly to target
+		boolean rubbleCleared = false;
+		checkRubbleAndClear(here.directionTo(dest));
+
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
-				checkRubbleAndClear(here.directionTo(dest));
-
+			 if(rubbleCleared){
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
 				bugState = BugState.BUG;
 				startBug();
+			 }
 			} else {
 				//checkRubbleAndClear(here.directionTo(dest));
 				// Debug.indicateAppend("nav", 1, "successful direct move; ");
@@ -227,7 +230,7 @@ public class Nav extends Bot {
 		}
 
 		// If that failed, or if bugging, bug
-		if (bugState == BugState.BUG) {
+		if (bugState == BugState.BUG && rubbleCleared) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
 		}
