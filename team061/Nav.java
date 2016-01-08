@@ -165,8 +165,8 @@ public class Nav extends Bot {
         return (bugRotationCount <= 0 || bugRotationCount >= 8) && here.distanceSquaredTo(dest) <= bugStartDistSq;
     }
     private static void bugMoveOld() throws GameActionException {
-    	tryMoveDirect();
-    	
+        tryMoveDirect();
+        
     }
     private static void bugMove() throws GameActionException {
         // Debug.clear("nav");

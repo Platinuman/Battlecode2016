@@ -1,8 +1,7 @@
 package team061;
 
-import java.util.Random;
-
 import battlecode.common.*;
+import java.util.Random;
 
 public class BotViper extends Bot {
 	public static void loop(RobotController theRC) throws GameActionException {
