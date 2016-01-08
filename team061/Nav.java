@@ -50,7 +50,19 @@ public class Nav extends Bot {
 		rc.move(dir);
 		return true;
 	}
-
+	private static boolean checkRubbleAndClear(Direction dir){
+        
+		if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+	    try{
+			rc.clearRubble(dir);
+		    } catch (Exception e) {
+	            System.out.println(e.getMessage());
+	            e.printStackTrace();
+	        }
+            return true;
+		}  
+         return false;
+	}
 	private static boolean canMove(Direction dir) {
 		return rc.canMove(dir) && safety.isSafeToMoveTo(here.add(dir));
 	}
@@ -201,10 +213,13 @@ public class Nav extends Bot {
 		// If DIRECT mode, try to go directly to target
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
+				checkRubbleAndClear(here.directionTo(dest));
+
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
 				bugState = BugState.BUG;
 				startBug();
 			} else {
+				//checkRubbleAndClear(here.directionTo(dest));
 				// Debug.indicateAppend("nav", 1, "successful direct move; ");
 			}
 		}
