@@ -33,7 +33,7 @@ public class BotScout extends Bot {
 				break;
 			}
 		}
-		MapLocation[] preferredScoutLocations = {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2)};
+		MapLocation[] preferredScoutLocations = {alpha.add(2,2), alpha.add(2,-2),alpha.add(-2,2),alpha.add(-2,-2), alpha.add(4,2), alpha.add(4,-2),alpha.add(-4,2),alpha.add(-4,-2),alpha.add(2,4), alpha.add(2,-4),alpha.add(-2,4),alpha.add(-2,-4)};
 	}
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
