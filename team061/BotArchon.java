@@ -8,7 +8,7 @@ public class BotArchon extends Bot {
 	static MapLocation alpha;
 	static boolean isAlphaArchon;
 	static int maxRange;
-	static int numScoutsCreated;
+	static int numScoutsCreated = 0;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -190,7 +190,7 @@ public class BotArchon extends Bot {
 		if(isAlphaArchon && numScoutsCreated < 4){
 			needed = RobotType.SCOUT;
 		}
-		constructNeededUnits(RobotType.TURRET);
+		constructNeededUnits(needed);
 
 	}
 }
