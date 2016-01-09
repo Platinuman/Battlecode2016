@@ -15,32 +15,31 @@ public class Combat extends Bot {
 		}
 		return target;
 	}
-	public static void shootBestEnemyTakingIntoAccountScoutInfo(MapLocation[] locations, int[] healths, RobotType[] types) throws GameActionException{
-		if(rc.isWeaponReady()){
-			double minHealth = 999999;
-			double maxPower = -1;
-			MapLocation targetLocation = null;
-			for (int i = locations.length; i-- > 0;) {
-				double attackPower = types[i].attackPower;
-				int health = healths[i];
-				Team targetTeam = Team.ZOMBIE;
-				Team team = Util.getTeam(types[i]);
-				MapLocation location = locations[i];
-				if (rc.canAttackLocation(location) && (attackPower > maxPower || (team == us.opponent() && targetTeam == Team.ZOMBIE))) {
-					maxPower = attackPower;
-					minHealth = health;
-					targetTeam = team;
-					targetLocation = location;
-				} else if (attackPower == maxPower && health < minHealth && rc.canAttackLocation(location)) {
-					minHealth = health;
-					targetLocation = location;
-					targetTeam = team;
-				} 
-			}
-			if(targetLocation != null){
-				rc.attackLocation(targetLocation);
-			}
+	public static MapLocation shootBestEnemyTakingIntoAccountScoutInfo(MapLocation[] locations, int[] healths, RobotType[] types) throws GameActionException{
+		double minHealth = 999999;
+		double maxPower = -1;
+		MapLocation targetLocation = null;
+		for (int i = locations.length; i-- > 0;) {
+			double attackPower = types[i].attackPower;
+			int health = healths[i];
+			Team targetTeam = Team.ZOMBIE;
+			Team team = Util.getTeam(types[i]);
+			MapLocation location = locations[i];
+			if (rc.canAttackLocation(location) && (attackPower > maxPower || (team == us.opponent() && targetTeam == Team.ZOMBIE))) {
+				maxPower = attackPower;
+				minHealth = health;
+				targetTeam = team;
+				targetLocation = location;
+			} else if (attackPower == maxPower && health < minHealth && rc.canAttackLocation(location)) {
+				minHealth = health;
+				targetLocation = location;
+				targetTeam = team;
+			} 
 		}
+		if(targetLocation != null && rc.isWeaponReady()){
+			rc.attackLocation(targetLocation);
+		}
+		return targetLocation;
 	}
 	public static void shootAtNearbyEnemies() throws GameActionException {
 		RobotType type = rc.getType();

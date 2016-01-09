@@ -4,6 +4,9 @@ import battlecode.common.*;
 
 public class BotTurret extends Bot {
 	static MapLocation alpha;
+	static MapLocation[] lastScoutNotifiedArray;
+	static int currentIndexOfLastArray = 0;
+	static int lastTimeTargetChanged;
 	static int range;
 	static boolean isTTM;
 	static boolean shouldMove;
@@ -40,7 +43,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
+				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
 			}
@@ -109,7 +112,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
+				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
 				range = decodedMessage[0];
 				//System.out.println(range);
 				rangeUpdated = true;
@@ -122,21 +125,48 @@ public class BotTurret extends Bot {
 	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
 		if (rc.isWeaponReady()) {
 			Combat.shootAtNearbyEnemies();
-			if (rc.isWeaponReady()) {
-				int[] indicesOfTargetSignals = getIndicesOfTargetSignals(signals);
-				if (indicesOfTargetSignals.length > 0) {
-					int numTargetSignals = indicesOfTargetSignals[indicesOfTargetSignals.length - 1];
-					MapLocation[] hostileLocations = new MapLocation[numTargetSignals];
-					int[] healths = new int[numTargetSignals];
-					RobotType[] hostileTypes = new RobotType[numTargetSignals];
-					for (int i = 0; i < numTargetSignals; i++) {
-						int[] message = signals[indicesOfTargetSignals[i]].getMessage();
-						int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
-						healths[i] = decodedMessage[0];
-						hostileTypes[i] = RobotType.values()[decodedMessage[1]];
-						hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
+			MapLocation scoutNotifiedLocation = null;
+			int[] indicesOfTargetSignals = getIndicesOfTargetSignals(signals);
+			int numTargetSignals = indicesOfTargetSignals[indicesOfTargetSignals.length - 1];
+			if (numTargetSignals > 0) {
+				MapLocation[] hostileLocations = new MapLocation[numTargetSignals];
+				int[] healths = new int[numTargetSignals];
+				RobotType[] hostileTypes = new RobotType[numTargetSignals];
+				for (int i = 0; i < numTargetSignals; i++) {
+					int[] message = signals[indicesOfTargetSignals[i]].getMessage();
+					int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
+					healths[i] = decodedMessage[0];
+					hostileTypes[i] = RobotType.values()[decodedMessage[1]];
+					hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
+				}
+				scoutNotifiedLocation = Combat.shootBestEnemyTakingIntoAccountScoutInfo(hostileLocations, healths, hostileTypes);
+				if(scoutNotifiedLocation != null){
+					lastScoutNotifiedArray = hostileLocations;
+					lastTimeTargetChanged = rc.getRoundNum();
+					currentIndexOfLastArray = 0;
+				}
+			}
+			if(scoutNotifiedLocation == null && lastScoutNotifiedArray != null){
+				MapLocation target = lastScoutNotifiedArray[currentIndexOfLastArray];
+				if(rc.isWeaponReady() && rc.canAttackLocation(target) && rc.getRoundNum() - lastTimeTargetChanged < 27){
+					rc.attackLocation(target);
+				}
+				else{
+					if(currentIndexOfLastArray < lastScoutNotifiedArray.length-1){
+						currentIndexOfLastArray++;
+						target = lastScoutNotifiedArray[currentIndexOfLastArray];
 					}
-					Combat.shootBestEnemyTakingIntoAccountScoutInfo(hostileLocations, healths, hostileTypes);
+					while(!rc.canAttackLocation(target) && currentIndexOfLastArray < lastScoutNotifiedArray.length-1){
+						currentIndexOfLastArray++;
+						target = lastScoutNotifiedArray[currentIndexOfLastArray];
+						lastTimeTargetChanged = rc.getRoundNum();
+					}
+					if(rc.isWeaponReady() && rc.canAttackLocation(target) && currentIndexOfLastArray != lastScoutNotifiedArray.length - 1){
+						rc.attackLocation(target);
+					}
+					else{
+						lastScoutNotifiedArray = null;
+					}
 				}
 			}
 		}
