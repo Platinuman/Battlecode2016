@@ -9,7 +9,8 @@ public class BotArchon extends Bot {
 	static boolean isAlphaArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
-	static int numTurretsCreated = 0;
+
+	// static int numTurretsCreated = 0;
 
 	private static boolean checkRubbleAndClear(Direction dir) {
 
@@ -94,9 +95,9 @@ public class BotArchon extends Bot {
 					if (neededUnit == RobotType.SCOUT) {
 						numScoutsCreated++;
 					}
-					else{
-						numTurretsCreated++;
-					}
+					// else{
+					// numTurretsCreated++;
+					// }
 					// tell the unit you just created the location
 					int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
@@ -107,13 +108,13 @@ public class BotArchon extends Bot {
 					dirToBuild = dirToBuild.rotateLeft();
 				}
 			}
-			if (isAlphaArchon && isSurrounded()) {
+
+			if (isAlphaArchon && isSurrounded()&&rc.getRoundNum()%10==0) {
 				maxRange++;
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-				rc.broadcastMessageSignal(message[0], message[1], (maxRange+1) * (maxRange+1));
+				rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
 			}
 		}
-
 	}
 
 	private static boolean isSurrounded() throws GameActionException {
@@ -202,6 +203,7 @@ public class BotArchon extends Bot {
 
 	private static void aarons_shitty_strat() throws GameActionException {
 		// alpha archon created scouts
+
 		RobotType needed = RobotType.TURRET;
 		if (isScoutNeeded()) {
 			needed = RobotType.SCOUT;
@@ -209,10 +211,16 @@ public class BotArchon extends Bot {
 		constructNeededUnits(needed);
 
 	}
-	
-	private static boolean isScoutNeeded(){
-		int numAlliesNear = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us).length;
-		if(numScoutsCreated <= (double)(numAlliesNear/15)){
+
+	private static boolean isScoutNeeded() {
+		RobotInfo[] teammates = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+		int nearbyScouts = 0;
+		for (int i = 0; i < teammates.length; i++) {
+			if (teammates[i].type == RobotType.SCOUT) {
+				nearbyScouts++;
+			}
+		}
+		if (numScoutsCreated < 10 && nearbyScouts < (double) teammates.length / 5.0) {
 			return true;
 		}
 		return false;
