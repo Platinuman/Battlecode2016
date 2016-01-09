@@ -10,7 +10,7 @@ public class BotSoldier extends Bot {
 		// Debug.init("micro");
 		while (true) {
 			try {
-				turn();
+			//	turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -18,7 +18,7 @@ public class BotSoldier extends Bot {
 		}
 	}
 
-	private static void turn() throws GameActionException {
+/*	private static void turn() throws GameActionException {
 		int acceptableRangeSquared = RobotType.ARCHON.sensorRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
@@ -86,5 +86,5 @@ public class BotSoldier extends Bot {
 			return true;
 		return false;
 	}
-
+*/
 }
