@@ -1,4 +1,5 @@
 package team061;
+
 import battlecode.common.*;
 
 interface NavSafetyPolicy {
@@ -238,5 +239,11 @@ public class Nav extends Bot {
 		safety = theSafety;
 
 		bugMove();
+	}
+	
+	public static boolean moveInDir(Direction dir, NavSafetyPolicy theSafety) throws GameActionException{
+		safety = theSafety;
+		dest = here.add(dir);
+		return tryMoveDirect();
 	}
 }
