@@ -6,6 +6,9 @@ import battlecode.common.*;
 
 public class BotScout extends Bot {
 	static MapLocation alpha;
+	static MapLocation mobileLoc;
+	static int mobileID;
+	static boolean isMobile;
 	// static MapLocation[] preferredScoutLocations;
 	static MapLocation dest;
 	static int range;
@@ -40,7 +43,16 @@ public class BotScout extends Bot {
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
 				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				isMobile = false;
 				//rc.setIndicatorString(0	,"i have an alpha");
+				break;
+			}
+			else if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION){
+				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
+				mobileLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				isMobile = true;
+				mobileID = signals[i].getID();
+				//rc.setIndicatorString(0	,"i am mobile");
 				break;
 			}
 		}
@@ -70,6 +82,7 @@ public class BotScout extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		if(!isMobile){
 		if (rc.isCoreReady()) {
 			moveToLocFartherThanAlphaIfPossible(here);
 		}
@@ -99,7 +112,11 @@ public class BotScout extends Bot {
 		}
 		Signal[] signals = rc.emptySignalQueue();
 		updateMaxRange(signals);
-		
+		}
+		else{
+			updateMobileLocation();
+			explore();
+		}
 		
 
 		/*
@@ -122,6 +139,19 @@ public class BotScout extends Bot {
 		 * if(theSafety.isSafeToMoveTo(dest)){ Nav.goTo(dest, theSafety); }
 		 * else{ dest = null; } }
 		 */
+	}
+
+	private static void updateMobileLocation() {
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
+		for(RobotInfo ally : allies){
+			if(ally.ID == mobileID){
+				mobileLoc = ally.location;
+			}
+		}
+	}
+
+	private static void explore() {
+		//explore and notify archon if you see anything
 	}
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
