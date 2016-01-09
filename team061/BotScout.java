@@ -49,7 +49,19 @@ public class BotScout extends Bot {
 				alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2, -4) };
 		*/
 	}
+	private static boolean checkRubbleAndClear(Direction dir) {
 
+		if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			try {
+				rc.clearRubble(dir);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
+	}
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
@@ -68,6 +80,15 @@ public class BotScout extends Bot {
 		if (rc.isCoreReady()){
 			moveToLocFartherThanAlphaIfPossible(here);
 		}
+		if(rc.isCoreReady()){
+		Direction dirToClear = Direction.NORTH;
+		for (int i =0; i < 8; i++){
+			if (checkRubbleAndClear(dirToClear)){
+				break;
+			}
+		}
+		}
+		
 		/*
 		if (!atScoutLocation) {
 			for (int i = 0; i < preferredScoutLocations.length; i++) {

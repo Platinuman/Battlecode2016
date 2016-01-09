@@ -107,6 +107,10 @@ public class BotArchon extends Bot {
 					// Rotate the direction to try
 					dirToBuild = dirToBuild.rotateLeft();
 				}
+				else{
+					
+					break;
+				}
 			}
 
 			if (isAlphaArchon && isSurrounded()&&rc.getRoundNum()%10==0) {
