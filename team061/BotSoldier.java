@@ -8,10 +8,9 @@ public class BotSoldier extends Bot {
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		// Debug.init("micro");
-		Random rand = new Random(rc.getID());
 		while (true) {
 			try {
-				turn(rand);
+				turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -19,44 +18,73 @@ public class BotSoldier extends Bot {
 		}
 	}
 
-	private static void turn(Random rand) throws GameActionException {
+	private static void turn() throws GameActionException {
+		int acceptableRangeSquared = RobotType.ARCHON.sensorRadiusSquared;
+		// Check where moving Archon is
 		here = rc.getLocation();
-		// This is a loop to prevent the run() method from returning. Because of
-		// the Clock.yield()
-		// at the end of it, the loop will iterate once per game round.
-		Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
-		RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
-				RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET };
-		int fate = rand.nextInt(1000);
-		int myAttackRange = rc.getType().attackRadiusSquared;
-		Team myTeam = rc.getTeam();
-		Team enemyTeam = myTeam.opponent();
-
-		RobotInfo[] enemies = rc.senseNearbyRobots(myAttackRange,them);
-		RobotInfo[] zombies = rc.senseNearbyRobots(myAttackRange,Team.ZOMBIE);
-
-		// If this robot type can attack, check for enemies within range and
-		// attack one
-		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies();
-		}
-
-		if (rc.isCoreReady() && enemies.length == 0 && zombies.length == 0) {
-			if (fate < 600) {
-				// Choose a random direction to try to move in
-				Direction dirToMove = directions[fate % 8];
-				// Check the rubble in that direction
-				if (rc.senseRubble(rc.getLocation().add(dirToMove)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-					// Too much rubble, so I should clear it
-					rc.clearRubble(dirToMove);
-					// Check if I can move in this direction
-				} else if (rc.canMove(dirToMove)) {
-					// Move
-					rc.move(dirToMove);
-				}
+		Signal[] signals = rc.emptySignalQueue();
+		MapLocation archonLoc = checkScoutArchonLoc(signals);
+		// Check for nearby enemies
+		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+		// If within acceptable range of archon
+		if (here.distanceSquaredTo(archonLoc) > acceptableRangeSquared) {
+			// If we are within enemy range and could step out do so
+			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here)) {
+				MapLocation[] locEnemies = { Util.closest(enemies, here).location };
+				Combat.retreat(locEnemies);
+			}
+			// else if we are within enemy range and could not step out attack
+			else if (nearEnemies(enemies, here) && !couldMoveOut(enemies, here)) {
+				Combat.shootAtNearbyEnemies();
+			}
+			// else move to Archon
+			else {
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				Nav.goTo(archonLoc, theSafety);
 			}
 		}
-
+		// else not within acceptable range of archon
+		else {
+			// If enemy is near attack
+			if (nearEnemies(enemies, here))
+				Combat.shootAtNearbyEnemies();
+			// else no enemy move to archon
+			else {
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				Nav.goTo(archonLoc, theSafety);
+			}
+		}
 	}
+
+	private static MapLocation checkScoutArchonLoc(Signal[] signals) {
+		MapLocation archonLoc;
+		for (int i = 0; i < signals.length; i++) {
+			if (signals[i].getTeam() == them) {
+				continue;
+			}
+			int[] message = signals[i].getMessage();
+			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+			if (signals[i].getTeam() == us && msgType == MessageEncode.SCOUT_ARCHON_LOCATION) {
+				int[] decodedMessage = MessageEncode.SCOUT_ARCHON_LOCATION.decode(message);
+				archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				return archonLoc;
+			}
+		}
+	}
+
+	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		if (here.distanceSquaredTo(closestEnemy.location) > closestEnemy.type.attackRadiusSquared)
+			return true;
+		return false;
+	}
+
+	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		int range = here.distanceSquaredTo(closestEnemy.location) - closestEnemy.type.attackRadiusSquared;
+		if (range > -1)
+			return true;
+		return false;
+	}
+
 }
