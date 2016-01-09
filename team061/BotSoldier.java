@@ -64,13 +64,13 @@ public class BotSoldier extends Bot {
 			}
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.SCOUT_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.SCOUT_ARCHON_LOCATION.decode(message);
-				archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+		//	if (signals[i].getTeam() == us && msgType == MessageEncode.SCOUT_ARCHON_LOCATION) {
+			//	int[] decodedMessage = MessageEncode.SCOUT_ARCHON_LOCATION.decode(message);
+			//	archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				return archonLoc;
 			}
 		}
-	}
+//	}
 
 	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
 		RobotInfo closestEnemy = Util.closest(enemies, here);
