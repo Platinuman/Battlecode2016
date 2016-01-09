@@ -7,7 +7,6 @@ public class BotGuard extends Bot {
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		// Debug.init("micro");
-		Random rand = new Random(rc.getID());
 		while (true) {
 			try {
 				turn(rand);
@@ -20,14 +19,6 @@ public class BotGuard extends Bot {
 
 	private static void turn(Random rand) throws GameActionException {
 		here = rc.getLocation();
-		// This is a loop to prevent the run() method from returning. Because of
-		// the Clock.yield()
-		// at the end of it, the loop will iterate once per game round.
-		Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
-		RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
-				RobotType.GUARD, RobotType.GUARD, RobotType.VIPER, RobotType.TURRET };
-		int fate = rand.nextInt(1000);
 		int myAttackRange = rc.getType().attackRadiusSquared;
 		Team myTeam = rc.getTeam();
 		Team enemyTeam = myTeam.opponent();
@@ -39,7 +30,7 @@ public class BotGuard extends Bot {
 		if (rc.isWeaponReady()) {
 			Combat.shootAtNearbyEnemies();
 		}
-
+/*
 		if (rc.isCoreReady() && enemies.length == 0 && zombies.length == 0) {
 			if (fate < 600) {
 				// Choose a random direction to try to move in
@@ -54,7 +45,7 @@ public class BotGuard extends Bot {
 					rc.move(dirToMove);
 				}
 			}
-		}
+		}*/
 
 	}
 }

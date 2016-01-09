@@ -10,7 +10,7 @@ public class BotScout extends Bot {
 	static MapLocation dest;
 	static int range;
 	// static boolean atScoutLocation;
-	static boolean firstTurn = true;
+	static boolean firstTurn = false;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		if (firstTurn) {
