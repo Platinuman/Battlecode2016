@@ -43,4 +43,32 @@ public class Util extends Bot {
             return Team.ZOMBIE;
         }
     }
+    
+    public static RobotInfo[] combineTwoRIArrays( RobotInfo[] array1, RobotInfo[] array2){
+    	RobotInfo[] combo = new RobotInfo[array1.length + array2.length];
+    	for (int i = 0; i < array1.length; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < array2.length; i++){
+			combo[i + array1.length] = array1[i];
+		}
+    	return combo;
+    }
+    
+	/**
+	 * This method finds the location of the "center of mass" of an array of robots
+	 * 
+	 * @param robots
+	 */
+	public static MapLocation centroidOfUnits(RobotInfo[] robots){
+		// TODO: this method
+		float xavg = 0, yavg = 0;
+		MapLocation loc;
+		for(int i = 0; i < robots.length; i++){
+			loc = robots[i].location;
+			xavg += loc.x;
+			yavg += loc.y;
+		}
+		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
+	}
 }

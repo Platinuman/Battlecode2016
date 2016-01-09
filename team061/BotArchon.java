@@ -5,16 +5,27 @@ import battlecode.common.*;
 import java.util.Random;
 
 public class BotArchon extends Bot {
-	static MapLocation alpha;
+	static MapLocation alpha, hunter;
 	static boolean isAlphaArchon;
+	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
-
+	static Random rand;
+	static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+	static RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.GUARD, RobotType.VIPER,
+			RobotType.TURRET };
 	// static int numTurretsCreated = 0;
+
+	//mobile archon fields here:
+	static MapLocation partsLoc, denLoc, neutralLoc;
+	static int cautionLevel = 9; //how close a zombie has to be to run away
+	static final int NO_SCOUT = -1000;
+	static int lastTurnSeenScout = NO_SCOUT;
 
 	private static boolean checkRubbleAndClear(Direction dir) {
 
-		if (rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 			try {
 				rc.clearRubble(dir);
 			} catch (Exception e) {
@@ -30,7 +41,6 @@ public class BotArchon extends Bot {
 		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
-		Random rand = new Random(rc.getID());
 		while (true) {
 			try {
 				turn(rand);
@@ -49,28 +59,42 @@ public class BotArchon extends Bot {
 
 	private static void init() throws GameActionException {
 		maxRange = 2;
+		rand = new Random(rc.getID());
 		Signal[] signals = rc.emptySignalQueue();
+		here = rc.getLocation();
+		rc.setIndicatorString(0	,"no one special");
 		if (!signalsFromOurTeam(signals)) {
-			MapLocation myLocation = rc.getLocation();
+			MapLocation myLocation = here;
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 			isAlphaArchon = true;
+			rc.setIndicatorString(0	,"alpha");
 			alpha = myLocation;
 		} else {
 			for (int i = 0; i < signals.length; i++) {
-				int[] message = signals[i].getMessage();
-				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
-					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-					break;
+				if(signals[i].getTeam() == us){
+					int[] message = signals[i].getMessage(); //can move this outside the if when we deal with signals from other teams
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					int[] decodedMessage = purpose.decode(signals[i].getLocation(), message);
+					if(purpose == MessageEncode.ALPHA_ARCHON_LOCATION){
+						alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+					} else if( purpose == MessageEncode.MOBILE_ARCHON_LOCATION){
+						hunter = new MapLocation(decodedMessage[0], decodedMessage[1]);break;
+					}
 				}
 			}
-			isAlphaArchon = false;
+			if (hunter == null){
+				MapLocation myLocation = rc.getLocation();
+				int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+				isMobileArchon = true;
+				rc.setIndicatorString(0	,"mobile");
+				hunter = myLocation;
+			}
 		}
 	}
 
-	private static Boolean signalsFromOurTeam(Signal[] signals) {
+	private static boolean signalsFromOurTeam(Signal[] signals) {
 		if (signals.length == 0) {
 			return false;
 		} else {
@@ -157,10 +181,6 @@ public class BotArchon extends Bot {
 	}
 
 	private static void turn(Random rand) throws GameActionException {
-		Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
-		RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.GUARD, RobotType.VIPER,
-				RobotType.TURRET };
 		repairBotMostInNeed();
 		here = rc.getLocation();
 		// int fate = rand.nextInt(1000);
@@ -192,12 +212,111 @@ public class BotArchon extends Bot {
 		 */
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
-			if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
+			if (isMobileArchon){
+				beMobileArchon(enemies);
+			} else if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
 				aarons_shitty_strat();
 			} else {
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 				Nav.goTo(alpha, theSafety);
 			}
+		}
+	}
+
+	private static void updateInfoFromScouts() {
+		// TODO Auto-generated method stub
+		partsLoc = new MapLocation(-16000,-16000);
+	}
+
+	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
+		updateInfoFromScouts();
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
+		// know partsLoc, denLoc, neutralLoc
+		if (neutralLoc != null && here.distanceSquaredTo(neutralLoc) <= 2)
+			rc.activate(neutralLoc);
+		if (rc.isCoreReady() && inDanger(allies, enemies, zombies))
+			flee(allies, enemies, zombies);
+		else if (rc.isCoreReady()){
+			if (rc.getRoundNum() - lastTurnSeenScout > 20){
+				if(buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT)){
+					lastTurnSeenScout = rc.getRoundNum() + 10;
+					return;
+				}
+			}
+			MapLocation nextTarget = chooseNextTarget(allies, zombies);
+			if(nextTarget == null){//no known things worth pursuing
+				if(!haveEnoughFighters(allies))
+					buildUnitInDir(directions[rand.nextInt(8)], RobotType.GUARD);
+			} else
+				Nav.goTo(nextTarget, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies,zombies)));
+		}
+
+	}
+
+	private static MapLocation chooseNextTarget(RobotInfo[] allies, RobotInfo[] zombies){
+		MapLocation closest = partsLoc;
+		if(denLoc != null && (closest == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(closest)))
+			closest = denLoc;
+		if(neutralLoc != null && (closest == null || here.distanceSquaredTo(neutralLoc) < here.distanceSquaredTo(closest)))
+			closest = neutralLoc;
+		if(closest == denLoc){
+			//actually want to stay kinda far away from denLoc
+			if (here.distanceSquaredTo(denLoc) < cautionLevel)
+				closest = null;
+		}
+		return closest;
+	}
+
+	private static boolean haveEnoughFighters(RobotInfo[] allies){
+		int fighters = 0;
+		for (RobotInfo a: allies)
+			if (a.type == RobotType.GUARD || a.type == RobotType.SOLDIER)
+				fighters++;
+		return fighters >= 5;
+	}
+
+	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
+		if( enemies.length > 0
+				|| here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel
+				|| zombies.length > allies.length)
+			return true;
+		return false;
+	}
+
+	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{
+		// TODO: make it try to maximize the number of units protected too
+		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
+		Direction runAway = Util.centroidOfUnits(unfriendly).directionTo(here);
+		Nav.moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
+		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
+		// meat shield
+		if(rc.hasBuildRequirements(RobotType.GUARD) && rc.isCoreReady()){
+			buildUnitInDir(runAway.opposite(), RobotType.GUARD);
+		}
+		//if that doesn't work.... idk what to do
+	}
+
+	private static boolean buildUnitInDir(Direction dir, RobotType r)throws GameActionException{
+		dir = dir.rotateLeft();
+		for (int i = 0; i< 8; i++){
+			if( rc.canBuild(dir, r)){
+				rc.build(dir, r);
+				notifyNewUnitOfCreator();
+				return true;
+			}
+			dir = dir.rotateRight();
+		}
+		return false;
+	}
+
+	private static void notifyNewUnitOfCreator()throws GameActionException{
+		if(isMobileArchon){
+			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+		} else if(isAlphaArchon){
+			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 		}
 	}
 

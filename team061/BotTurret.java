@@ -40,7 +40,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
+				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
 			}
@@ -104,7 +104,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
+				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
 				range = decodedMessage[0];
 				//System.out.println(range);
 				rangeUpdated = true;
@@ -126,7 +126,7 @@ public class BotTurret extends Bot {
 					RobotType[] hostileTypes = new RobotType[numTargetSignals];
 					for (int i = 0; i < numTargetSignals; i++) {
 						int[] message = signals[indicesOfTargetSignals[i]].getMessage();
-						int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
+						int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[indicesOfTargetSignals[i]].getLocation(), message);
 						healths[i] = decodedMessage[0];
 						hostileTypes[i] = RobotType.values()[decodedMessage[1]];
 						hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
