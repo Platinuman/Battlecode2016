@@ -152,6 +152,7 @@ public class BotScout extends Bot {
 
 	private static void explore() {
 		//explore and notify archon if you see anything
+		
 	}
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
