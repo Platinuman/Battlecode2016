@@ -60,8 +60,6 @@ public class BotTurret extends Bot {
 		else{
 			if(rc.isCoreReady()){
 				moveToLocFartherThanAlphaIfPossible(here);
-				rc.unpack();
-				isTTM = false;
 			}
 		}
 		// if the maxrange was sent update it // only do this if you are not a
@@ -73,6 +71,8 @@ public class BotTurret extends Bot {
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = Direction.NORTH;
+		boolean moved = false;
+		boolean startedAsTTM = isTTM;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = here.add(dir);
 			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
@@ -87,11 +87,16 @@ public class BotTurret extends Bot {
 					}
 					else if (rc.canMove(dir)){
 						rc.move(dir);
+						moved = true;
 						break;
 					}
 				}
 			}
 			dir = dir.rotateLeft();
+		}
+		if(startedAsTTM && !moved){
+			rc.unpack();
+			isTTM = false;
 		}
 	}
 

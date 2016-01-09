@@ -1,5 +1,7 @@
 package team061;
 
+import java.util.*;
+
 import battlecode.common.*;
 
 public class Bot {
@@ -7,7 +9,7 @@ public class Bot {
 	protected static Team us;
 	protected static Team them;
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
-
+    protected static Random rand;
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
 
@@ -15,6 +17,7 @@ public class Bot {
 		them = us.opponent();
 
 		here = rc.getLocation();
+		rand = new Random(rc.getID());
 		//System.out.println(MessageEncode.TURRET_TARGET.decode(MessageEncode.TURRET_TARGET.encode(new int[]{69, RobotType.SOLDIER.ordinal(), 1234,4321}))[3]);
 	}
 	/*
