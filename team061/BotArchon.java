@@ -30,7 +30,6 @@ public class BotArchon extends Bot {
 		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
-		Random rand = new Random(rc.getID());
 		while (true) {
 			try {
 				turn(rand);
@@ -87,6 +86,9 @@ public class BotArchon extends Bot {
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
 			Direction dirToBuild = Direction.NORTH;
+			for (int i = 0; i < rand.nextInt(8); i++){
+				dirToBuild = dirToBuild.rotateRight();
+			}
 			Boolean built = false;
 			for (int i = 0; i < 8; i++) {
 				// If possible, build in this direction
@@ -194,6 +196,7 @@ public class BotArchon extends Bot {
 		 * Rotate the direction to try dirToBuild = dirToBuild.rotateLeft(); } }
 		 * } }
 		 */
+		
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
