@@ -255,6 +255,8 @@ public class BotArchon extends Bot {
 	}
 
 	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
+		if(enemies.length == 0 && zombies.length == 0)
+			return false;
 		if( enemies.length > 0
 				|| here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel
 				|| zombies.length > allies.length)
