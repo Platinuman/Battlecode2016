@@ -96,6 +96,7 @@ public class BotScout extends Bot {
 					.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
 			rc.broadcastMessageSignal(message[0], message[1],
 					(int) (RobotType.SCOUT.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+			rc.setIndicatorString(3	,"i recommend" + loc.x + ", " + loc.y);
 		}
 		Signal[] signals = rc.emptySignalQueue();
 		updateMaxRange(signals);

@@ -6,8 +6,18 @@ import java.lang.Math.*;
 public enum MessageEncode {
 	TURRET_TARGET(0, new int[]{3, 7, 1, 2}, 2),	// health, robotType, xloc, yloc
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
-	ALPHA_ARCHON_LOCATION(2, new int[]{1,2},0),	// xloc , yloc
-	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0);// xloc , yloc
+	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
+	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
+	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
+	STOP_BEING_MOBILE	  (5, new int[]{1,2},0);
+	//SCOUT_CHECKIN(4, new int[]{    }, 2),
+	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
+	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
+	//FOUND_NEUTRAL(6,new int[]{1, 2, 7}, 2);		// type.ordinal(), xloc, yloc
+	/* 4 - scout notifies mobile archon that it found parts
+	 * 5 - scout notifies mobile archon of zombie den
+	 * 6 - scout notifies mobile archon of neutral bots*/
+
 	//note: don't forget to add to the whichStruct method when you add more encode keys
 
 	private final int reasonNumber;
@@ -15,7 +25,10 @@ public enum MessageEncode {
 	 * 1 - tell units how close to stay to the alpha archon
 	 * 2 - notify a unit of the alpha archon location
 	 * 3 - notify a unit of the hunter archon loc
+	 * 4 - tell the archon where to go
+	 * 5 - tell the mobile archon to turtle (and where to do so)
 	 * 
+	 * (if you increase the max number (7), make sure the space below matches)
 	 */
 
 	/* data number values
@@ -24,13 +37,15 @@ public enum MessageEncode {
 	 * 2: loc.y (sent as an offset from sender's loc, will have to offset by 100)
 	 * 3: health (max 2000, dens)
 	 * 4: some radius squared (max 2^7) //if this changes change howMuchSpaceDataNeeds
-	 * 
+	 * 5: number of parts
+	 * 6: 
 	 * 7: robotType (max of 11, so 4 bits)
-	 * (if you increase the max number, make sure the space below matches)
+	 * 
+	 * (make sure to update how much space data needs)
 	 */
 	private final int[] whichDataToInclude;
 	private final int whereToSplitData; // index in whichDataToInclude that gets bumped to 2nd int
-	private static final int[] howMuchSpaceDataNeeds = {3, 9, 9, 11, 7, 0, 0, 4};
+	private static final int[] howMuchSpaceDataNeeds = {3, 8, 8, 11, 7, 10, 0, 4};
 	//get 30 slots total per int
 
 	// TODO: make "yell" method to do the actual broadcast too
@@ -119,6 +134,8 @@ public enum MessageEncode {
 		case 1: return PROXIMITY_NOTIFICATION;
 		case 2: return ALPHA_ARCHON_LOCATION;
 		case 3: return MOBILE_ARCHON_LOCATION;
+		case 4: return DIRECT_MOBILE_ARCHON;
+		case 5: return STOP_BEING_MOBILE;
 
 		default: return null;
 		}
@@ -134,6 +151,8 @@ public enum MessageEncode {
 		case 1: return "PROXIMITY_NOTIFICATION";
 		case 2: return "ALPHA_ARCHON_LOCATION";
 		case 3: return "MOBILE_ARCHON_LOCATION";
+		case 4: return "DIRECT_MOBILE_ARCHON";
+		case 5: return "STOP_BEING_MOBILE";
 
 		default: return "@Nate update the toString you idoit";
 		}
@@ -146,7 +165,7 @@ public enum MessageEncode {
 	 * Data is returned in the order specified at the top.
 	 *  
 	 * @param mess the two int array contained in the message
-	 */
+	 *
 	public int[] decode(int[] mess){ // ***** DEPRECIATED *****
 		int[] data = new int[whichDataToInclude.length];
 		int powerOfTwo = multiplyByTwo(1, howMuchSpaceDataNeeds[0]);
@@ -161,5 +180,5 @@ public enum MessageEncode {
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		return data;
-	}
+	}*/
 }

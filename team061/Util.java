@@ -7,8 +7,9 @@ public class Util extends Bot {
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;
         int bestDistSq = 999999;
+        int distSq;
         for (int i = robots.length; i-- > 0;) {
-            int distSq = toHere.distanceSquaredTo(robots[i].location);
+            distSq = toHere.distanceSquaredTo(robots[i].location);
             if (distSq < bestDistSq) {
                 bestDistSq = distSq;
                 closest = robots[i];
@@ -50,7 +51,7 @@ public class Util extends Bot {
 			combo[i] = array1[i];
 		}
     	for (int i = 0; i < array2.length; i++){
-			combo[i + array1.length] = array1[i];
+			combo[i + array1.length] = array2[i];
 		}
     	return combo;
     }

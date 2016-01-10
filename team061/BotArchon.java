@@ -18,7 +18,7 @@ public class BotArchon extends Bot {
 	// static int numTurretsCreated = 0;
 
 	//mobile archon fields here:
-	static MapLocation partsLoc, denLoc, neutralLoc;
+	static MapLocation targetLocation;//partsLoc, denLoc, neutralLoc;
 	static int cautionLevel = 9; //how close a zombie has to be to run away
 	static final int NO_SCOUT = -1000;
 	static int lastTurnSeenScout = NO_SCOUT;
@@ -135,7 +135,7 @@ public class BotArchon extends Bot {
 					dirToBuild = dirToBuild.rotateLeft();
 				}
 				else{
-					
+
 					break;
 				}
 			}
@@ -217,7 +217,7 @@ public class BotArchon extends Bot {
 		 * Rotate the direction to try dirToBuild = dirToBuild.rotateLeft(); } }
 		 * } }
 		 */
-		
+
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isMobileArchon){
@@ -232,49 +232,75 @@ public class BotArchon extends Bot {
 	}
 
 	private static void updateInfoFromScouts() {
-		// TODO Auto-generated method stub
-		partsLoc = new MapLocation(-16000,-16000);
+		Signal[] signals = rc.emptySignalQueue();
+		for (Signal signal : signals){
+			if (signal.getTeam() == us){
+				int[] message = signal.getMessage();
+				if (message != null){
+					MapLocation senderloc = signal.getLocation();
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON){
+						int[] data = purpose.decode(senderloc, message);
+						targetLocation = new MapLocation(data[0],data[1]);
+					} else if (purpose == MessageEncode.STOP_BEING_MOBILE){
+						int[] data = purpose.decode(senderloc, message);
+						alpha = new MapLocation(data[0],data[1]);
+						isMobileArchon = false;
+					}						
+				}
+			}
+		}
 	}
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		updateInfoFromScouts();
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
+		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		// know partsLoc, denLoc, neutralLoc
-		if (neutralLoc != null && here.distanceSquaredTo(neutralLoc) <= 2)
-			rc.activate(neutralLoc);
+		if(neutrals.length > 0){
+			rc.activate(neutrals[0].location);
+			if (targetLocation != null && neutrals[0].location.equals(targetLocation)){
+				targetLocation = null;
+			}
+		}
+		if (targetLocation != null && targetLocation.equals(here))
+			targetLocation = null;
 		if (rc.isCoreReady() && inDanger(allies, enemies, zombies))
 			flee(allies, enemies, zombies);
 		else if (rc.isCoreReady()){
-			if (rc.getRoundNum() - lastTurnSeenScout > 20){
+			if (/*rc.getRoundNum() - */lastTurnSeenScout < 20){//TODO: i have no idea what to make this condition
 				if(buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT)){
 					lastTurnSeenScout = rc.getRoundNum() + 10;
 					return;
 				}
 			}
-			MapLocation nextTarget = chooseNextTarget(allies, zombies);
-			if(nextTarget == null){//no known things worth pursuing
+			if(targetLocation == null){//no known things worth pursuing
 				if(!haveEnoughFighters(allies))
 					buildUnitInDir(directions[rand.nextInt(8)], RobotType.GUARD);
 			} else
-				Nav.goTo(nextTarget, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies,zombies)));
+				if(rc.getRoundNum() == roundToStopHuntingDens)//found in Bot class
+					rc.broadcastSignal(10000);
+				else
+					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies,zombies)));
 		}
 
 	}
 
-	private static MapLocation chooseNextTarget(RobotInfo[] allies, RobotInfo[] zombies){
-		MapLocation closest = partsLoc;
-		if(denLoc != null && (closest == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(closest)))
-			closest = denLoc;
-		if(neutralLoc != null && (closest == null || here.distanceSquaredTo(neutralLoc) < here.distanceSquaredTo(closest)))
-			closest = neutralLoc;
-		if(closest == denLoc){
-			//actually want to stay kinda far away from denLoc
-			if (here.distanceSquaredTo(denLoc) < cautionLevel)
-				closest = null;
-		}
-		return closest;
-	}
+	//	private static MapLocation chooseNextTarget(RobotInfo[] allies, RobotInfo[] zombies){
+	//		// TODO: may be keep track of more possible targets, also may want to switch priorities
+	//		MapLocation closest = partsLoc;
+	//		if(denLoc != null && (closest == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(closest)))
+	//			closest = denLoc;
+	//		if(neutralLoc != null && (closest == null || here.distanceSquaredTo(neutralLoc) < here.distanceSquaredTo(closest)))
+	//			closest = neutralLoc;
+	//		if(closest == denLoc){
+	//			//actually want to stay kinda far away from denLoc
+	//			if (here.distanceSquaredTo(denLoc) < cautionLevel)
+	//				closest = null;
+	//		}
+	//		return closest;
+	//	}
 
 	private static boolean haveEnoughFighters(RobotInfo[] allies){
 		int fighters = 0;
@@ -285,9 +311,12 @@ public class BotArchon extends Bot {
 	}
 
 	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
+		//		System.out.println(zombies.length);
+		//		if(zombies.length > 0)
+		//			System.out.println(Util.closest(zombies, here));
 		if( enemies.length > 0
-				|| here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel
-				|| zombies.length > allies.length)
+				|| zombies.length > allies.length
+				|| zombies.length > 0 && here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel)
 			return true;
 		return false;
 	}
