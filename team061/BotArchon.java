@@ -13,6 +13,7 @@ public class BotArchon extends Bot {
 	static Random rand;
 	static RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.GUARD, RobotType.VIPER,
 			RobotType.TURRET };
+	static MapLocation[] densToHunt;
 	// static int numTurretsCreated = 0;
 
 	//mobile archon fields here:
@@ -228,7 +229,7 @@ public class BotArchon extends Bot {
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
 			rc.broadcastMessageSignal(msg[0],msg[1],10000);
 		}
-		// know partsLoc, denLoc, neutralLoc
+		// TODO: act differently until we kill all the dens
 		if(neutrals.length > 0){
 			rc.activate(neutrals[0].location);
 			if (targetLocation != null && neutrals[0].location.equals(targetLocation)){
@@ -240,7 +241,7 @@ public class BotArchon extends Bot {
 		if (rc.isCoreReady() && inDanger(allies, enemies, zombies))
 			flee(allies, enemies, zombies);
 		else if (rc.isCoreReady()){
-			if (/*rc.getRoundNum() - */lastTurnSeenScout < 20){//TODO: i have no idea what to make this condition
+			if (rc.getRoundNum() > roundToStopHuntingDens + 50 && isMobileScoutNeeded(allies)){//TODO: i have no idea what to make this condition
 				if(buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT)){
 					lastTurnSeenScout = rc.getRoundNum() + 10;
 					return;
@@ -331,6 +332,14 @@ public class BotArchon extends Bot {
 		}
 		constructNeededUnits(needed);
 
+	}
+	
+	private static boolean isMobileScoutNeeded(RobotInfo[] teammates) {
+		for (int i = 0; i < teammates.length; i++) {
+			if (teammates[i].type == RobotType.SCOUT)
+				return false;
+		}
+		return true;
 	}
 
 	private static boolean isScoutNeeded() {
