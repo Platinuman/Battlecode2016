@@ -7,18 +7,14 @@ import java.util.Random;
 public class BotGuard extends Bot {
 	static MapLocation archonLoc;
 	static int archonID;
-	static boolean firstTurn = true;
 	
 	public static void loop(RobotController theRC) throws GameActionException {
-		if(firstTurn){
-			firstTurn = false;
-			Clock.yield();
-		}Bot.init(theRC);
+		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
 		while (true) {
 			try {
-			//	turn();
+				turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

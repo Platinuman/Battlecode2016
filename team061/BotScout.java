@@ -59,7 +59,7 @@ public class BotScout extends Bot {
 				mobileLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				isMobile = true;
 				mobileID = signals[i].getID();
-				//rc.setIndicatorString(0	,"i am mobile");
+				rc.setIndicatorString(0	,"i am mobile");
 				break;
 			}
 		}

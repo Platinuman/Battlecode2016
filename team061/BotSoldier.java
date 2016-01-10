@@ -8,19 +8,14 @@ public class BotSoldier extends Bot {
 	
 	static MapLocation archonLoc;
 	static int archonID;
-	static boolean firstTurn = true;
 	
 	public static void loop(RobotController theRC) throws GameActionException {
-		if(firstTurn){
-			firstTurn = false;
-			Clock.yield();
-		}
 		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
 		while (true) {
 			try {
-			//	turn();
+				turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -54,33 +49,35 @@ public class BotSoldier extends Bot {
 		// If within acceptable range of archon
 		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared) {
 			// If we are within enemy range and could step out do so
-			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here)) {
+			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here) && rc.isCoreReady()) {
 				MapLocation[] locEnemies = { Util.closest(enemies, here).location };
 				Combat.retreat(locEnemies);
 			}
 			// else if we are within enemy range and could not step out attack
-			else if (nearEnemies(enemies, here) && !couldMoveOut(enemies, here)) {
+			else if (nearEnemies(enemies, here) && !couldMoveOut(enemies, here) && rc.isWeaponReady()) {
 				Combat.shootAtNearbyEnemies();
 			}
 			// else move to Archon
-			else if(here.distanceSquaredTo(archonLoc) > 8) {
-				//don't block archon
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-				Nav.goTo(archonLoc, theSafety);
-			}
-			else if(here.distanceSquaredTo(archonLoc) < 4){
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-				boolean moved = Nav.moveInDir(here.directionTo(archonLoc).opposite(), theSafety);
-				//we're too close
+			else if(rc.isCoreReady()){
+				if(here.distanceSquaredTo(archonLoc) > 8) {
+					//don't block archon
+					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+					Nav.goTo(archonLoc, theSafety);
+				}
+				else if(here.distanceSquaredTo(archonLoc) < 4){
+					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+					boolean moved = Nav.moveInDir(here.directionTo(archonLoc).opposite(), theSafety);
+					//we're too close
+				}
 			}
 		}
 		// else not within acceptable range of archon
 		else {
 			// If enemy is near attack
-			if (nearEnemies(enemies, here))
+			if (nearEnemies(enemies, here) && rc.isWeaponReady())
 				Combat.shootAtNearbyEnemies();
 			// else no enemy move to archon
-			else if (here.distanceSquaredTo(archonLoc) > 0){
+			else if (here.distanceSquaredTo(archonLoc) > 0 && rc.isCoreReady()){
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 				Nav.goTo(archonLoc, theSafety);
 			}

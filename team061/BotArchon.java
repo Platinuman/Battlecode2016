@@ -291,7 +291,7 @@ public class BotArchon extends Bot {
 				}
 				if (targetLocation == null) {// no known things worth pursuing
 					if (!haveEnoughFighters(allies))
-						buildUnitInDir(directions[rand.nextInt(8)], RobotType.GUARD);
+						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 					else{
 						if(numDensToHunt > 0){
 							bestIndex = Util.closestLocation(densToHunt, here, denArraySize);
@@ -403,10 +403,10 @@ public class BotArchon extends Bot {
 	private static void notifyNewUnitOfCreator()throws GameActionException{
 		if(isMobileArchon){
 			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 		} else if(isAlphaArchon){
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 		}
 	}
 

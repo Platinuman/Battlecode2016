@@ -93,7 +93,7 @@ public class Combat extends Bot {
 				Direction.NORTH_EAST, Direction.SOUTH_EAST, Direction.SOUTH_WEST, Direction.NORTH_WEST };
 
 		for (Direction dir : retreatDirs) {
-			if (rc.canMove(dir) && isSafe(here.add(dir))) {
+			if (rc.canMove(dir) && isSafe(here.add(dir)) && rc.isCoreReady()) {
 				rc.move(dir);
 				return;
 			}
