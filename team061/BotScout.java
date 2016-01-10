@@ -122,6 +122,9 @@ public class BotScout extends Bot {
 		updateMaxRange(signals);
 		}
 		else{
+			if(rc.getRoundNum() % 5 == 0){
+				addPartsAndNeutrals();
+			}
 			updateMobileLocation();
 			if(rc.getRoundNum() < roundToStopHuntingDens)
 				explore();
@@ -175,22 +178,26 @@ public class BotScout extends Bot {
 
 	private static void updateMobileLocation() {
 		Signal[] signals = rc.emptySignalQueue();
-		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
-		withinRange = false;
-		for(RobotInfo ally : allies){
-			if(ally.ID == mobileID){
-				mobileLoc = ally.location;
-				withinRange = true;
-				break;
+		if(rc.getRoundNum() == roundToStopHuntingDens){
+			for (int i = 0; i < signals.length; i++) {
+				int[] message = signals[i].getMessage();
+				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+			    if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION){
+					int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
+					mobileLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+			    }
 			}
 		}
-		for (int i = 0; i < signals.length; i++) {
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-		    if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION){
-				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
-				mobileLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
-		    }
+		if(rc.getRoundNum() > roundToStopHuntingDens){
+			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
+			withinRange = false;
+			for(RobotInfo ally : allies){
+				if(ally.ID == mobileID){
+					mobileLoc = ally.location;
+					withinRange = true;
+					break;
+				}
+			}
 		}
 	}
 
@@ -198,7 +205,6 @@ public class BotScout extends Bot {
 		//explore and notify archon if you see anything
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
-		addPartsAndNeutrals();
 		if(rc.isCoreReady()){
 			if(directionIAmMoving == null){
 				directionIAmMoving = here.directionTo(mobileLoc).opposite();
@@ -213,7 +219,7 @@ public class BotScout extends Bot {
 					}
 				}
 			}
-		notifyArchonOfZombieDen(hostileRobots);
+			notifyArchonOfZombieDen(hostileRobots);
 		}
 	}
 
@@ -221,7 +227,7 @@ public class BotScout extends Bot {
 		//add all seen parts and neutrals to arrays, in a corresponding array add a 1 if it's a neutral (stay 0 if part)
 		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared); 
 		for(MapLocation loc: possibleLocs){
-			if(!rc.canSense(loc) || Util.containsMapLocation(partAndNeutralLocs, loc, size)){
+			if(!rc.canSense(loc)){
 				continue;
 			}
 			if(rc.senseParts(loc) > 0 ){
