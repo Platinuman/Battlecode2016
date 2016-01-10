@@ -18,6 +18,19 @@ public class Util extends Bot {
         return closest;
     }
     
+   public static MapLocation closestLocation(MapLocation locs[], MapLocation toHere, int size) {
+       MapLocation closest = null;
+       int bestDistSq = 999999;
+       for (int i = 0; i < size; i++) {
+           int distSq = toHere.distanceSquaredTo(locs[i]);
+           if (distSq < bestDistSq) {
+               bestDistSq = distSq;
+               closest = locs[i];
+           }
+       }
+       return closest;
+   }
+      
     public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
         RobotInfo ret = null;
         double minHealth = 1e99;
@@ -71,5 +84,14 @@ public class Util extends Bot {
 			yavg += loc.y;
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
+	}
+
+	public static boolean containsMapLocation(MapLocation[] partAndNeutralLocs, MapLocation location) {
+		for(MapLocation loc: partAndNeutralLocs){
+			if(loc.equals(location)){
+				return true;
+			}
+		}
+		return false;
 	}
 }
