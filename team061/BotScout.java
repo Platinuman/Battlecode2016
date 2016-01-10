@@ -253,18 +253,31 @@ public class BotScout extends Bot {
 	
 	private static void notifyArchonAboutClosestPartOrNeutral() throws GameActionException{
 		int bestIndex = Util.closestLocation(partAndNeutralLocs, mobileLoc, size);
+		MapLocation closestPartOrNeutral = here;
 		if(bestIndex != -1){
-			MapLocation closestPartOrNeutral = partAndNeutralLocs[bestIndex];
-			partAndNeutralLocs[bestIndex] = null;
+			closestPartOrNeutral = partAndNeutralLocs[bestIndex];
+			while(true){
+				partAndNeutralLocs[bestIndex] = null;
+				if(rc.canSense(closestPartOrNeutral) && !Combat.isSafe(closestPartOrNeutral)){
+					bestIndex = Util.closestLocation(partAndNeutralLocs, mobileLoc, size);
+					if(bestIndex == -1)
+						break;
+				}
+				else{
+					break;
+				}
+			}
+		}
+		if(bestIndex == -1){
+			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});
+			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
+		}
+		else{
 			int type = partsOrNeutrals[bestIndex];
 			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{closestPartOrNeutral.x, closestPartOrNeutral.y});
 			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
 			lastBroadcasted = closestPartOrNeutral;
 			lastBroadcastedType = type;
-		}
-		else{
-			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});
-			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
 		}
 	}
 

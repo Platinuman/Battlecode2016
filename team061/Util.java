@@ -103,4 +103,32 @@ public class Util extends Bot {
 		}
 		return false;
 	}
+
+	public static RobotInfo farthestSpecificType(RobotInfo[] robots, MapLocation toHere, RobotType type) {
+        RobotInfo farthest = null;
+        int bestDistSq = -1;
+        int distSq;
+        for (int i = robots.length; i-- > 0;) {
+            distSq = toHere.distanceSquaredTo(robots[i].location);
+            if (distSq > bestDistSq && robots[i].type == type) {
+                bestDistSq = distSq;
+                farthest = robots[i];
+            }
+        }
+        return farthest;
+	}
+	
+	public static RobotInfo closestSpecificType(RobotInfo[] robots, MapLocation toHere, RobotType type) {
+        RobotInfo farthest = null;
+        int bestDistSq = 99999;
+        int distSq;
+        for (int i = robots.length; i-- > 0;) {
+            distSq = toHere.distanceSquaredTo(robots[i].location);
+            if (distSq < bestDistSq && robots[i].type == type) {
+                bestDistSq = distSq;
+                farthest = robots[i];
+            }
+        }
+        return farthest;
+	}
 }

@@ -43,11 +43,10 @@ public class BotSoldier extends Bot {
 		int acceptableRangeSquared = RobotType.SOLDIER.sensorRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
-		updateArchonLoc();
 		// Check for nearby enemies
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		// If within acceptable range of archon
-		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared) {
+		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared && updateArchonLoc()) {
 			// If we are within enemy range and could step out do so
 			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here) && rc.isCoreReady()) {
 				Combat.retreat(Util.closest(enemies, here).location);
@@ -84,23 +83,27 @@ public class BotSoldier extends Bot {
 				Nav.goTo(archonLoc, theSafety);
 			}
 			//TODO what to do if lost?
-			else{
+			else if (rc.isCoreReady()){
 				RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
-				if(allies.length > 0){
-					Nav.goTo(Util.closest(allies, here).location, new SafetyPolicyAvoidAllUnits(enemies));
+				RobotInfo farthestSoldier = Util.closestSpecificType(allies, here, RobotType.SOLDIER);
+				if(farthestSoldier != null){
+					rc.setIndicatorString(0,"going to " + farthestSoldier.location);
+					archonLoc = farthestSoldier.location; // close enough lel
+					Nav.goTo(archonLoc, new SafetyPolicyAvoidAllUnits(enemies));
 				}
 			}
 		}
 	}
 
-	private static void updateArchonLoc() {
+	private static boolean updateArchonLoc() {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		for(RobotInfo ally : allies){
 			if(ally.ID == archonID){
 				archonLoc = ally.location;
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 /*
 	private static MapLocation checkScoutArchonLoc(Signal[] signals) {
