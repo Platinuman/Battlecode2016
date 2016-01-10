@@ -8,8 +8,13 @@ public class BotSoldier extends Bot {
 	
 	static MapLocation archonLoc;
 	static int archonID;
+	static boolean firstTurn = true;
 	
 	public static void loop(RobotController theRC) throws GameActionException {
+		if(firstTurn){
+			firstTurn = false;
+			Clock.yield();
+		}
 		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
@@ -33,7 +38,7 @@ public class BotSoldier extends Bot {
 				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				archonID = signals[i].getID();
-				//rc.setIndicatorString(0	,"got archon loc");
+				rc.setIndicatorString(0	,"got archon loc");
 				break;
 			}
 		}
