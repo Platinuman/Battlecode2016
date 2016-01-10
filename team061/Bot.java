@@ -10,7 +10,12 @@ public class Bot {
 	protected static Team them;
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
     protected static Random rand;
+<<<<<<< HEAD
     protected static int roundToStopHuntingDens = 1000;
+=======
+    protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+>>>>>>> d9621227412cdd3539882415db0225d03c2e9d18
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
 
@@ -21,36 +26,5 @@ public class Bot {
 		rand = new Random(rc.getID());
 //		System.out.println(here.x + ", " + here.y + " decoded: " +MessageEncode.TURRET_TARGET.decode(here, MessageEncode.TURRET_TARGET.encode(new int[]{69, RobotType.SOLDIER.ordinal(), here.x + 34,here.y - 21}))[3]);
 	}
-	/*
-    public static boolean inEnemyTowerOrHQRange(MapLocation loc, MapLocation[] enemyArchons) {
-        if (loc.distanceSquaredTo(theirHQ) <= 52) {
-            switch (enemyArchons.length) {
-                case 6:
-                case 5:
-                    // enemy HQ has range of 35 and splash
-                    if (loc.add(loc.directionTo(theirHQ)).distanceSquaredTo(theirHQ) <= 35) return true;
-                    break;
-
-                case 4:
-                case 3:
-                case 2:
-                    // enemy HQ has range of 35 and no splash
-                    if (loc.distanceSquaredTo(theirHQ) <= 35) return true;
-                    break;
-
-                case 1:
-                case 0:
-                default:
-                    // enemyHQ has range of 24;
-                    if (loc.distanceSquaredTo(theirHQ) <= 24) return true;
-                    break;
-            }
-        }
-
-        for (MapLocation archon : enemyArchons) {
-            if (loc.distanceSquaredTo(archon) <= RobotType.ARCHON.attackRadiusSquared) return true;
-        }
-
-        return false;
-	 */
+	
 }
