@@ -40,18 +40,17 @@ public class BotSoldier extends Bot {
 	}
 
 	private static void turn() throws GameActionException {
-		int acceptableRangeSquared = RobotType.ARCHON.sensorRadiusSquared;
+		int acceptableRangeSquared = RobotType.SOLDIER.sensorRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
 		updateArchonLoc();
 		// Check for nearby enemies
-		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		// If within acceptable range of archon
 		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared) {
 			// If we are within enemy range and could step out do so
 			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here) && rc.isCoreReady()) {
-				MapLocation[] locEnemies = { Util.closest(enemies, here).location };
-				Combat.retreat(locEnemies);
+				Combat.retreat(Util.closest(enemies, here).location);
 			}
 			// else if we are within enemy range and could not step out attack
 			else if (nearEnemies(enemies, here) && !couldMoveOut(enemies, here) && rc.isWeaponReady()) {
@@ -59,6 +58,9 @@ public class BotSoldier extends Bot {
 			}
 			// else move to Archon
 			else if(rc.isCoreReady()){
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				Nav.goTo(archonLoc, theSafety);
+				/*
 				if(here.distanceSquaredTo(archonLoc) > 8) {
 					//don't block archon
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
@@ -68,7 +70,7 @@ public class BotSoldier extends Bot {
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 					boolean moved = Nav.moveInDir(here.directionTo(archonLoc).opposite(), theSafety);
 					//we're too close
-				}
+				}*/
 			}
 		}
 		// else not within acceptable range of archon
@@ -82,11 +84,17 @@ public class BotSoldier extends Bot {
 				Nav.goTo(archonLoc, theSafety);
 			}
 			//TODO what to do if lost?
+			else{
+				RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+				if(allies.length > 0){
+					Nav.goTo(Util.closest(allies, here).location, new SafetyPolicyAvoidAllUnits(enemies));
+				}
+			}
 		}
 	}
 
 	private static void updateArchonLoc() {
-		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		for(RobotInfo ally : allies){
 			if(ally.ID == archonID){
 				archonLoc = ally.location;

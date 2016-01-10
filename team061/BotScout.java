@@ -210,14 +210,20 @@ public class BotScout extends Bot {
 				directionIAmMoving = here.directionTo(mobileLoc).opposite();
 			}
 			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
+			rc.setIndicatorString(1, "moved is" + moved);
 			if(!moved){
-				for(int i = 0; i < 4; i++){
+				rc.setIndicatorString(0, "i'm trying");
+				for(int i = 0; i < 8; i++){
 					directionIAmMoving = directionIAmMoving.rotateRight();
 					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
 					if(movedNow){
+						moved = true;
 						break;
 					}
 				}
+			}
+			if(!moved){
+				Combat.retreat(Util.closest(hostileRobots, here).location);
 			}
 			notifyArchonOfZombieDen(hostileRobots);
 		}
