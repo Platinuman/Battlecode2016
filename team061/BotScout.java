@@ -19,13 +19,9 @@ public class BotScout extends Bot {
 	static MapLocation dest;
 	static int range;
 	// static boolean atScoutLocation;
-	static boolean firstTurn = false;
+	static MapLocation lastBroadcasted;
 
 	public static void loop(RobotController theRC) throws GameActionException {
-		if (firstTurn) {
-			firstTurn = false;
-			Clock.yield();
-		}
 		// Debug.init("micro");
 		Bot.init(theRC);
 		init();
@@ -158,10 +154,12 @@ public class BotScout extends Bot {
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
 			Nav.goTo(mobileLoc, theSafety);
-			if(withinRange){
-				notifyArchonAboutClosestPartOrNeutral();
 			}
-		}
+		//the following part should tell teh archon the next location only if it has finished doing it's job. it doesn't work now.
+		RobotInfo ri = rc.senseRobotAtLocation(lastBroadcasted);
+		if(ri.ID == mobileID || withinRange)
+			notifyArchonAboutClosestPartOrNeutral();
+		
 	}
 
 	private static void updateMobileLocation() {
@@ -227,6 +225,7 @@ public class BotScout extends Bot {
 		if(closestPartOrNeutral != null){
 			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{closestPartOrNeutral.x, closestPartOrNeutral.y});
 			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
+			lastBroadcasted = closestPartOrNeutral;
 		}
 		else{
 			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});

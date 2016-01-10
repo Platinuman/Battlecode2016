@@ -1,51 +1,125 @@
 package team061;
 
 import battlecode.common.*;
+
 import java.util.Random;
 
 public class BotGuard extends Bot {
+	static MapLocation archonLoc;
+	static int archonID;
+	
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
+		init();
 		// Debug.init("micro");
 		while (true) {
 			try {
-				turn(rand);
+			//	turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			Clock.yield();
 		}
 	}
-
-	private static void turn(Random rand) throws GameActionException {
-		here = rc.getLocation();
-		int myAttackRange = rc.getType().attackRadiusSquared;
-		Team myTeam = rc.getTeam();
-		Team enemyTeam = myTeam.opponent();
-		RobotInfo[] enemies = rc.senseNearbyRobots(myAttackRange,them);
-		RobotInfo[] zombies = rc.senseNearbyRobots(myAttackRange,Team.ZOMBIE);
-
-		// If this robot type can attack, check for enemies within range and
-		// attack one
-		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies();
-		}
-/*
-		if (rc.isCoreReady() && enemies.length == 0 && zombies.length == 0) {
-			if (fate < 600) {
-				// Choose a random direction to try to move in
-				Direction dirToMove = directions[fate % 8];
-				// Check the rubble in that direction
-				if (rc.senseRubble(rc.getLocation().add(dirToMove)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-					// Too much rubble, so I should clear it
-					rc.clearRubble(dirToMove);
-					// Check if I can move in this direction
-				} else if (rc.canMove(dirToMove)) {
-					// Move
-					rc.move(dirToMove);
-				}
+	
+	private static void init() throws GameActionException {
+		// atScoutLocation = false;
+		Signal[] signals = rc.emptySignalQueue();
+		for (int i = 0; i < signals.length; i++) {
+			int[] message = signals[i].getMessage();
+			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+			if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION){
+				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
+				archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				archonID = signals[i].getID();
+				//rc.setIndicatorString(0	,"got archon loc");
+				break;
 			}
-		}*/
+		}
+	}
 
+	private static void turn() throws GameActionException {
+		int acceptableRangeSquared = RobotType.ARCHON.sensorRadiusSquared;
+		// Check where moving Archon is
+		here = rc.getLocation();
+		MapLocation archonLoc = updateArchonLoc();
+		// Check for nearby enemies
+		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+		// If within acceptable range of archon
+		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared) {
+			// If we are within enemy range and could step out do so
+			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here)) {
+				MapLocation[] locEnemies = { Util.closest(enemies, here).location };
+				Combat.retreat(locEnemies);
+			}
+			// else if we are within enemy range and could not step out attack
+			else if (nearEnemies(enemies, here) && !couldMoveOut(enemies, here)) {
+				Combat.shootAtNearbyEnemies();
+			}
+			// else move to Archon
+			else if(here.distanceSquaredTo(archonLoc) > 8) {
+				//don't block archon
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				Nav.goTo(archonLoc, theSafety);
+			}
+			else if(here.distanceSquaredTo(archonLoc) < 4){
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				boolean moved = Nav.moveInDir(here.directionTo(archonLoc).opposite(), theSafety);
+				//we're too close
+			}
+		}
+		// else not within acceptable range of archon
+		else {
+			// If enemy is near attack
+			if (nearEnemies(enemies, here))
+				Combat.shootAtNearbyEnemies();
+			// else no enemy move to archon
+			else if (here.distanceSquaredTo(archonLoc) > 0){
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+				Nav.goTo(archonLoc, theSafety);
+			}
+			//TODO what to do if lost?
+		}
+	}
+
+	private static MapLocation updateArchonLoc() {
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
+		for(RobotInfo ally : allies){
+			if(ally.ID == archonID){
+				archonLoc = ally.location;
+				break;
+			}
+		}
+	}
+/*
+	private static MapLocation checkScoutArchonLoc(Signal[] signals) {
+		MapLocation archonLoc;
+		for (int i = 0; i < signals.length; i++) {
+			if (signals[i].getTeam() == them) {
+				continue;
+			}
+			int[] message = signals[i].getMessage();
+			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+			if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION) {
+				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(message);
+				archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
+				return archonLoc;
+			}
+		}
+//	}*/
+
+	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		if (closestEnemy != null && here.distanceSquaredTo(closestEnemy.location) > closestEnemy.type.attackRadiusSquared)
+			return true;
+		return false;
+	}
+
+	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		int range = here.distanceSquaredTo(closestEnemy.location) - closestEnemy.type.attackRadiusSquared;
+		if (range > -1)
+			return true;
+		return false;
 	}
 }
