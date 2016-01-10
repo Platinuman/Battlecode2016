@@ -27,7 +27,7 @@ public class BotSoldier extends Bot {
 		// Check for nearby enemies
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 		// If within acceptable range of archon
-		if (here.distanceSquaredTo(archonLoc) > acceptableRangeSquared) {
+		if (here.distanceSquaredTo(archonLoc) < acceptableRangeSquared) {
 			// If we are within enemy range and could step out do so
 			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here)) {
 				MapLocation[] locEnemies = { Util.closest(enemies, here).location };
@@ -64,8 +64,8 @@ public class BotSoldier extends Bot {
 			}
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-		//	if (signals[i].getTeam() == us && msgType == MessageEncode.SCOUT_ARCHON_LOCATION) {
-			//	int[] decodedMessage = MessageEncode.SCOUT_ARCHON_LOCATION.decode(message);
+		//	if (signals[i].getTeam() == us && msgType == MessageEncode.MOBILE_ARCHON_LOCATION) {
+			//	int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(message);
 			//	archonLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				return archonLoc;
 			}
