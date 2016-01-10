@@ -43,7 +43,7 @@ public class BotSoldier extends Bot {
 		int acceptableRangeSquared = RobotType.ARCHON.sensorRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
-		MapLocation archonLoc = updateArchonLoc();
+		updateArchonLoc();
 		// Check for nearby enemies
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 		// If within acceptable range of archon
@@ -83,7 +83,7 @@ public class BotSoldier extends Bot {
 		}
 	}
 
-	private static MapLocation updateArchonLoc() {
+	private static void updateArchonLoc() {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
 		for(RobotInfo ally : allies){
 			if(ally.ID == archonID){

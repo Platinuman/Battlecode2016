@@ -224,6 +224,10 @@ public class BotArchon extends Bot {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
+		if(rc.getRoundNum() == roundToStopHuntingDens){//found in Bot class
+			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
+			rc.broadcastMessageSignal(msg[0],msg[1],10000);
+		}
 		// know partsLoc, denLoc, neutralLoc
 		if(neutrals.length > 0){
 			rc.activate(neutrals[0].location);
@@ -246,9 +250,6 @@ public class BotArchon extends Bot {
 				if(!haveEnoughFighters(allies))
 					buildUnitInDir(directions[rand.nextInt(8)], RobotType.GUARD);
 			} else
-				if(rc.getRoundNum() == roundToStopHuntingDens)//found in Bot class
-					rc.broadcastSignal(10000);
-				else
 					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies,zombies)));
 		}
 

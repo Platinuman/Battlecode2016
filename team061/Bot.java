@@ -10,7 +10,7 @@ public class Bot {
 	protected static Team them;
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
     protected static Random rand;
-    protected static int roundToStopHuntingDens = 1000;
+    protected static int roundToStopHuntingDens = 500;
     protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 	protected static void init(RobotController theRC) throws GameActionException {

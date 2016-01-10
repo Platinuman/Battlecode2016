@@ -12,6 +12,7 @@ public class BotScout extends Bot {
 	static Direction directionIAmMoving;
 	static int lastSignaled;
 	static MapLocation[] partAndNeutralLocs;
+	static int[] partsOrNeutrals;
 	static int size;
 	static MapLocation[] dens;
 	static boolean withinRange;
@@ -20,6 +21,7 @@ public class BotScout extends Bot {
 	static int range;
 	// static boolean atScoutLocation;
 	static MapLocation lastBroadcasted;
+	static int lastBroadcastedType;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		// Debug.init("micro");
@@ -38,7 +40,8 @@ public class BotScout extends Bot {
 	private static void init() throws GameActionException {
 		// atScoutLocation = false;
 		size = 0;
-		MapLocation[] partAndNeutralLocs = new MapLocation[10000];
+		partAndNeutralLocs = new MapLocation[10000];
+		partsOrNeutrals = new int[10000];
 		range = 3;
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
@@ -120,7 +123,7 @@ public class BotScout extends Bot {
 		}
 		else{
 			updateMobileLocation();
-			if(rc.getRoundNum() < 400)
+			if(rc.getRoundNum() < roundToStopHuntingDens)
 				explore();
 			else
 				followArchon();
@@ -149,16 +152,24 @@ public class BotScout extends Bot {
 		 */
 	}
 
-	private static void followArchon() {
+	private static void followArchon() throws GameActionException{
 		if(rc.isCoreReady()){
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
 			Nav.goTo(mobileLoc, theSafety);
 			}
-		//the following part should tell teh archon the next location only if it has finished doing it's job. it doesn't work now.
-		RobotInfo ri = rc.senseRobotAtLocation(lastBroadcasted);
-		if(ri.ID == mobileID || withinRange)
-			notifyArchonAboutClosestPartOrNeutral();
+		//the following part should tell the archon the next location only if it has finished doing it's job. it doesn't work now.
+		if(withinRange){
+			if(lastBroadcasted != null){
+				RobotInfo ri = rc.senseRobotAtLocation(lastBroadcasted);
+				int type = lastBroadcastedType; //0 if part, 1 if neutral
+				if(ri.ID == mobileID || (type == 1 && ri.team == us))
+					notifyArchonAboutClosestPartOrNeutral();
+			}
+			else{
+				notifyArchonAboutClosestPartOrNeutral();
+			}
+		}
 		
 	}
 
@@ -206,26 +217,38 @@ public class BotScout extends Bot {
 		}
 	}
 
-	private static void addPartsAndNeutrals() {
+	private static void addPartsAndNeutrals() throws GameActionException{
+		//add all seen parts and neutrals to arrays, in a corresponding array add a 1 if it's a neutral (stay 0 if part)
 		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared); 
 		for(MapLocation loc: possibleLocs){
-			if(!rc.canSense(loc) || Util.containsMapLocation(partAndNeutralLocs, loc)){
+			if(!rc.canSense(loc) || Util.containsMapLocation(partAndNeutralLocs, loc, size)){
 				continue;
 			}
-			RobotInfo ri = rc.senseRobotAtLocation(loc);
-			if(rc.senseRubble(loc) > 0 || (ri != null && ri.team == Team.NEUTRAL)){
+			if(rc.senseParts(loc) > 0 ){
 				partAndNeutralLocs[size] = loc;
 				size++;
+			}
+			else{
+				RobotInfo ri = rc.senseRobotAtLocation(loc);
+				if(ri != null && ri.team == Team.NEUTRAL){
+					partAndNeutralLocs[size] = loc;
+					partsOrNeutrals[size] = 1;
+					size++;
+				}
 			}
 		}
 	}
 	
-	private static void notifyArchonAboutClosestPartOrNeutral() {
-		MapLocation closestPartOrNeutral = Util.closestLocation(partAndNeutralLocs, mobileLoc, size);
-		if(closestPartOrNeutral != null){
+	private static void notifyArchonAboutClosestPartOrNeutral() throws GameActionException{
+		int bestIndex = Util.closestLocation(partAndNeutralLocs, mobileLoc, size);
+		if(bestIndex != -1){
+			MapLocation closestPartOrNeutral = partAndNeutralLocs[bestIndex];
+			partAndNeutralLocs[bestIndex] = null;
+			int type = partsOrNeutrals[bestIndex];
 			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{closestPartOrNeutral.x, closestPartOrNeutral.y});
 			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
 			lastBroadcasted = closestPartOrNeutral;
+			lastBroadcastedType = type;
 		}
 		else{
 			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});
@@ -233,13 +256,13 @@ public class BotScout extends Bot {
 		}
 	}
 
-	private static void notifyArchonOfZombieDen(RobotInfo[] hostileRobots) {
+	private static void notifyArchonOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException {
 		//zombie dens first
 		for(RobotInfo hostileUnit: hostileRobots){
 			if(hostileUnit.type == RobotType.ZOMBIEDEN){
 				//notify archon
 				MapLocation hostileLoc = hostileUnit.location;
-			    int[] myMsg = MessageEncode.FOUND_DEN.encode(new int[]{hostileLoc.x,hostileLoc.y});
+			    int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{hostileLoc.x,hostileLoc.y});
 			    rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 			}
 		}

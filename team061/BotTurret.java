@@ -134,7 +134,7 @@ public class BotTurret extends Bot {
 				RobotType[] hostileTypes = new RobotType[numTargetSignals];
 				for (int i = 0; i < numTargetSignals; i++) {
 					int[] message = signals[indicesOfTargetSignals[i]].getMessage();
-					int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
+					int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[indicesOfTargetSignals[i]].getLocation(), message);
 					healths[i] = decodedMessage[0];
 					hostileTypes[i] = RobotType.values()[decodedMessage[1]];
 					hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
