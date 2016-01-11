@@ -252,6 +252,7 @@ public class BotArchon extends Bot {
 		if (rc.getRoundNum() == roundToStopHuntingDens) {// found in Bot class
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], 10000);
+	
 		} 
 		else if(huntingDen){//behavior is very different
 			if(rc.canSenseLocation(targetLocation)){//within range of den
