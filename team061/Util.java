@@ -30,7 +30,7 @@ public class Util extends Bot {
            if (distSq < bestDistSq) {
                bestDistSq = distSq;
                closest = locs[i];
-               i = bestIndex;
+               bestIndex = i;
            }
        }
        return bestIndex;
