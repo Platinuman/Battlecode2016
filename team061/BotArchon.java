@@ -209,7 +209,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts() {
+	private static void updateInfoFromScouts() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals){
 			if (signal.getTeam() == us){
@@ -229,9 +229,13 @@ public class BotArchon extends Bot {
 							if(rc.getRoundNum() < roundToStopHuntingDens){
 								huntingDen = true;
 								numDensToHunt++;
+								targetLocation = new MapLocation(data[0],data[1]);
+								broadcastTargetLocation();
 							}
-							huntingDen = false;
-							targetLocation = new MapLocation(data[0],data[1]);
+							else if(!huntingDen){
+								targetLocation = new MapLocation(data[0],data[1]);
+								broadcastTargetLocation();
+							}
 						}
 					} else if (purpose == MessageEncode.STOP_BEING_MOBILE){
 						int[] data = purpose.decode(senderloc, message);
@@ -243,12 +247,25 @@ public class BotArchon extends Bot {
 		}
 	}
 
+	private static void broadcastTargetLocation() throws GameActionException{
+		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{targetLocation.x, targetLocation.y});
+		rc.broadcastMessageSignal(msg[0], msg[1], (int)(RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+	}
+
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
+		if(numDensToHunt > 0 && !huntingDen){
+			bestIndex = Util.closestLocation(densToHunt, here, denArraySize);
+			if(bestIndex > -1){
+				targetLocation = densToHunt[bestIndex];
+				broadcastTargetLocation();
+				huntingDen = true;
+			}
+		}
 		updateInfoFromScouts();
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
-		rc.setIndicatorString(0, "target = " + targetLocation);
+		//rc.setIndicatorString(0, "target = " + targetLocation);
 		if (rc.getRoundNum() == roundToStopHuntingDens) {// found in Bot class
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], 10000);
@@ -265,8 +282,10 @@ public class BotArchon extends Bot {
 				}
 				else if(here.distanceSquaredTo(targetLocation) > cautionLevel)
 					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+				else if(!haveEnoughFighters(allies) && rc.isCoreReady())
+					buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 			}
-			else{
+			else if(rc.isCoreReady()){
 				Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
 			}
 		}
@@ -294,12 +313,7 @@ public class BotArchon extends Bot {
 					if (!haveEnoughFighters(allies))
 						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 					else{
-						if(numDensToHunt > 0){
-							bestIndex = Util.closestLocation(densToHunt, here, denArraySize);
-							targetLocation = densToHunt[bestIndex];
-							huntingDen = true;
-						}
-						if(updateTargetLocationMySelf())
+						if(updateTargetLocationMySelf() && rc.isCoreReady())
 							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
 					}
 				} 
@@ -353,6 +367,7 @@ public class BotArchon extends Bot {
 		}
 		if(closestLoc != null){
 			targetLocation = closestLoc;
+			broadcastTargetLocation();
 			huntingDen = false;
 			return true;
 		}
@@ -364,7 +379,7 @@ public class BotArchon extends Bot {
 		for (RobotInfo a: allies)
 			if (a.type == RobotType.GUARD || a.type == RobotType.SOLDIER)
 				fighters++;
-		return fighters >= 5;
+		return fighters >= 7;
 	}
 
 	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
@@ -405,6 +420,8 @@ public class BotArchon extends Bot {
 		if(isMobileArchon){
 			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
+			if(targetLocation != null)
+				broadcastTargetLocation();
 		} else if(isAlphaArchon){
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);

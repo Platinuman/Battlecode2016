@@ -122,7 +122,7 @@ public class BotScout extends Bot {
 		updateMaxRange(signals);
 		}
 		else{
-			if(rc.getRoundNum() % 5 == 0){
+			if(rc.getRoundNum() % 5 == 0 && rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared).length == 0){
 				addPartsAndNeutrals();
 			}
 			updateMobileLocation();
@@ -163,10 +163,10 @@ public class BotScout extends Bot {
 			}
 		//the following part should tell the archon the next location only if it has finished doing it's job. it doesn't work now.
 		if(withinRange){
-			if(lastBroadcasted != null){
+			if(lastBroadcasted != null && rc.canSense(lastBroadcasted)){
 				RobotInfo ri = rc.senseRobotAtLocation(lastBroadcasted);
 				int type = lastBroadcastedType; //0 if part, 1 if neutral
-				if(ri.ID == mobileID || (type == 1 && ri.team == us))
+				if(ri != null && (ri.ID == mobileID || (type == 1 && ri.team == us)))
 					notifyArchonAboutClosestPartOrNeutral();
 			}
 			else{
