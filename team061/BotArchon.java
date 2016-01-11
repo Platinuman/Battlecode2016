@@ -26,6 +26,7 @@ public class BotArchon extends Bot {
 	static boolean huntingDen;
 	static int bestIndex;
 	static boolean scoutCreated;
+	
 
 	private static boolean checkRubbleAndClear(Direction dir) {
 
@@ -267,9 +268,8 @@ public class BotArchon extends Bot {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		//rc.setIndicatorString(0, "target = " + targetLocation);
 		if (rc.getRoundNum() == roundToStopHuntingDens) {// found in Bot class
-			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
+			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], 10000);
-	
 		} 
 		else if(huntingDen){//behavior is very different
 			if(rc.canSenseLocation(targetLocation)){//within range of den
@@ -292,6 +292,7 @@ public class BotArchon extends Bot {
 		else {
 			if (neutrals.length > 0) {
 				rc.activate(neutrals[0].location);
+				notifyNewUnitOfCreator();
 				if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
 					targetLocation = null;
 					huntingDen = false;
@@ -393,14 +394,17 @@ public class BotArchon extends Bot {
 	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{
 		// TODO: make it try to maximize the number of units protected too
 		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
-		Direction runAway = Util.centroidOfUnits(unfriendly).directionTo(here);
+		MapLocation center = Util.centroidOfUnits(unfriendly);
+		Direction runAway = center.directionTo(here);
 		Nav.moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
 		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
 		// meat shield
 		if(rc.hasBuildRequirements(RobotType.SOLDIER) && rc.isCoreReady()){
 			buildUnitInDir(runAway.opposite(), RobotType.SOLDIER);
 		}
-		//if that doesn't work.... idk what to do
+		//if that doesn't work...
+		if(rc.isCoreReady())
+			Combat.retreat(center);
 	}
 
 	private static boolean buildUnitInDir(Direction dir, RobotType r)throws GameActionException{
@@ -409,6 +413,8 @@ public class BotArchon extends Bot {
 			if( rc.canBuild(dir, r) && rc.isCoreReady()){
 				rc.build(dir, r);
 				notifyNewUnitOfCreator();
+				if(targetLocation != null)
+					broadcastTargetLocation();
 				return true;
 			}
 			dir = dir.rotateRight();
