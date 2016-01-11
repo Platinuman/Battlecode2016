@@ -53,12 +53,16 @@ public class BotSoldier extends Bot {
 			if (rc.isWeaponReady() && enemies.length > 0) {
 				Combat.shootAtNearbyEnemies();
 			}
+			//Try to get in front of the bad guys
+			if(nearEnemies(enemies, targetLoc)){
+			    moveInFrontOfTheArchon(Util.closest(enemies, targetLoc));
+			}
 			// If we can move out of danger without leaving the target in danger
 			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here) && (!nearEnemies(enemies, targetLoc))
 					|| Util.closest(enemies, targetLoc).type != RobotType.ZOMBIEDEN ) {
 				Combat.retreat(Util.closest(enemies, targetLoc).location);
 			}
-		// else not within acceptable range of target
+			// else not within acceptable range of target
 		} else {
 			// If enemy is near attack
 			if (enemies.length > 0 && rc.isWeaponReady())
@@ -68,7 +72,7 @@ public class BotSoldier extends Bot {
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 				Nav.goTo(targetLoc, theSafety);
 			// we are lost and are just gonna try to find some guys
-			}else if(rc.isCoreReady()&& !updateTargetLoc()){ //this sucks since two lost soldiers are just gonna find each other and chill
+			}/*else if(rc.isCoreReady()&& !updateTargetLoc()){ //this sucks since two lost soldiers are just gonna find each other and chill
 				rc.setIndicatorString(0, "I am totally lost");
 				RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 				RobotInfo farthestSoldier = Util.closestSpecificType(allies, here, RobotType.SOLDIER);
@@ -77,7 +81,7 @@ public class BotSoldier extends Bot {
 					targetLoc = farthestSoldier.location; // close enough lel
 					Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
 				}
-			}
+			}*/
 		}
 	}
 
@@ -118,8 +122,8 @@ public class BotSoldier extends Bot {
 	 * // }
 	 */
 
-	private static void moveInFrontOfTheArchon(RobotInfo[] enemies) {
-		RobotInfo closestEnemy = Util.closest(enemies, here);
+	private static void moveInFrontOfTheArchon(RobotInfo closestEnemy) {
+	//	RobotInfo closestEnemy = Util.closest(enemies, here);
 		Direction directionToEnemyFromArchon = targetLoc.directionTo(closestEnemy.location);
 		MapLocation goToHere = targetLoc.add(directionToEnemyFromArchon);
 		RobotInfo[] stuff = {};
