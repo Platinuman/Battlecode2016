@@ -281,8 +281,10 @@ public class BotArchon extends Bot {
 				}
 				else if(here.distanceSquaredTo(targetLocation) > cautionLevel)
 					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+				else if(!haveEnoughFighters(allies) && rc.isCoreReady())
+					buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 			}
-			else{
+			else if(rc.isCoreReady()){
 				Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
 			}
 		}
@@ -310,7 +312,7 @@ public class BotArchon extends Bot {
 					if (!haveEnoughFighters(allies))
 						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 					else{
-						if(updateTargetLocationMySelf())
+						if(updateTargetLocationMySelf() && rc.isCoreReady())
 							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
 					}
 				} 
@@ -417,6 +419,8 @@ public class BotArchon extends Bot {
 		if(isMobileArchon){
 			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
+			if(targetLocation != null)
+				broadcastTargetLocation();
 		} else if(isAlphaArchon){
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);

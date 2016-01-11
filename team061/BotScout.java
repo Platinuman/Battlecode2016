@@ -122,7 +122,7 @@ public class BotScout extends Bot {
 		updateMaxRange(signals);
 		}
 		else{
-			if(rc.getRoundNum() % 5 == 0){
+			if(rc.getRoundNum() % 5 == 0 && rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared).length == 0){
 				addPartsAndNeutrals();
 			}
 			updateMobileLocation();

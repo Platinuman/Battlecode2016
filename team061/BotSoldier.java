@@ -79,10 +79,10 @@ public class BotSoldier extends Bot {
 		// else not within acceptable range of target
 		else {
 			// If enemy is near attack
-			if (nearEnemies(enemies, here) && rc.isWeaponReady())
+			if (enemies.length > 0 && rc.isWeaponReady())
 				Combat.shootAtNearbyEnemies();
 			// else no enemy move to archon
-			else if (rc.isCoreReady()){
+			if (rc.isCoreReady()){
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 				Nav.goTo(targetLoc, theSafety);
 			}
