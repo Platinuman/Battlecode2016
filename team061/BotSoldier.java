@@ -47,6 +47,7 @@ public class BotSoldier extends Bot {
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
+		boolean archonUpdated = updateArchonLoc();
 		rc.setIndicatorString(0, "target = " + targetLoc);
 		// Closest Bad Guy
 		RobotInfo closestEnemy = Util.closest(enemies, here);
@@ -89,8 +90,8 @@ public class BotSoldier extends Bot {
 						moveInFrontOfTheArchon(Util.closest(enemies, targetLoc));
 					}
 			}
-			else if (isOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
-				Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
+			else if (archonLoc != null && here.distanceSquaredTo(archonLoc) <= 2 && isOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
+				Nav.goTo(here.add(here.directionTo(archonLoc).opposite()), theSafety);
 			}
 			// -- if we left no room around the archon, give him some space
 			//if (isAboutOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
@@ -106,6 +107,10 @@ public class BotSoldier extends Bot {
 				rc.setIndicatorString(0, "shooting enemy on round " + rc.getRoundNum());
 				Combat.shootAtNearbyEnemies();
 			}
+			//TODO: make the following condition work, should move if the archon is surrounded but doesn't
+			else if (rc.isCoreReady() && isSurrounded() && here.distanceSquaredTo(archonLoc) <= 2){
+				Nav.goTo(here.add(archonLoc.directionTo(here)), theSafety);
+			}
 			// -else begin searching for target
 			else if (rc.isCoreReady() && here != targetLoc) {
 				rc.setIndicatorString(2, "trying to go to target on round " + rc.getRoundNum());
@@ -113,6 +118,17 @@ public class BotSoldier extends Bot {
 			}
 		}
 
+	}
+
+	private static boolean updateArchonLoc() {
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+		for (RobotInfo ally : allies) {
+			if (ally.ID == archonID) {
+				archonLoc = ally.location;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean updateTargetLoc() {
@@ -244,7 +260,7 @@ public class BotSoldier extends Bot {
 
 	private static int a;
 	private static boolean isOpposite(MapLocation loc1, MapLocation loc2) {
-		if (here.directionTo(loc1) == loc2.directionTo(here))
+		if (here.directionTo(loc1) == loc2.directionTo(here) || here.directionTo(loc1).rotateRight() == loc2.directionTo(here) || here.directionTo(loc1).rotateLeft() == loc2.directionTo(here))
 			return true;
 	/*
 		Direction[] dirs = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
@@ -266,6 +282,20 @@ public class BotSoldier extends Bot {
 				ret++;
 		}
 		return ret;
+	}
+	
+	private static boolean isSurrounded() throws GameActionException {
+		Direction dir = Direction.NORTH;
+		Boolean surrounded = true;
+		for (int i = 0; i < 8; i++) {
+			MapLocation newLoc = archonLoc.add(dir);
+			if (rc.canSense(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+				surrounded = false;
+				break;
+			}
+			dir = dir.rotateLeft();
+		}
+		return surrounded;
 	}
 
 }

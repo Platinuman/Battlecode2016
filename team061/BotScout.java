@@ -15,6 +15,7 @@ public class BotScout extends Bot {
 	static int[] partsOrNeutrals;
 	static int size;
 	static MapLocation[] dens;
+	static int denSize;
 	static boolean withinRange;
 	// static MapLocation[] preferredScoutLocations;
 	static MapLocation dest;
@@ -58,6 +59,7 @@ public class BotScout extends Bot {
 				int[] decodedMessage = MessageEncode.MOBILE_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				mobileLoc = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				isMobile = true;
+				dens = new MapLocation[10000];
 				mobileID = signals[i].getID();
 				rc.setIndicatorString(0	,"i am mobile");
 				break;
@@ -213,8 +215,14 @@ public class BotScout extends Bot {
 			rc.setIndicatorString(1, "moved is" + moved);
 			if(!moved){
 				rc.setIndicatorString(0, "i'm trying");
+				int fate = rand.nextInt(1000);
 				for(int i = 0; i < 8; i++){
-					directionIAmMoving = directionIAmMoving.rotateRight();
+					if(fate % 2 == 0){
+						directionIAmMoving = directionIAmMoving.rotateRight();
+					}
+					else{
+						directionIAmMoving = directionIAmMoving.rotateLeft();
+					}
 					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
 					if(movedNow){
 						moved = true;
@@ -284,8 +292,10 @@ public class BotScout extends Bot {
 	private static void notifyArchonOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException {
 		//zombie dens first
 		for(RobotInfo hostileUnit: hostileRobots){
-			if(hostileUnit.type == RobotType.ZOMBIEDEN){
+			if(hostileUnit.type == RobotType.ZOMBIEDEN && !Util.containsMapLocation(dens, hostileUnit.location, denSize)){
 				//notify archon
+				dens[denSize] = hostileUnit.location;
+				denSize++;
 				MapLocation hostileLoc = hostileUnit.location;
 			    int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{hostileLoc.x,hostileLoc.y});
 			    rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
