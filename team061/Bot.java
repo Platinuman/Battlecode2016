@@ -21,7 +21,7 @@ public class Bot {
 
 		here = rc.getLocation();
 		rand = new Random(rc.getID());
-		roundToStopHuntingDens = rc.getRoundLimit()/3;
+		roundToStopHuntingDens = rc.getRoundLimit()/5;
 //		System.out.println(here.x + ", " + here.y + " decoded: " +MessageEncode.TURRET_TARGET.decode(here, MessageEncode.TURRET_TARGET.encode(new int[]{69, RobotType.SOLDIER.ordinal(), here.x + 34,here.y - 21}))[3]);
 	}
 	

@@ -273,9 +273,11 @@ Bot.init(theRC);
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		RobotInfo[] hostiles = Util.combineTwoRIArrays(enemies, zombies);
 		//rc.setIndicatorString(0, "target = " + targetLocation);
-		if (rc.getRoundNum() == roundToStopHuntingDens) {// found in Bot class
+		if (!huntingDen && rc.getRoundNum() >= roundToStopHuntingDens) {// found in Bot class
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], 10000);
+			targetLocation = alpha;
+			isMobileArchon = false;
 		} 
 		if (neutrals.length > 0) {
 			rc.activate(neutrals[0].location);
@@ -494,7 +496,7 @@ Bot.init(theRC);
 		if(!scoutCreated){
 			return true;
 		}
-		if(rc.getRoundNum() > roundToStopHuntingDens + 50){
+		if(rc.getRoundNum() + 50 < roundToStopHuntingDens){
 			for (int i = 0; i < teammates.length; i++) {
 				if (teammates[i].type == RobotType.SCOUT)
 					return false;
