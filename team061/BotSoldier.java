@@ -45,6 +45,7 @@ public class BotSoldier extends Bot {
 		here = rc.getLocation();
 		// Check for nearby enemies
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
+		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		rc.setIndicatorString(0, "target = " + targetLoc);
 		// Closest Bad Guy
@@ -72,7 +73,7 @@ public class BotSoldier extends Bot {
 						Combat.retreat(Util.closest(enemies, targetLoc).location);
 					}
 				// --otherwise hit an enemy if we can
-				if (rc.isWeaponReady()) {
+				if (rc.isWeaponReady() && enemiesICanShoot.length > 0) {
 					Combat.shootAtNearbyEnemies();
 				}
 
@@ -88,6 +89,9 @@ public class BotSoldier extends Bot {
 						moveInFrontOfTheArchon(Util.closest(enemies, targetLoc));
 					}
 			}
+			else if (isOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
+				Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
+			}
 			// -- if we left no room around the archon, give him some space
 			//if (isAboutOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
 				//Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
@@ -95,19 +99,17 @@ public class BotSoldier extends Bot {
 			// -- if there is an enemy harasser nearby,protect archon
 
 		} else {
-			rc.setIndicatorString(1, "nothing to kill");
+			rc.setIndicatorString(1, "nothing to kill on round " + rc.getRoundNum());
 
 			// -if near enemy try to attack anything near us
-			if (rc.isWeaponReady() && enemies.length > 0) {
+			if (rc.isWeaponReady() && enemiesICanShoot.length > 0) {
+				rc.setIndicatorString(0, "shooting enemy on round " + rc.getRoundNum());
 				Combat.shootAtNearbyEnemies();
 			}
 			// -else begin searching for target
 			else if (rc.isCoreReady() && here != targetLoc) {
+				rc.setIndicatorString(2, "trying to go to target on round " + rc.getRoundNum());
 				Nav.goTo(targetLoc, theSafety);
-
-			}
-			if (isOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
-				Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
 			}
 		}
 

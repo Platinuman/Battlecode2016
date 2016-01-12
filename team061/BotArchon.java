@@ -225,7 +225,6 @@ Bot.init(theRC);
 						int[] data = purpose.decode(senderloc, message);
 						if(rc.getRoundNum() < roundToStopHuntingDens && numDensToHunt > 0){
 							densToHunt[denArraySize] = new MapLocation(data[0],data[1]);
-							huntingDen = true;
 							numDensToHunt++;
 							denArraySize++;
 						}
@@ -259,7 +258,7 @@ Bot.init(theRC);
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		rc.setIndicatorString(2, "");
 		if(numDensToHunt > 0 && !huntingDen){
-			bestIndex = Util.closestLocation(densToHunt, here, denArraySize);
+			bestIndex = Util.closestLocation(densToHunt, alpha, denArraySize);
 			if(bestIndex > -1){
 				targetLocation = densToHunt[bestIndex];
 				broadcastTargetLocation();
@@ -385,9 +384,11 @@ Bot.init(theRC);
 					}
 				}
 			}
-			if(!moved){
+			if(!moved && hostileRobots.length > 0){
 				Combat.retreat(Util.closest(hostileRobots, here).location);
 			}
+			targetLocation = rc.getLocation();
+			broadcastTargetLocation();
 		}
 	}
 	private static boolean updateTargetLocationMySelf() throws GameActionException{

@@ -61,11 +61,11 @@ public class Combat extends Bot {
 
 	public static RobotInfo chooseTarget(RobotInfo[] enemies, int isScout) {
 		double minHealth = 999999;
-		double maxPower = -1;
+		double maxPower = -999999;
 		RobotInfo target = null;
 		for (RobotInfo enemy : enemies) {
-			if (enemy.type.attackPower > maxPower && (rc.canAttackLocation(enemy.location)) || isScout == 1) {
-				maxPower = enemy.type.attackPower;
+			if (enemy.attackPower > maxPower && (rc.canAttackLocation(enemy.location)) || isScout == 1) {
+				maxPower = enemy.attackPower;
 				minHealth = enemy.health;
 				target = enemy;
 			} else if (enemy.attackPower == maxPower && enemy.health < minHealth && (rc.canAttackLocation(enemy.location)) || isScout == 1) {
