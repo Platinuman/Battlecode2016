@@ -64,13 +64,14 @@ public class BotSoldier extends Bot {
 
 			// -- if we are getting owned and have core delay and can retreat
 			if (enemies.length > 0) {
+				rc.setIndicatorString(1, "kill");
 				// without endangering archon, do so
 				if (rc.isCoreReady() && (numEnemiesAttackingUs > 0 && (!nearEnemies(enemies, targetLoc))
 						|| Util.closest(enemies, targetLoc).type != RobotType.ZOMBIEDEN)) {
 					Combat.retreat(Util.closest(enemies, targetLoc).location);
 				}
 				// --otherwise hit an enemy if we can
-				if (rc.isWeaponReady() && enemies.length > 0) {
+				if (rc.isWeaponReady()) {
 					Combat.shootAtNearbyEnemies();
 				}
 
@@ -92,6 +93,8 @@ public class BotSoldier extends Bot {
 			// -- if there is an enemy harasser nearby,protect archon
 
 		} else {
+			rc.setIndicatorString(1, "nothing to kill");
+
 			// -if near enemy try to attack anything near us
 			if (rc.isWeaponReady() && enemies.length > 0) {
 				Combat.shootAtNearbyEnemies();
