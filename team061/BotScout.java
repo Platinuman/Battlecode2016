@@ -269,8 +269,8 @@ public class BotScout extends Bot {
 			}
 		}
 		if(bestIndex == -1){
-			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});
-			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
+//			int[] msg = MessageEncode.STOP_BEING_MOBILE.encode(new int[]{mobileLoc.x, mobileLoc.y});
+//			rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc));
 		}
 		else{
 			int type = partsOrNeutrals[bestIndex];
