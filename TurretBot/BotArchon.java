@@ -42,9 +42,14 @@ public class BotArchon extends Bot {
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 			isAlphaArchon = true;
 			alpha = myLocation;
-			rc.setIndicatorString(0, "I am the Alpha Archon. Fear me.");
+			rc.setIndicatorString(0, "I am the Darth Jar Jar. Fear me.");
+			rc.setIndicatorString(1, "The ability to destroy a planet is insignificant next to the power of the Force.");
+			rc.setIndicatorString(2, "I hope so for your sake, the emperor is not as forgiving as I am.");
 		} else {
 			for (int i = 0; i < signals.length; i++) {
+				if(signals[i].getTeam()!=us){
+					continue;
+				}
 				int[] message = signals[i].getMessage();
 				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
@@ -101,7 +106,7 @@ public class BotArchon extends Bot {
 				dirToBuild = dirToBuild.rotateLeft();
 			}
 
-			if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
+			if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 20 == 0) {
 				maxRange++;
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
 				rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));

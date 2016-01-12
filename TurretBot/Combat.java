@@ -46,11 +46,9 @@ public class Combat extends Bot {
 		RobotType type = rc.getType();
 		int attackRadiusSq = type.attackRadiusSquared;
 		RobotInfo[] enemies = rc.senseNearbyRobots(attackRadiusSq, them);
-		RobotInfo[] zombies = rc.senseNearbyRobots(attackRadiusSq, Team.ZOMBIE);
-
 		RobotInfo target = chooseTarget(enemies,0);
 		if (target == null){
-			target = chooseTarget(zombies,0);
+			target = chooseTarget(rc.senseNearbyRobots(attackRadiusSq, Team.ZOMBIE),0);
 		}
 		if (target != null) {
 			rc.attackLocation(target.location);

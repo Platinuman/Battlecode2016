@@ -11,7 +11,7 @@ public class RobotPlayer {
      * If this method returns, the robot dies!
      **/
     @SuppressWarnings("unused")
-    public static void run(RobotController rc) {
+    public static void run(RobotController rc)throws GameActionException {
         // You can instantiate variables here.
         Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
                 Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
@@ -21,7 +21,8 @@ public class RobotPlayer {
         int myAttackRange = 0;
         Team myTeam = rc.getTeam();
         Team enemyTeam = myTeam.opponent();
-
+        rc.broadcastSignal(10000);
+        
         if (rc.getType() == RobotType.ARCHON) {
             try {
                 // Any code here gets executed exactly once at the beginning of the game.
@@ -38,9 +39,9 @@ public class RobotPlayer {
                 try {
                     int fate = rand.nextInt(1000);
                     // Check if this ARCHON's core is ready
-                    if (fate % 10 == 2) {
+                    if (fate % 1 == 0) {
                         // Send a message signal containing the data (6370, 6147)
-                        rc.broadcastMessageSignal(6370, 6147, 80);
+                        rc.broadcastSignal(10000);
                     }
                     Signal[] signals = rc.emptySignalQueue();
                     if (signals.length > 0) {
