@@ -89,9 +89,9 @@ public class BotSoldier extends Bot {
 					}
 			}
 			// -- if we left no room around the archon, give him some space
-			if (isAboutOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
-				Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
-			}
+			//if (isAboutOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
+				//Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
+			//}
 			// -- if there is an enemy harasser nearby,protect archon
 
 		} else {
@@ -105,6 +105,9 @@ public class BotSoldier extends Bot {
 			else if (rc.isCoreReady() && here != targetLoc) {
 				Nav.goTo(targetLoc, theSafety);
 
+			}
+			if (isOpposite(archonLoc,targetLoc) && rc.isCoreReady()) {
+				Nav.goTo(here.add(here.directionTo(archonLoc).rotateLeft()), theSafety);
 			}
 		}
 
@@ -238,9 +241,10 @@ public class BotSoldier extends Bot {
 	}
 
 	private static int a;
-	private static boolean isAboutOpposite(MapLocation loc1, MapLocation loc2) {
+	private static boolean isOpposite(MapLocation loc1, MapLocation loc2) {
 		if (here.directionTo(loc1) == loc2.directionTo(here))
 			return true;
+	/*
 		Direction[] dirs = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 		for (int x = 0; x < dirs.length; x++) {
@@ -249,7 +253,7 @@ public class BotSoldier extends Bot {
 			a = x;
 		}
 		if (loc2.directionTo(here) == dirs[(a + 1)%dirs.length] || loc2.directionTo(here) == dirs[a - 1])
-			return true;
+			return true;*/
 		return false;
 	}
 
