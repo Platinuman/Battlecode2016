@@ -266,6 +266,7 @@ public class BotArchon extends Bot {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
+		RobotInfo[] hostiles = Util.combineTwoRIArrays(enemies, zombies);
 		//rc.setIndicatorString(0, "target = " + targetLocation);
 		if (rc.getRoundNum() == roundToStopHuntingDens) {// found in Bot class
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
@@ -281,12 +282,12 @@ public class BotArchon extends Bot {
 					huntingDen = false;
 				}
 				else if(here.distanceSquaredTo(targetLocation) > cautionLevel)
-					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 				else if(!haveEnoughFighters(allies) && rc.isCoreReady())
 					buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 			}
 			else if(rc.isCoreReady()){
-				Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+				Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 			}
 		}
 		else {
@@ -315,11 +316,13 @@ public class BotArchon extends Bot {
 						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
 					else{
 						if(updateTargetLocationMySelf() && rc.isCoreReady())
-							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
+						else if(rc.isCoreReady())
+							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 					}
 				} 
 				else {
-					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemies, zombies)));
+					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 				}
 
 			}
@@ -342,28 +345,22 @@ public class BotArchon extends Bot {
 	//	}
 
 	private static boolean updateTargetLocationMySelf() throws GameActionException{
-		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.ARCHON.sensorRadiusSquared); 
+		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
+		MapLocation[] partLocations = rc.sensePartLocations(-1);//gets all the ones we can sense
 		MapLocation closestLoc = null;
 		int smallestDistance = 1000000;
-		for(MapLocation loc: possibleLocs){
-			if(!rc.canSense(loc)){
-				continue;
-			}
+		for(MapLocation loc: partLocations){
 			int distanceToLoc = here.distanceSquaredTo(loc);
-			if(rc.senseParts(loc) > 0 ){
-				if(distanceToLoc < smallestDistance){
-					closestLoc = loc;
-					smallestDistance = distanceToLoc;
-				}
+			if(distanceToLoc < smallestDistance){
+				closestLoc = loc;
+				smallestDistance = distanceToLoc;
 			}
-			else{
-				RobotInfo ri = rc.senseRobotAtLocation(loc);
-				if(ri != null && ri.team == Team.NEUTRAL){
-					if(distanceToLoc < smallestDistance){
-						closestLoc = loc;
-						smallestDistance = distanceToLoc;
-					}
-				}
+		}
+		for(RobotInfo ri : neutrals){
+			int distanceToLoc = here.distanceSquaredTo(ri.location);
+			if(distanceToLoc < smallestDistance){
+				closestLoc = ri.location;
+				smallestDistance = distanceToLoc;
 			}
 		}
 		if(closestLoc != null){
@@ -385,7 +382,7 @@ public class BotArchon extends Bot {
 
 	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
 		if( enemies.length > 0
-				|| zombies.length > allies.length
+				|| zombies.length > allies.length + 2
 				|| zombies.length > 0 && here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel)
 			return true;
 		return false;
