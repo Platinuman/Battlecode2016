@@ -44,7 +44,6 @@ public class BotArchon extends Bot {
 	}
 
 	public static void loop(RobotController theRC) throws GameActionException {
-		System.out.println("made it this far");
 		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
@@ -279,10 +278,12 @@ public class BotArchon extends Bot {
 		RobotInfo[] hostiles = Util.combineTwoRIArrays(enemies, zombies);
 		//rc.setIndicatorString(0, "target = " + targetLocation);
 		if (!huntingDen && rc.getRoundNum() >= roundToStopHuntingDens) {// found in Bot class
+			// TODO: this doesn't work for some reason?
 			int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], 10000);
 			targetLocation = alpha;
 			isMobileArchon = false;
+			System.out.println("this happened");
 		} 
 		if (neutrals.length > 0) {
 			rc.activate(neutrals[0].location);

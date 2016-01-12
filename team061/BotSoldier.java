@@ -40,6 +40,7 @@ public class BotSoldier extends Bot {
 	}
 
 	private static void turn() throws GameActionException {
+		// TODO: make soldiers prioritize staying close to the archon over going to target dest unless you're there
 		int acceptableRangeSquared = RobotType.SOLDIER.attackRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
