@@ -45,7 +45,7 @@ public class BotArchon extends Bot {
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		System.out.println("made it this far");
-Bot.init(theRC);
+		Bot.init(theRC);
 		init();
 		// Debug.init("micro");
 		while (true) {
@@ -97,7 +97,7 @@ Bot.init(theRC);
 				isMobileArchon = true;
 				rc.setIndicatorString(0	,"mobile");
 				hunter = myLocation;
-				densToHunt = new MapLocation[100];
+				densToHunt = new MapLocation[1000];
 				denArraySize = 0;
 				numDensToHunt = 0;
 				bestIndex = 0;
@@ -213,7 +213,7 @@ Bot.init(theRC);
 		}
 	}
 
-	private static void updateInfoFromScouts() throws GameActionException {
+	private static void updateInfoFromScouts(RobotInfo[] allies) throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals){
 			if (signal.getTeam() == us){
@@ -233,11 +233,11 @@ Bot.init(theRC);
 								huntingDen = true;
 								numDensToHunt++;
 								targetLocation = new MapLocation(data[0],data[1]);
-								broadcastTargetLocation();
+								broadcastTargetLocation(allies);
 							}
 							else if(!huntingDen){
 								targetLocation = new MapLocation(data[0],data[1]);
-								broadcastTargetLocation();
+								broadcastTargetLocation(allies);
 							}
 						}
 					} else if (purpose == MessageEncode.STOP_BEING_MOBILE){
@@ -250,25 +250,30 @@ Bot.init(theRC);
 		}
 	}
 
-	private static void broadcastTargetLocation() throws GameActionException{
+	private static void broadcastTargetLocation(RobotInfo[] allies) throws GameActionException{
+		if (!haveEnoughFighters(allies))
+			return;
 		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{targetLocation.x, targetLocation.y});
 		rc.broadcastMessageSignal(msg[0], msg[1], (int)(RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 	}
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
+		//TODO: somehwere in this method probably make the archon make a reasonable amount of soldiers at reasonable times
 		rc.setIndicatorString(2, "");
-		if(numDensToHunt > 0 && !huntingDen){
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+		broadcastTargetLocation(allies);
+		if(numDensToHunt > 0 && !huntingDen && haveEnoughFighters(allies)){
+			//System.out.println(densToHunt);
 			bestIndex = Util.closestLocation(densToHunt, alpha, denArraySize);
 			if(bestIndex > -1){
 				targetLocation = densToHunt[bestIndex];
-				broadcastTargetLocation();
+				broadcastTargetLocation(allies);
 				huntingDen = true;
 			}
 		}
-		updateInfoFromScouts();
+		updateInfoFromScouts(allies);
 		if(targetLocation != null)
 			rc.setIndicatorString(1,"target is " + targetLocation.x + ", "+ targetLocation.y);
-		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		RobotInfo[] hostiles = Util.combineTwoRIArrays(enemies, zombies);
@@ -286,7 +291,7 @@ Bot.init(theRC);
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 			}
 			else
-				notifyNewUnitOfCreator();
+				notifyNewUnitOfCreator(allies);
 			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
 				targetLocation = null;
 				huntingDen = false;
@@ -308,15 +313,20 @@ Bot.init(theRC);
 				else if(here.distanceSquaredTo(targetLocation) > cautionLevel)
 					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 				else if(!haveEnoughFighters(allies) && rc.isCoreReady())
-					buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
+					buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER, allies);
 				else if (isMobileScoutNeeded(allies)) {
-					if (buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT)) {
+					if (buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT, allies)) {
 						scoutCreated = true;
 					}
 				}
 			}
 			else if(rc.isCoreReady()){
-				Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
+				boolean built = false;
+				if (!haveEnoughFighters(allies)){
+					built = buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER, allies);
+				}
+				if(!built && rc.hasBuildRequirements(RobotType.SOLDIER))
+					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 			}
 		}
 		else {
@@ -326,22 +336,27 @@ Bot.init(theRC);
 			}
 			if (rc.isCoreReady()) {
 				if (isMobileScoutNeeded(allies)) {
-					if (buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT)) {
+					if (buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT, allies)) {
 						scoutCreated = true;
 					}
 				}
 				if (targetLocation == null) {// no known things worth pursuing
 					if (!haveEnoughFighters(allies))
-						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER);
+						buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER, allies);
 					else{
-						if(updateTargetLocationMySelf() && rc.isCoreReady())
+						if(updateTargetLocationMySelf(allies) && rc.isCoreReady())
 							Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 						else if(rc.isCoreReady())
-							explore();
+							explore(allies);
 					}
 				} 
 				else {
-					Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
+					boolean built = false;
+					if (!haveEnoughFighters(allies)){
+						built = buildUnitInDir(directions[rand.nextInt(8)], RobotType.SOLDIER, allies);
+					}
+					if(!built && rc.hasBuildRequirements(RobotType.SOLDIER))
+						Nav.goTo(targetLocation, new SafetyPolicyAvoidAllUnits(hostiles));
 				}
 
 			}
@@ -365,7 +380,7 @@ Bot.init(theRC);
 	//		return closest;
 	//	}
 	
-	private static void explore() throws GameActionException{
+	private static void explore(RobotInfo[] allies) throws GameActionException{
 		//explore 
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
@@ -388,10 +403,10 @@ Bot.init(theRC);
 				Combat.retreat(Util.closest(hostileRobots, here).location);
 			}
 			targetLocation = rc.getLocation();
-			broadcastTargetLocation();
+			broadcastTargetLocation(allies);
 		}
 	}
-	private static boolean updateTargetLocationMySelf() throws GameActionException{
+	private static boolean updateTargetLocationMySelf(RobotInfo[] allies) throws GameActionException{
 		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
 		MapLocation[] partLocations = rc.sensePartLocations(-1);//gets all the ones we can sense
 		MapLocation closestLoc = null;
@@ -412,7 +427,7 @@ Bot.init(theRC);
 		}
 		if(closestLoc != null){
 			targetLocation = closestLoc;
-			broadcastTargetLocation();
+			broadcastTargetLocation(allies);
 			huntingDen = false;
 			return true;
 		}
@@ -445,21 +460,21 @@ Bot.init(theRC);
 		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
 		// meat shield
 		if(rc.hasBuildRequirements(RobotType.SOLDIER) && rc.isCoreReady()){
-			buildUnitInDir(runAway.opposite(), RobotType.SOLDIER);
+			buildUnitInDir(runAway.opposite(), RobotType.SOLDIER, allies);
 		}
 		//if that doesn't work...
 		if(rc.isCoreReady())
 			Combat.retreat(center);
 	}
 
-	private static boolean buildUnitInDir(Direction dir, RobotType r)throws GameActionException{
+	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies)throws GameActionException{
 		dir = dir.rotateLeft();
 		for (int i = 0; i< 8; i++){
 			if( rc.canBuild(dir, r) && rc.isCoreReady()){
 				rc.build(dir, r);
-				notifyNewUnitOfCreator();
+				notifyNewUnitOfCreator(allies);
 				if(targetLocation != null)
-					broadcastTargetLocation();
+					broadcastTargetLocation(allies);
 				return true;
 			}
 			dir = dir.rotateRight();
@@ -467,12 +482,12 @@ Bot.init(theRC);
 		return false;
 	}
 
-	private static void notifyNewUnitOfCreator()throws GameActionException{
+	private static void notifyNewUnitOfCreator(RobotInfo[] allies)throws GameActionException{
 		if(isMobileArchon){
 			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 			if(targetLocation != null)
-				broadcastTargetLocation();
+				broadcastTargetLocation(allies);
 		} else if(isAlphaArchon){
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
