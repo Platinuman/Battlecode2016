@@ -47,42 +47,62 @@ public class BotSoldier extends Bot {
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		rc.setIndicatorString(0, "target = " + targetLoc);
+		// Closest Bad Guy
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		// Nav
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		// If within acceptable range of target
 		if (here.distanceSquaredTo(targetLoc) < acceptableRangeSquared) {
-			// If we are within range of enemies
+			// check we are within range
+			int numEnemiesAttackingUs = 0;
+			RobotInfo[] enemiesAttackingUs = new RobotInfo[99];
+			for (RobotInfo enemy : enemies) {
+				if (enemy.type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+					enemiesAttackingUs[numEnemiesAttackingUs++] = enemy;
+				}
+			}
+
+			// -- if we are getting owned and have core delay and can retreat
+			if (enemies.length > 0) {
+				// without endangering archon, do so
+				if (rc.isCoreReady() && (numEnemiesAttackingUs > 0 && (!nearEnemies(enemies, targetLoc))
+						|| Util.closest(enemies, targetLoc).type != RobotType.ZOMBIEDEN)) {
+					Combat.retreat(Util.closest(enemies, targetLoc).location);
+				}
+				// --otherwise hit an enemy if we can
+				if (rc.isWeaponReady() && enemies.length > 0) {
+					Combat.shootAtNearbyEnemies();
+				}
+
+				// -if we are not getting hit:
+				if (numEnemiesAttackingUs < 1) {
+					// -- if we can assist an ally who is engaged, do so
+					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location);
+					int maxEnemyExposure = numAlliesFightingEnemy;
+					tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemies);
+				}
+				if (nearEnemies(enemies, targetLoc)) {
+					moveInFrontOfTheArchon(Util.closest(enemies, targetLoc));
+				}
+			}
+			// -- if we left no room around the archon, give him some space
+			//if (isArchonSurrounded()) {
+				//Nav.goTo(here.add(openDirection()), theSafety);
+			//}
+			// -- if there is an enemy harasser nearby,protect archon
+
+		} else {
+			// -if near enemy try to attack anything near us
 			if (rc.isWeaponReady() && enemies.length > 0) {
 				Combat.shootAtNearbyEnemies();
 			}
-			//Try to get in front of the bad guys
-			if(nearEnemies(enemies, targetLoc)){
-			    moveInFrontOfTheArchon(Util.closest(enemies, targetLoc));
-			}
-			// If we can move out of danger without leaving the target in danger
-			if (nearEnemies(enemies, here) && couldMoveOut(enemies, here) && (!nearEnemies(enemies, targetLoc))
-					|| Util.closest(enemies, targetLoc).type != RobotType.ZOMBIEDEN ) {
-				Combat.retreat(Util.closest(enemies, targetLoc).location);
-			}
-			// else not within acceptable range of target
-		} else {
-			// If enemy is near attack
-			if (enemies.length > 0 && rc.isWeaponReady())
-				Combat.shootAtNearbyEnemies();
-			// else no enemy move to archon
-			if (rc.isCoreReady()) {
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+			// -else begin searching for target
+			else if (rc.isCoreReady() && here!=targetLoc) {
 				Nav.goTo(targetLoc, theSafety);
-			// we are lost and are just gonna try to find some guys
-			}/*else if(rc.isCoreReady()&& !updateTargetLoc()){ //this sucks since two lost soldiers are just gonna find each other and chill
-				rc.setIndicatorString(0, "I am totally lost");
-				RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
-				RobotInfo farthestSoldier = Util.closestSpecificType(allies, here, RobotType.SOLDIER);
-				if(farthestSoldier != null){
-					rc.setIndicatorString(0,"going to " + farthestSoldier.location);
-					targetLoc = farthestSoldier.location; // close enough lel
-					Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
-				}
-			}*/
+
+			}
 		}
+
 	}
 
 	private static boolean updateTargetLoc() {
@@ -123,12 +143,13 @@ public class BotSoldier extends Bot {
 	 */
 
 	private static void moveInFrontOfTheArchon(RobotInfo closestEnemy) {
-	//	RobotInfo closestEnemy = Util.closest(enemies, here);
+		// RobotInfo closestEnemy = Util.closest(enemies, here);
 		Direction directionToEnemyFromArchon = targetLoc.directionTo(closestEnemy.location);
 		MapLocation goToHere = targetLoc.add(directionToEnemyFromArchon);
 		RobotInfo[] stuff = {};
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(stuff);
 		try {
+			if(rc.isCoreReady())
 			Nav.goTo(goToHere, theSafety);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -143,6 +164,16 @@ public class BotSoldier extends Bot {
 		return false;
 	}
 
+	private static int numOtherAlliesInAttackRange(MapLocation loc) {
+		int ret = 0;
+		RobotInfo[] allies = rc.senseNearbyRobots(loc, 15, us);
+		for (RobotInfo ally : allies) {
+			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location))
+				ret++;
+		}
+		return ret;
+	}
+
 	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
 		RobotInfo closestEnemy = Util.closest(enemies, here);
 		int range = closestEnemy.type.attackRadiusSquared - here.distanceSquaredTo(closestEnemy.location);
@@ -150,4 +181,59 @@ public class BotSoldier extends Bot {
 			return true;
 		return false;
 	}
+
+	private static boolean tryMoveTowardLocationWithMaxEnemyExposure(MapLocation loc, int maxEnemyExposure,
+			RobotInfo[] nearbyEnemies) throws GameActionException {
+		Direction toLoc = here.directionTo(loc);
+		Direction[] tryDirs = new Direction[] { toLoc, toLoc.rotateLeft(), toLoc.rotateRight() };
+		for (Direction dir : tryDirs) {
+			if (!rc.canMove(dir))
+				continue;
+			MapLocation moveLoc = here.add(dir);
+			int enemyExposure = numEnemiesAttackingLocation(moveLoc, nearbyEnemies);
+			if (enemyExposure <= maxEnemyExposure && rc.isCoreReady() && rc.canMove(dir)) {
+				rc.move(dir);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean isArchonSurrounded() throws GameActionException {
+		Direction dir = Direction.NORTH;
+		Boolean surrounded = true;
+		for (int i = 0; i < 8; i++) {
+			MapLocation newLoc = targetLoc.add(dir);
+			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+				surrounded = false;
+				break;
+			}
+			dir = dir.rotateLeft();
+		}
+		return surrounded;
+	}
+
+	private static Direction openDirection() throws GameActionException {
+		Direction dir = Direction.NORTH;
+		Boolean surrounded = true;
+		for (int i = 0; i < 8; i++) {
+			MapLocation newLoc = targetLoc.add(dir);
+			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+				break;
+			}
+			dir = dir.rotateLeft();
+		}
+		return dir;
+	}
+
+	private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] nearbyEnemies) {
+		int ret = 0;
+		for (int i = nearbyEnemies.length; i-- > 0;) {
+			if (nearbyEnemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(nearbyEnemies[i].location))
+				ret++;
+		}
+		return ret;
+	}
+
 }
