@@ -1,10 +1,20 @@
 package Battlecode2016.OrganizedBot;
 
+import Battlecode2016.team061.MessageEncode;
+import Battlecode2016.team061.Nav;
+import Battlecode2016.team061.NavSafetyPolicy;
+import Battlecode2016.team061.SafetyPolicyAvoidAllUnits;
+import Battlecode2016.team061.Util;
 import battlecode.common.*;
 
 public class Harass extends Bot { // NEW read up bot types for what they call in Harass. Implement those and the rest of these methods are helper methods for the big ones. Once again Optimization.
-
-
+	static RobotInfo[] enemies; 
+	static RobotInfo[] enemiesICanShoot;
+	static MapLocation archonLoc;
+	static MapLocation targetLoc;
+	static boolean targetUpdated;
+	static boolean archonUpdated;
+	static int archonID;
     private static boolean canWin1v1(RobotInfo enemy) {
         int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / rc.getType().attackPower);
         int turnsTillWeCanAttack;
@@ -24,8 +34,6 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
     }
 
     public static boolean canWin1v1AfterMovingTo(MapLocation loc, RobotInfo enemy) {
-        //double loadingDelay = rc.getType().loadingDelay;
-
         int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / rc.getType().attackPower);
         int turnsTillWeCanAttack;
         int effectiveAttackDelay;
@@ -47,11 +55,11 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
         return turnsToKillEnemy <= turnsForEnemyToKillUs;
     }
 
-    public static boolean isSafeToMoveTo(MapLocation loc, RobotInfo[] nearbyEnemies) {
+    public static boolean isSafeToMoveTo(MapLocation loc, RobotInfo[] enemies) {
 
         RobotInfo loneAttacker = null;
         int numAttackers = 0;
-        for (RobotInfo enemy : nearbyEnemies) {
+        for (RobotInfo enemy : enemies) {
             switch (enemy.type) {
                 default:
                     if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
@@ -68,9 +76,9 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
         return Harass.canWin1v1AfterMovingTo(loc, loneAttacker);
     }
 
-    private static boolean tryToRetreat(RobotInfo[] nearbyEnemies) throws GameActionException {
+    private static boolean tryToRetreat(RobotInfo[] enemies) throws GameActionException {
         Direction bestRetreatDir = null;
-        RobotInfo currentClosestEnemy = Util.closest(nearbyEnemies, here);
+        RobotInfo currentClosestEnemy = Util.closest(enemies, here);
 
         boolean mustMoveOrthogonally = false;
        // if (rc.getType() == RobotType.DRONE && rc.getCoreDelay() >= 0.6 && currentClosestEnemy.type == RobotType.MISSILE) mustMoveOrthogonally = true;
@@ -82,7 +90,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
             MapLocation retreatLoc = here.add(dir);
 
-            RobotInfo closestEnemy = Util.closest(nearbyEnemies, retreatLoc);
+            RobotInfo closestEnemy = Util.closest(enemies, retreatLoc);
             int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
             if (distSq > bestDistSq) {
                 bestDistSq = distSq;
@@ -116,8 +124,8 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
     // it's definitely good to take 1v1s if there are no nearby enemies. however we maybe
     // should avoid initiating 1v1s if there are enemies nearby that can support.
 
-    private static boolean doMicro(RobotInfo[] nearbyEnemies, boolean shadowEnemyHarassers) throws GameActionException {
-        if (nearbyEnemies.length == 0) {
+    private static boolean doMicro(RobotInfo[] enemiesInSight,RobotInfo[] enemiesICanShoot,boolean targetUpdated,boolean archonUpdated) throws GameActionException {
+        if (enemies.length == 0) {
             RobotInfo[] moreEnemies = rc.senseNearbyRobots(rc.getType().attackRadiusSquared, them);
             if (moreEnemies.length == 0) {
                 // Debug.indicate("micro", 0, "no enemies, no micro");
@@ -127,7 +135,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                 if (closestEnemy != null && isHarasser(closestEnemy.type) && rc.getType().attackRadiusSquared >= closestEnemy.type.attackRadiusSquared) {
                     // Debug.indicate("micro", 0, "no nearby enemies, shadowing an enemy at long range");
                     if (rc.isCoreReady()) {
-                        shadowHarasser(closestEnemy, nearbyEnemies);
+                        shadowHarasser(closestEnemy, enemies);
                     }
                     return true;
                 }
@@ -137,7 +145,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
         int numEnemiesAttackingUs = 0;
         RobotInfo[] enemiesAttackingUs = new RobotInfo[99];
-        for (RobotInfo enemy : nearbyEnemies) {
+        for (RobotInfo enemy : enemies) {
             if (enemy.type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
                 enemiesAttackingUs[numEnemiesAttackingUs++] = enemy;
             }
@@ -181,7 +189,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                                 // we can't get another shot off. run away!
                                 if (rc.isCoreReady()) {
                                     // we can move this turn
-                                    if (tryToRetreat(nearbyEnemies)) {
+                                    if (tryToRetreat(enemies)) {
                                         // we moved away
                                         // Debug.indicate("micro", 0, "retreated");
                                         return true;
@@ -205,7 +213,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                 } else {
                     // we are getting shot by someone who outranges us. run away!
                     // Debug.indicate("micro", 0, "trying to retreat from a 1v1 where we are outranged");
-                    tryToRetreat(nearbyEnemies);
+                    tryToRetreat(enemies);
                     return true;
                 }
             } else {
@@ -236,7 +244,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                     // not enough allies are in the fight. we need to retreat
                     if (rc.isCoreReady()) {
                         // we can move this turn
-                        if (tryToRetreat(nearbyEnemies)) {
+                        if (tryToRetreat(enemies)) {
                             // we moved away
                             // Debug.indicate("micro", 0, "retreated because numEnemiesAttackingUs = " + numEnemiesAttackingUs + ", maxAlliesAttackingEnemy = "
                             // + maxAlliesAttackingAnEnemy);
@@ -264,7 +272,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
             // no one is shooting at us. if we can shoot at someone, do so
             RobotInfo bestTarget = null;
             double minHealth = 1e99;
-            for (RobotInfo enemy : nearbyEnemies) {
+            for (RobotInfo enemy : enemies) {
                 if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
                     if (enemy.health < minHealth) {
                         minHealth = enemy.health;
@@ -284,7 +292,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
             if (rc.isCoreReady()) { // all remaining possible actions are movements
                 // check if we can move to help an ally who has already engaged a nearby enemy
-                RobotInfo closestEnemy = Util.closest(nearbyEnemies, here);
+                RobotInfo closestEnemy = Util.closest(enemies, here);
                 // we can only think about engage enemies with equal or shorter range, and we shouldn't try to engage missiles
                 if (closestEnemy != null && rc.getType().attackRadiusSquared >= closestEnemy.type.attackRadiusSquared) {
                     int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location);
@@ -292,7 +300,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                     if (numAlliesFightingEnemy > 0) {
                         // see if we can assist our ally(s)
                         int maxEnemyExposure = numAlliesFightingEnemy;
-                        if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, nearbyEnemies)) {
+                        if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemies)) {
                             // Debug.indicate("micro", 0, "moved to assist allies against " + closestEnemy.location.toString() + "; maxEnemyExposure = "
                             // + maxEnemyExposure);
                             return true;
@@ -301,7 +309,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                         // no one is fighting this enemy, but we can try to engage them if we can win the 1v1
                         if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
                             int maxEnemyExposure = 1;
-                            if (tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, nearbyEnemies)) {
+                            if (tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemies)) {
                                 // Debug.indicate("micro", 0, "moved to engage enemy we can 1v1");
                                 return true;
                             }
@@ -311,15 +319,6 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
                 // try to move toward and kill an enemy worker
               
-
-                if (shadowEnemyHarassers) {
-                    if (closestEnemy != null && isHarasser(closestEnemy.type) && rc.getType().attackRadiusSquared >= closestEnemy.type.attackRadiusSquared) {
-                        // Debug.indicate("micro", 0, "shadowing " + closestEnemy.location.toString());
-                        shadowHarasser(closestEnemy, nearbyEnemies);
-                        return true;
-                    }
-                }
-
                 // no required actions
                 // Debug.indicate("micro", 0, "no micro action though core is ready and there are nearby enemies");
                 return false;
@@ -334,7 +333,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
    
 
-    private static boolean tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(MapLocation loc, int maxEnemyExposure, RobotInfo[] nearbyEnemies)
+    private static boolean tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(MapLocation loc, int maxEnemyExposure, RobotInfo[] enemies)
             throws GameActionException {
         Direction toLoc = here.directionTo(loc);
         Direction[] tryDirs = new Direction[] { toLoc, toLoc.rotateLeft(), toLoc.rotateRight() };
@@ -343,7 +342,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
             MapLocation moveLoc = here.add(dir);
             if (rc.getType().attackRadiusSquared < moveLoc.distanceSquaredTo(loc)) continue; // must engage in one turn
 
-            int enemyExposure = numEnemiesAttackingLocation(moveLoc, nearbyEnemies);
+            int enemyExposure = numEnemiesAttackingLocation(moveLoc, enemies);
             if (enemyExposure <= maxEnemyExposure) {
                 rc.move(dir);
                 return true;
@@ -353,7 +352,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
         return false;
     }
 
-    private static boolean tryMoveTowardLocationWithMaxEnemyExposure(MapLocation loc, int maxEnemyExposure, RobotInfo[] nearbyEnemies)
+    private static boolean tryMoveTowardLocationWithMaxEnemyExposure(MapLocation loc, int maxEnemyExposure, RobotInfo[] enemies)
             throws GameActionException {
         Direction toLoc = here.directionTo(loc);
         Direction[] tryDirs = new Direction[] { toLoc, toLoc.rotateLeft(), toLoc.rotateRight() };
@@ -361,7 +360,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
             if (!rc.canMove(dir)) continue;
             MapLocation moveLoc = here.add(dir);
 
-            int enemyExposure = numEnemiesAttackingLocation(moveLoc, nearbyEnemies);
+            int enemyExposure = numEnemiesAttackingLocation(moveLoc, enemies);
             if (enemyExposure <= maxEnemyExposure) {
                 rc.move(dir);
                 return true;
@@ -372,7 +371,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
     }
 
 
-    private static void shadowHarasser(RobotInfo enemyToShadow, RobotInfo[] nearbyEnemies) throws GameActionException {
+    private static void shadowHarasser(RobotInfo enemyToShadow, RobotInfo[] enemies) throws GameActionException {
         Direction toEnemy = here.directionTo(enemyToShadow.location);
         Direction[] dirs = new Direction[] { toEnemy, toEnemy.rotateRight(), toEnemy.rotateLeft(), toEnemy.rotateRight().rotateRight(),
                 toEnemy.rotateLeft().rotateLeft() };
@@ -383,7 +382,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
             boolean locIsSafe = true;
 
-            for (RobotInfo enemy : nearbyEnemies) {
+            for (RobotInfo enemy : enemies) {
                 if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
                     locIsSafe = false;
                     break;
@@ -397,10 +396,10 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
         }
     }
 
-    private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] nearbyEnemies) {
+    private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] enemies) {
         int ret = 0;
-        for (int i = nearbyEnemies.length; i-- > 0;) {
-            if (nearbyEnemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(nearbyEnemies[i].location)) ret++;
+        for (int i = enemies.length; i-- > 0;) {
+            if (enemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(enemies[i].location)) ret++;
             
         }
         return ret;
@@ -427,8 +426,64 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
         }
     }
 
-   
+    private static boolean updateTargetLoc() {
+		Signal[] signals = rc.emptySignalQueue();
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us && signal.getID() == archonID) {
+				rc.setIndicatorString(1, "updating from message");
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MapLocation senderloc = signal.getLocation();
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
+						int[] data = purpose.decode(senderloc, message);
+						targetLoc = new MapLocation(data[0], data[1]);
+						return true;
+					}
+					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
+						int[] data = purpose.decode(senderloc, message);
+						archonLoc = new MapLocation(data[0], data[1]);
+						return true;
+					}
+				}
+			}
+		}
+		/*
+		 * RobotInfo[] allies =
+		 * rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+		 * for(RobotInfo ally : allies){ if(ally.ID == archonID){ targetLoc =
+		 * ally.location; return true; } }
+		 */
+		return false;
+	}
 
+	
+	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		if (closestEnemy != null
+				&& here.distanceSquaredTo(closestEnemy.location) < closestEnemy.type.attackRadiusSquared)
+			return true;
+		return false;
+	}
+
+	
+	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
+		RobotInfo closestEnemy = Util.closest(enemies, here);
+		int range = closestEnemy.type.attackRadiusSquared - here.distanceSquaredTo(closestEnemy.location);
+		if (range > -1)
+			return true;
+		return false;
+	}
+    private static boolean updateArchonLoc() {
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+		for (RobotInfo ally : allies) {
+			if (ally.ID == archonID) {
+				archonLoc = ally.location;
+				return true;
+			}
+		}
+		return false;
+	}
     private static void attackIfReady(MapLocation loc) throws GameActionException {
         if (rc.isWeaponReady()) {
             rc.attackLocation(loc);
@@ -438,22 +493,17 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
     static boolean firstTurn = true;
 
     public static void doHarass() throws GameActionException {
-        //if (firstTurn) {
-        //    HarassNav.bugWallSide = rc.getID() % 2 == 0 ? HarassNav.WallSide.LEFT : HarassNav.WallSide.RIGHT;
-        //    firstTurn = false;
-        //}
-
-       
-
-        RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(35, them);
-       boolean shadowEnemyHarassers = true; //THIS NEEDS TO BE CHANGED TO ARCHON
-        if (doMicro(nearbyEnemies, shadowEnemyHarassers)) {
+    	enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
+		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
+		boolean targetUpdated = updateTargetLoc();
+		boolean archonUpdated = updateArchonLoc();
+        if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
             return;
         }
 
         if (rc.isCoreReady()) {
-       //     NavSafetyPolicy safetyPolicy = new SafetyPolicyHarass(nearbyEnemies);
-       //     Nav.goTo(theirHQ, safetyPolicy);
+    		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+            Nav.goTo(targetLoc, theSafety);
         }
     }
 }
