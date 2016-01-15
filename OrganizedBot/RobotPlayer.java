@@ -1,6 +1,4 @@
-package team061;
-
-import java.util.Random;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
 

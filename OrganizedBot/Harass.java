@@ -1,23 +1,8 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
-import team061.Bot;
-import team061.Util;
 
-/*
-class SafetyPolicyHarass extends Bot implements NavSafetyPolicy {
-    RobotInfo[] nearbyEnemies;
-
-    public SafetyPolicyHarass(RobotInfo[] nearbyEnemies) {
-        this.nearbyEnemies = nearbyEnemies;
-    }
-
-    public boolean isSafeToMoveTo(MapLocation loc) {
-        return Harass.isSafeToMoveTo(loc, nearbyEnemies);
-    }
-}
-*/
-public class Harass extends Bot {
+public class Harass extends Bot { // NEW read up bot types for what they call in Harass. Implement those and the rest of these methods are helper methods for the big ones. Once again Optimization.
 
 
     private static boolean canWin1v1(RobotInfo enemy) {

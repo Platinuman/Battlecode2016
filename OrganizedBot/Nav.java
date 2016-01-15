@@ -1,4 +1,4 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
 

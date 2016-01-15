@@ -1,8 +1,6 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
-
-import java.util.Random;
 
 public class BotArchon extends Bot {
 	static MapLocation alpha, hunter;
@@ -10,12 +8,10 @@ public class BotArchon extends Bot {
 	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
-	static Random rand;
-	static RobotType[] robotTypes = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.GUARD, RobotType.VIPER,
-			RobotType.TURRET };
 	// static int numTurretsCreated = 0;
 
 	//mobile archon fields here:
+	//NEW darn this is a ton of static initializers, are you sure there isnt a more efficient way to do this?
 	static MapLocation targetLocation;//partsLoc, denLoc, neutralLoc;
 	static int cautionLevel = 16; //how close a zombie has to be to run away
 	static final int NO_SCOUT = -1000;
@@ -29,7 +25,7 @@ public class BotArchon extends Bot {
 	static Direction directionIAmMoving;
 	
 
-	private static boolean checkRubbleAndClear(Direction dir) {
+	private static boolean checkRubbleAndClear(Direction dir) {//NEW MOVE TO UTIL
 
 		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 			try {
@@ -65,9 +61,9 @@ public class BotArchon extends Bot {
 
 	private static void init() throws GameActionException {
 		maxRange = 2;
-		rand = new Random(rc.getID());
 		Signal[] signals = rc.emptySignalQueue();
-		here = rc.getLocation();
+		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
+		/*
 		rc.setIndicatorString(0	,"no one special");
 		if (!signalsFromOurTeam(signals)) {
 			MapLocation myLocation = here;
@@ -102,10 +98,10 @@ public class BotArchon extends Bot {
 				bestIndex = 0;
 				huntingDen = false;
 			}
-		}
+		}*/
 	}
 
-	private static boolean signalsFromOurTeam(Signal[] signals) {
+	private static boolean signalsFromOurTeam(Signal[] signals) {//NEW move to util
 		if (signals.length == 0) {
 			return false;
 		} else {
@@ -156,7 +152,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static boolean isSurrounded() throws GameActionException {
+	private static boolean isSurrounded() throws GameActionException {//NEW move to Util
 		Direction dir = Direction.NORTH;
 		Boolean surrounded = true;
 		for (int i = 0; i < 8; i++) {
@@ -183,7 +179,7 @@ public class BotArchon extends Bot {
 		// return dir of nearest scrap
 	}
 
-	private static void repairBotMostInNeed() throws GameActionException {
+	private static void repairBotMostInNeed() throws GameActionException {//New Move to util
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.attackRadiusSquared, us);
 		if (allies.length > 0) {
 			RobotInfo mostInNeed = Util.leastHealth(allies, 1);
@@ -196,11 +192,12 @@ public class BotArchon extends Bot {
 	}
 
 	private static void turn() throws GameActionException {
-		repairBotMostInNeed();
 		here = rc.getLocation();
+		repairBotMostInNeed();
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isMobileArchon){
+				//Harass.doMobileArchon();
 				beMobileArchon(enemies);
 				rc.setIndicatorString(0, "mobile as of round " + rc.getRoundNum());
 			} else if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
@@ -212,7 +209,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts(RobotInfo[] allies) throws GameActionException {
+	private static void updateInfoFromScouts(RobotInfo[] allies) throws GameActionException { // NEW into MessageEncode
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals){
 			if (signal.getTeam() == us){
@@ -249,14 +246,14 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void broadcastTargetLocation(RobotInfo[] allies) throws GameActionException{
+	private static void broadcastTargetLocation(RobotInfo[] allies) throws GameActionException{ //New INTO MESSAGE ENCODE
 		if (!haveEnoughFighters(allies))
 			return;
 		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{targetLocation.x, targetLocation.y});
 		rc.broadcastMessageSignal(msg[0], msg[1], (int)(RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 	}
 
-	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
+	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {// NEW INTO HARASS
 		//TODO: somehwere in this method probably make the archon make a reasonable amount of soldiers at reasonable times
 		rc.setIndicatorString(2, "");
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
@@ -383,7 +380,7 @@ public class BotArchon extends Bot {
 	//		return closest;
 	//	}
 	
-	private static void explore(RobotInfo[] allies) throws GameActionException{
+	private static void explore(RobotInfo[] allies) throws GameActionException{ // NEW INTO HARASS
 		//explore 
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
@@ -409,7 +406,7 @@ public class BotArchon extends Bot {
 			broadcastTargetLocation(allies);
 		}
 	}
-	private static boolean updateTargetLocationMySelf(RobotInfo[] allies) throws GameActionException{
+	private static boolean updateTargetLocationMySelf(RobotInfo[] allies) throws GameActionException{ // NEW Harass???
 		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
 		MapLocation[] partLocations = rc.sensePartLocations(-1);//gets all the ones we can sense
 		MapLocation closestLoc = null;
@@ -437,7 +434,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static boolean haveEnoughFighters(RobotInfo[] allies){
+	private static boolean haveEnoughFighters(RobotInfo[] allies){//NEW COMBAT
 		int fighters = 0;
 		for (RobotInfo a: allies)
 			if (a.type == RobotType.GUARD || a.type == RobotType.SOLDIER)
@@ -445,7 +442,7 @@ public class BotArchon extends Bot {
 		return fighters >= 7;
 	}
 
-	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){
+	private static boolean inDanger(RobotInfo[] allies, RobotInfo[]enemies, RobotInfo[] zombies){// NEW Combat
 		if( enemies.length > 0
 				|| zombies.length > allies.length + 2
 				|| !(zombies.length == 1 && zombies[0].type == RobotType.ZOMBIEDEN)
@@ -454,7 +451,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{
+	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{//New Combat
 		// TODO: make it try to maximize the number of units protected too
 		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
 		MapLocation center = Util.centroidOfUnits(unfriendly);
@@ -470,7 +467,7 @@ public class BotArchon extends Bot {
 			Combat.retreat(center);
 	}
 
-	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies)throws GameActionException{
+	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies)throws GameActionException{// New Util
 		dir = dir.rotateLeft();
 		for (int i = 0; i< 8; i++){
 			if( rc.canBuild(dir, r) && rc.isCoreReady()){
@@ -485,7 +482,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void notifyNewUnitOfCreator(RobotInfo[] allies)throws GameActionException{
+	private static void notifyNewUnitOfCreator(RobotInfo[] allies)throws GameActionException{//New Util
 		if(isMobileArchon){
 			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);

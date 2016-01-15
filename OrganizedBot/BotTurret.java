@@ -1,16 +1,17 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
 
 public class BotTurret extends Bot {
 	protected static MapLocation target;
+	protected static MapLocation alpha;
 	/*
-	static MapLocation alpha;
 	static MapLocation[] lastScoutNotifiedArray;
 	static int currentIndexOfLastArray = 0;
 	static int lastTimeTargetChanged; */
-	//static int range; // NEW not necessary for mobile
-	static boolean isTTM;
+	protected static int range; // NEW not necessary for mobile
+	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
+	protected static boolean isTTM;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -48,26 +49,24 @@ public class BotTurret extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		//MessageEncode.updateRange(); //NEW  update the range and get list of possible targets in same loop to conserve bytecode
+		
 		if (!isTTM) {
 			Signal[] signals = rc.emptySignalQueue();
-			attackIfApplicable(signals);
-			Boolean rangeUpdated = updateMaxRange(signals);
-			if (rc.isCoreReady()){
-				moveToLocFartherThanAlphaIfPossible(here);
-			}
+			//attackIfApplicable(signals);
+			//Boolean rangeUpdated = updateMaxRange(signals);
+			//if (rc.isCoreReady()){
+			//	moveToLocFartherThanAlphaIfPossible(here);
+			//}
 		}
 		else{
-			if(rc.isCoreReady()){
-				moveToLocFartherThanAlphaIfPossible(here);
-			}
+			//if(rc.isCoreReady()){
+			//	moveToLocFartherThanAlphaIfPossible(here);
+			//}
 		}
-		// if the maxrange was sent update it // only do this if you are not a
-		// ttm
-		// if ur core is still ready (no enemies), and there is a u can move to
-		// a location that is farther from the alpha, (but also safe and within
-		// max range, pack up and move there
+		
 	}
-
+/*  NEW OPTIMIZE ALL OF THIS
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = Direction.NORTH;
 		boolean moved = false;
@@ -182,4 +181,5 @@ public class BotTurret extends Bot {
 		indicesOfTargetSignals[signals.length] = count;
 		return indicesOfTargetSignals;
 	}
+	*/
 }

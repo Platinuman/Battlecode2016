@@ -1,8 +1,8 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
 
-public class Util extends Bot {
+public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;

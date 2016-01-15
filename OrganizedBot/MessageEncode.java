@@ -1,9 +1,8 @@
-package team061;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
-import java.lang.Math.*;
 
-public enum MessageEncode {
+public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
 	TURRET_TARGET(0, new int[]{3, 7, 1, 2}, 2),	// health, robotType, xloc, yloc
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc

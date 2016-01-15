@@ -20,9 +20,9 @@ public class BotGuard extends Bot {
 	}
 
 	private static void init() throws GameActionException {
-		//MessageEncode.getMobileArchonLocation(); // This should be a method
+		//MessageEncode.getMobileArchonLocation(); // NEW This should be a method
 
-		/* THIS SHOULD GO IN MESSAGEENCODE
+		/* NEW THIS SHOULD GO IN MESSAGEENCODE
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
 			int[] message = signals[i].getMessage();
@@ -40,7 +40,7 @@ public class BotGuard extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		//Harass.doMobileGuard();//Most of this should be moved to Harass
+		//Harass.doMobileGuard();// NEW Most of this should be moved to Harass
 		
 		/*
 		int acceptableRangeSquared = RobotType.SOLDIER.attackRadiusSquared;
@@ -107,7 +107,7 @@ public class BotGuard extends Bot {
 		*/
 
 	}
-	/* INTO THE HARASS METHODS
+	/* NEW INTO THE HARASS METHODS
 	private static boolean updateTargetLoc() {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
