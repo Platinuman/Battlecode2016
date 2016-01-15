@@ -62,7 +62,8 @@ public class BotArchon extends Bot {
 	private static void init() throws GameActionException {
 		maxRange = 2;
 		Signal[] signals = rc.emptySignalQueue();
-		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
+		//// MessageEncode.setArchonTypes(signals); //NEW This should be a method
+		//analyzeMap();
 		/*
 		rc.setIndicatorString(0	,"no one special");
 		if (!signalsFromOurTeam(signals)) {
