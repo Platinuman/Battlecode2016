@@ -86,6 +86,18 @@ public class Nav extends Bot {
 		}
 		return false;
 	}
+	/*
+	 * Run away in terror. Safely first, then don't care
+	 */
+	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{
+		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
+		MapLocation center = Util.centroidOfUnits(unfriendly);
+		Direction runAway = center.directionTo(here);
+		moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
+		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
+		if(rc.isCoreReady())
+			Combat.retreat(center);
+	}
 
 	private static void startBug() throws GameActionException {
 		bugStartDistSq = here.distanceSquaredTo(dest);

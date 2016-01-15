@@ -19,6 +19,7 @@ public class BotSoldier extends Bot {
 	}
 	private static void turn() throws GameActionException {
 	here = rc.getLocation();
+	MessageEncode.readMessagesAndUpdateInfo();
 	Harass.doHarass();
 	}
 }

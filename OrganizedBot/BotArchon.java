@@ -299,7 +299,19 @@ public class BotArchon extends Bot {
 			}
 		}
 		else if (rc.isCoreReady() && inDanger(allies, enemies, zombies)){
-			flee(allies, enemies, zombies);
+			// meat shield?
+			if(zombies.length + enemies.length < 3){
+				if(rc.hasBuildRequirements(RobotType.SOLDIER) && rc.isCoreReady()){
+					MapLocation loc;
+					if(zombeis.length > 0)
+						loc = zombies[0].location;
+					else
+						loc = enemies[0].location;
+					buildUnitInDir(here.directionTo(loc), RobotType.SOLDIER, allies);
+				}
+			}
+			if(rc.isCoreReady())
+				Nav.flee(allies, enemies, zombies);
 			rc.setIndicatorString(1, "i am in danger on round " + rc.getRoundNum());
 		}
 		else if(huntingDen){//behavior is very different
@@ -450,22 +462,6 @@ public class BotArchon extends Bot {
 					&& (zombies.length > 0 && here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel))
 			return true;
 		return false;
-	}
-
-	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{//New Combat
-		// TODO: make it try to maximize the number of units protected too
-		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
-		MapLocation center = Util.centroidOfUnits(unfriendly);
-		Direction runAway = center.directionTo(here);
-		Nav.moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
-		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
-		// meat shield
-		if(rc.hasBuildRequirements(RobotType.SOLDIER) && rc.isCoreReady()){
-			buildUnitInDir(runAway.opposite(), RobotType.SOLDIER, allies);
-		}
-		//if that doesn't work...
-		if(rc.isCoreReady())
-			Combat.retreat(center);
 	}
 
 	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies)throws GameActionException{// New Util
