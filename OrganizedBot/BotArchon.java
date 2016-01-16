@@ -26,21 +26,6 @@ public class BotArchon extends Bot {
 	static MapLocation targetDen;
 	static boolean scoutCreated;
 	static Direction directionIAmMoving;
-	
-
-	private static boolean checkRubbleAndClear(Direction dir) {//NEW MOVE TO UTIL
-
-		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			try {
-				rc.clearRubble(dir);
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-			}
-			return true;
-		}
-		return false;
-	}
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -135,6 +120,19 @@ public class BotArchon extends Bot {
 		 *else if i see a part or neutral on a safe location move towards it
 		 *else move toward targetDen
 		 */
+		if(rc.isCoreReady()){
+			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
+			RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
+			//if i haven't created a scout create one
+			createScoutIfNecessary(allies);
+			//if i can see enemies run away
+			if(inDanger(allies, enemies, zombies)){
+				flee(allies,enemies,zombies);
+			}
+			//else if i can activate a neutral do it
+			activateNeutralIfPossible(allies);
+		}
 		/*
 		rc.setIndicatorString(2, "");
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
@@ -247,6 +245,27 @@ public class BotArchon extends Bot {
 		*/
 	}
 	
+	private static void activateNeutralIfPossible(RobotInfo[] allies) throws GameActionException {
+		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
+		if (neutrals.length > 0) {
+			rc.activate(neutrals[0].location);
+			notifyNewUnitOfCreator(allies);
+			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
+				targetLocation = null;
+			}
+		}
+	}
+
+	private static void createScoutIfNecessary(RobotInfo[] allies) throws GameActionException {
+		boolean built = false;
+		if(!scoutCreated){
+			built = buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT, allies);
+		}
+		if(built){
+			scoutCreated = true;
+		}
+	}
+
 	private static boolean signalsFromOurTeam(Signal[] signals) {//NEW move to util
 		if (signals.length == 0) {
 			return false;
@@ -280,7 +299,7 @@ public class BotArchon extends Bot {
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 				//	built = true;
 					break;
-				} else if (!checkRubbleAndClear(dirToBuild)) {
+				} else if (!Util.checkRubbleAndClear(dirToBuild)) {
 					// Rotate the direction to try
 					dirToBuild = dirToBuild.rotateLeft();
 				}
@@ -380,10 +399,10 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void broadcastTargetLocation(RobotInfo[] allies) throws GameActionException{ //New INTO MESSAGE ENCODE
+	private static void broadcastTargetDen(RobotInfo[] allies) throws GameActionException{ //New INTO MESSAGE ENCODE
 		if (!haveEnoughFighters(allies))
 			return;
-		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{targetLocation.x, targetLocation.y});
+		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[]{targetDen.x, targetDen.y});
 		rc.broadcastMessageSignal(msg[0], msg[1], (int)(RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 	}
 
@@ -496,8 +515,8 @@ public class BotArchon extends Bot {
 			if( rc.canBuild(dir, r) && rc.isCoreReady()){
 				rc.build(dir, r);
 				notifyNewUnitOfCreator(allies);
-				if(targetLocation != null)
-					broadcastTargetLocation(allies);
+				if(targetDen != null)
+					broadcastTargetDen(allies);
 				return true;
 			}
 			dir = dir.rotateRight();
@@ -507,14 +526,9 @@ public class BotArchon extends Bot {
 
 	private static void notifyNewUnitOfCreator(RobotInfo[] allies)throws GameActionException{//New Util
 		if(isMobileArchon){
-			int[] myMsg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
-			if(targetLocation != null)
-				broadcastTargetLocation(allies);
-		} else if(isAlphaArchon){
-			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { here.x, here.y });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
-		}
+			if(targetDen != null)
+				broadcastTargetDen(allies);
+		} 
 	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
