@@ -4,6 +4,20 @@ import battlecode.common.*;
 
 public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
+	public static boolean checkRubbleAndClear(Direction dir) {//NEW MOVE TO UTIL
+
+		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			try {
+				rc.clearRubble(dir);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
+	}
+	
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;
         int bestDistSq = 999999;
