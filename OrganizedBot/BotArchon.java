@@ -140,6 +140,12 @@ public class BotArchon extends Bot {
 				return;
 			}
 			//else if targetDen is not null move towards it
+			if(targetDen != null){
+				updateAndMoveTowardTargetDen();
+			}
+			else{
+				updateAndMoveTowardTargetLocation();
+			}
 		}
 		/*
 		rc.setIndicatorString(2, "");
@@ -253,6 +259,16 @@ public class BotArchon extends Bot {
 		*/
 	}
 	
+	private static void updateAndMoveTowardTargetLocation() {
+		// TODO moves toward closest safe parts or neutral
+		
+	}
+
+	private static void updateAndMoveTowardTargetDen() {
+		// TODO makes sure the den it's heading towards still exists and if it doesn't change it
+		
+	}
+
 	private static boolean activateNeutralIfPossible(RobotInfo[] allies) throws GameActionException {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		if (neutrals.length > 0) {
