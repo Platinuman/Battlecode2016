@@ -89,8 +89,7 @@ public class Nav extends Bot {
 	/*
 	 * Run away in terror. Safely first, then don't care
 	 */
-	private static void flee(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies)throws GameActionException{
-		RobotInfo[] unfriendly = Util.combineTwoRIArrays(enemies, zombies);
+	public static void flee(RobotInfo[] unfriendly)throws GameActionException{
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction runAway = center.directionTo(here);
 		moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));

@@ -1,10 +1,5 @@
 package Battlecode2016.OrganizedBot;
 
-import Battlecode2016.team061.MessageEncode;
-import Battlecode2016.team061.Nav;
-import Battlecode2016.team061.NavSafetyPolicy;
-import Battlecode2016.team061.SafetyPolicyAvoidAllUnits;
-import Battlecode2016.team061.Util;
 import battlecode.common.*;
 
 public class Harass extends Bot { // NEW read up bot types for what they call in Harass. Implement those and the rest of these methods are helper methods for the big ones. Once again Optimization.
@@ -145,7 +140,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
         int numEnemiesAttackingUs = 0;
         RobotInfo[] enemiesAttackingUs = new RobotInfo[99];
-        for (RobotInfo enemy : enemies) {
+        for (RobotInfo enemy : enemiesInSight) {
             if (enemy.type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
                 enemiesAttackingUs[numEnemiesAttackingUs++] = enemy;
             }
@@ -160,7 +155,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                     // we can actually shoot at the enemy we are 1v1ing
                     if (canWin1v1(loneAttacker)) {
                         // we can beat the other guy 1v1. fire away!
-                        // Debug.indicate("micro", 0, "winning 1v1");
+                       // Debug.indicate("micro", 0, "winning 1v1");
                         attackIfReady(loneAttacker.location);
                         return true;
                     } else {
