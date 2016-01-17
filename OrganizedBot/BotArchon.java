@@ -111,27 +111,35 @@ public class BotArchon extends Bot {
 	}
 	
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {// NEW INTO HARASS
-		/*pseudocode for new method:
-		 * update targetDen
-		 *if i haven't created a scout create one
-		 *if i can see enemies run away
-		 *else if i can activate a neutral do it
-		 *else if i can create a soldier do it
-		 *else if i see a part or neutral on a safe location move towards it
-		 *else move toward targetDen
-		 */
+		//update target den
+		updateInfoFromScouts();
 		if(rc.isCoreReady()){
 			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 			//if i haven't created a scout create one
-			createScoutIfNecessary(allies); //isn't running away more important?
+			if(createScoutIfNecessary(allies)) //isn't running away more important? meh can fix later if necessary
+				return;
 			//if i can see enemies run away
 			if(inDanger(allies, enemies, zombies)){
 				Nav.flee(hostiles);
+				return;
 			}
 			//else if i can activate a neutral do it
-			activateNeutralIfPossible(allies);
+			if(activateNeutralIfPossible(allies)){
+				return;
+			}
+			//else if has enough parts for a turret
+			if(rc.hasBuildRequirements(RobotType.TURRET)){
+				if(targetDen != null && here.distanceSquaredTo(targetDen) < RobotType.TURRET.attackRadiusSquared)
+					buildUnitInDir(here.directionTo(targetDen), RobotType.TURRET, allies);
+				else if (targetDen != null)
+					buildUnitInDir(here.directionTo(targetDen), RobotType.SOLDIER, allies);
+				else
+					buildUnitInDir(here.directionTo(targetDen), RobotType.SOLDIER, allies);
+				return;
+			}
+			//else if targetDen is not null move towards it
 		}
 		/*
 		rc.setIndicatorString(2, "");
@@ -245,7 +253,7 @@ public class BotArchon extends Bot {
 		*/
 	}
 	
-	private static void activateNeutralIfPossible(RobotInfo[] allies) throws GameActionException {
+	private static boolean activateNeutralIfPossible(RobotInfo[] allies) throws GameActionException {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		if (neutrals.length > 0) {
 			rc.activate(neutrals[0].location);
@@ -253,10 +261,12 @@ public class BotArchon extends Bot {
 			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
 				targetLocation = null;
 			}
+			return true;
 		}
+		return false;
 	}
 
-	private static void createScoutIfNecessary(RobotInfo[] allies) throws GameActionException {
+	private static boolean createScoutIfNecessary(RobotInfo[] allies) throws GameActionException {
 		boolean built = false;
 		if(!scoutCreated){
 			built = buildUnitInDir(directions[rand.nextInt(8)], RobotType.SCOUT, allies);
@@ -264,6 +274,7 @@ public class BotArchon extends Bot {
 		if(built){
 			scoutCreated = true;
 		}
+		return built;
 	}
 
 	private static boolean signalsFromOurTeam(Signal[] signals) {//NEW move to util
@@ -356,7 +367,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts(RobotInfo[] allies) throws GameActionException { // NEW into MessageEncode
+	private static void updateInfoFromScouts() throws GameActionException { // NEW into MessageEncode
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals){
 			if (signal.getTeam() == us){
