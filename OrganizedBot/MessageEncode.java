@@ -34,8 +34,8 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 
 	/* data number values
 	 * 0: reason (current max of 7)
-	 * 1: loc.x (sent as an offset from sender's loc, offset by 100)
-	 * 2: loc.y (sent as an offset from sender's loc, offset by 100)
+	 * 1: loc.x (sent as an offset from sender's loc, offset by 80)
+	 * 2: loc.y (sent as an offset from sender's loc, offset by 80)
 	 * 3: health (max 2000, dens)
 	 * 4: some radius squared (max 2^7) //if this changes change howMuchSpaceDataNeeds
 	 * 5: number of parts
@@ -75,18 +75,18 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		int powerOfTwo = multiplyByTwo(1,howMuchSpaceDataNeeds[0]);
 		for ( int i = 0; i < whereToSplitData; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - myloc.x + 100;
+				data[i] = data[i] - myloc.x + 80;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - myloc.y + 100;
+				data[i] = data[i] - myloc.y + 80;
 			mess[0] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - myloc.x + 100;
+				data[i] = data[i] - myloc.x + 80;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - myloc.y + 100;
+				data[i] = data[i] - myloc.y + 80;
 			mess[1] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
@@ -105,18 +105,18 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		for ( int i = 0; i < whereToSplitData; i++){
 			data[i] = mess[0]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + senderloc.x - 100;
+				data[i] = data[i] + senderloc.x - 80;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + senderloc.y - 100;
+				data[i] = data[i] + senderloc.y - 80;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			data[i] = mess[1]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + senderloc.x - 100;
+				data[i] = data[i] + senderloc.x - 80;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + senderloc.y - 100;
+				data[i] = data[i] + senderloc.y - 80;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		return data;
@@ -137,6 +137,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 3: return MOBILE_ARCHON_LOCATION;
 		case 4: return DIRECT_MOBILE_ARCHON;
 		case 5: return STOP_BEING_MOBILE;
+		case 6: return MULTIPLE_TARGETS;
 
 		default: return null;
 		}
@@ -154,8 +155,9 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 3: return "MOBILE_ARCHON_LOCATION";
 		case 4: return "DIRECT_MOBILE_ARCHON";
 		case 5: return "STOP_BEING_MOBILE";
+		case 6: return "MULTIPLE_TARGETS";
 
-		default: return "@Nate update the toString you idoit";
+		default: return "@Nate update the toString you idiot";
 		}
 	}
 	/**
