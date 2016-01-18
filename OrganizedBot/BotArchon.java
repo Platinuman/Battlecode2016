@@ -452,7 +452,7 @@ public class BotArchon extends Bot {
 	//		}
 	//		return closest;
 	//	}
-	
+	/*
 	private static void explore(RobotInfo[] allies) throws GameActionException{ // NEW INTO HARASS
 		//explore 
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
@@ -479,6 +479,7 @@ public class BotArchon extends Bot {
 			broadcastTargetLocation(allies);
 		}
 	}
+	*/
 	private static boolean updateTargetLocationMySelf(RobotInfo[] allies) throws GameActionException{ // NEW Harass???
 		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
 		MapLocation[] partLocations = rc.sensePartLocations(-1);//gets all the ones we can sense
@@ -557,7 +558,7 @@ public class BotArchon extends Bot {
 		constructNeededUnits(needed);
 
 	}
-	
+	/*
 	private static boolean isMobileScoutNeeded(RobotInfo[] teammates) throws GameActionException{
 		if(!scoutCreated){
 			return true;
@@ -571,7 +572,7 @@ public class BotArchon extends Bot {
 		}
 		return false;
 	}
-
+*/
 	private static boolean isScoutNeeded() {
 		RobotInfo[] teammates = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		int nearbyScouts = 0;
