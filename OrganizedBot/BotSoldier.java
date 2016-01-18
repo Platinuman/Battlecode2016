@@ -20,6 +20,7 @@ public class BotSoldier extends Bot {
 	private static void turn() throws GameActionException {
 	here = rc.getLocation();
 	//MessageEncode.readMessagesAndUpdateInfo();
+	//TODO make new data types in encode and use the to notify us when a bot is turtling
 	Harass.doHarass();
 	}
 }
