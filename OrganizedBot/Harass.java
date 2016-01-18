@@ -288,7 +288,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
             if (rc.isCoreReady()) { // all remaining possible actions are movements
                 // check if we can move to help an ally who has already engaged a nearby enemy
                 RobotInfo closestEnemy = Util.closest(enemies, here);
-                // we can only think about engage enemies with equal or shorter range, and we shouldn't try to engage missiles
+                // we can only think about engage enemies with equal or shorter range
                 if (closestEnemy != null && rc.getType().attackRadiusSquared >= closestEnemy.type.attackRadiusSquared) {
                     int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location);
 
@@ -312,9 +312,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
                     }
                 }
 
-                // try to move toward and kill an enemy worker
-              
-                // no required actions
+      
                 // Debug.indicate("micro", 0, "no micro action though core is ready and there are nearby enemies");
                 return false;
             }
@@ -402,7 +400,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
 
     private static int numOtherAlliesInAttackRange(MapLocation loc) {
         int ret = 0;
-        RobotInfo[] allies = rc.senseNearbyRobots(loc, 15, us);
+        RobotInfo[] allies = rc.senseNearbyRobots(rc.getType().sensorRadiusSquared,us);
         for (RobotInfo ally : allies) {
             if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location)) ret++;
         }
