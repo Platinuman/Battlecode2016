@@ -1,4 +1,4 @@
-package Battlecode2016.OrganizedBot;
+package OrganizedBot;
 
 import battlecode.common.*;
 
@@ -68,7 +68,9 @@ public class BotScout extends Bot {
 		 * alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2,
 		 * -4) };
 		 */
-		scoutType = 2;
+		scoutType = 0;
+		denSize = 0;
+		dens = new MapLocation[10000];
 	}
 
 	/*
