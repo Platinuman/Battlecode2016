@@ -3,14 +3,14 @@ package Battlecode2016.OrganizedBot;
 import battlecode.common.*;
 
 public class BotTurret extends Bot {
-	protected static MapLocation target;
+	protected static MapLocation targetLoc;
 	protected static MapLocation alpha;
-	/*
 	static MapLocation[] lastScoutNotifiedArray;
 	static int currentIndexOfLastArray = 0;
-	static int lastTimeTargetChanged; */
+	static int lastTimeTargetChanged;
 	protected static int range; // NEW not necessary for mobile
-	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
+	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map
+										// control?
 	protected static boolean isTTM;
 
 	public static void loop(RobotController theRC) throws GameActionException {
@@ -27,14 +27,16 @@ public class BotTurret extends Bot {
 	}
 
 	private static void init() throws GameActionException {
+		//TODO have bot choose what type of turret it is
+		//if it is a mobile turret it needs to have a target loc
+		turretType = 0;
 		isTTM = false;
-		//MessageEncode.getMobileArchonLocation(); //NEW This should be a method
-		
-		/*
+		// MessageEncode.getMobileArchonLocation(); //NEW This should be a
+		// method
 		range = 2;
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
-			if(signals[i].getTeam() == them){
+			if (signals[i].getTeam() == them) {
 				continue;
 			}
 			int[] message = signals[i].getMessage();
@@ -44,46 +46,70 @@ public class BotTurret extends Bot {
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
 			}
-		}*/
+		}
+
 	}
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		//MessageEncode.updateRange(); //NEW  update the range and get list of possible targets in same loop to conserve bytecode
-		
-		if (!isTTM) {
-			Signal[] signals = rc.emptySignalQueue();
-			//attackIfApplicable(signals);
-			//Boolean rangeUpdated = updateMaxRange(signals);
-			//if (rc.isCoreReady()){
-			//	moveToLocFartherThanAlphaIfPossible(here);
-			//}
+		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.TURRET.sensorRadiusSquared);
+		Signal[] signals = rc.emptySignalQueue();
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+
+		// MessageEncode.updateRange(); //NEW update the range and get list of
+		// possible targets in same loop to conserve bytecode
+
+		if (turretType == 1) {
+			if (!isTTM) {
+				// shoot anything in range and use scout
+				attackIfApplicable(signals);
+				if (enemies.length == 0 && rc.getType().attackRadiusSquared < here.distanceSquaredTo(targetLoc)) {
+					rc.pack();
+				}
+			} else {
+				if (enemies.length != 0 || rc.getType().attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
+					rc.unpack();
+				} else {
+					Nav.goTo(targetLoc, theSafety);
+				}
+			}
+		} else if (turretType == 0) {
+
+			if (!isTTM) {
+				attackIfApplicable(signals);
+				Boolean rangeUpdated = updateMaxRange(signals);
+				if (rc.isCoreReady()) {
+					moveToLocFartherThanAlphaIfPossible(here);
+				}
+			} else {
+				if (rc.isCoreReady()) {
+					moveToLocFartherThanAlphaIfPossible(here);
+				}
+			}
+
 		}
-		else{
-			//if(rc.isCoreReady()){
-			//	moveToLocFartherThanAlphaIfPossible(here);
-			//}
-		}
-		
 	}
-/*  NEW OPTIMIZE ALL OF THIS
+
+	// NEW OPTIMIZE ALL OF THIS
+
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = Direction.NORTH;
 		boolean moved = false;
 		boolean startedAsTTM = isTTM;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)
+					&& rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
 				RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.TURRET.sensorRadiusSquared);
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-				if(distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range && theSafety.isSafeToMoveTo(newLoc)){
-					if(!isTTM){
+				if (distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range
+						&& theSafety.isSafeToMoveTo(newLoc)) {
+					if (!isTTM) {
 						rc.pack();
 						isTTM = true;
 						break;
-					}
-					else if (rc.canMove(dir)){
+					} else if (rc.canMove(dir)) {
 						rc.move(dir);
 						moved = true;
 						break;
@@ -92,7 +118,7 @@ public class BotTurret extends Bot {
 			}
 			dir = dir.rotateLeft();
 		}
-		if(startedAsTTM && !moved){
+		if (startedAsTTM && !moved) {
 			rc.unpack();
 			isTTM = false;
 		}
@@ -101,15 +127,14 @@ public class BotTurret extends Bot {
 	private static boolean updateMaxRange(Signal[] signals) {
 		boolean rangeUpdated = false;
 		for (int i = 0; i < signals.length; i++) {
-			if(signals[i].getTeam() == them){
+			if (signals[i].getTeam() == them) {
 				continue;
 			}
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
 				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
-				range = decodedMessage[0];
-				//System.out.println(range);
+				range = decodedMessage[0]; // System.out.println(range);
 				rangeUpdated = true;
 				break;
 			}
@@ -129,37 +154,40 @@ public class BotTurret extends Bot {
 				RobotType[] hostileTypes = new RobotType[numTargetSignals];
 				for (int i = 0; i < numTargetSignals; i++) {
 					int[] message = signals[indicesOfTargetSignals[i]].getMessage();
-					int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[indicesOfTargetSignals[i]].getLocation(), message);
+					int[] decodedMessage = MessageEncode.TURRET_TARGET
+							.decode(signals[indicesOfTargetSignals[i]].getLocation(), message);
 					healths[i] = decodedMessage[0];
 					hostileTypes[i] = RobotType.values()[decodedMessage[1]];
 					hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
 				}
-				scoutNotifiedLocation = Combat.shootBestEnemyTakingIntoAccountScoutInfo(hostileLocations, healths, hostileTypes);
-				if(scoutNotifiedLocation != null){
+				scoutNotifiedLocation = Combat.shootBestEnemyTakingIntoAccountScoutInfo(hostileLocations, healths,
+						hostileTypes);
+				if (scoutNotifiedLocation != null) {
 					lastScoutNotifiedArray = hostileLocations;
 					lastTimeTargetChanged = rc.getRoundNum();
 					currentIndexOfLastArray = 0;
 				}
 			}
-			if(scoutNotifiedLocation == null && lastScoutNotifiedArray != null){
+			if (scoutNotifiedLocation == null && lastScoutNotifiedArray != null) {
 				MapLocation target = lastScoutNotifiedArray[currentIndexOfLastArray];
-				if(rc.isWeaponReady() && rc.canAttackLocation(target) && rc.getRoundNum() - lastTimeTargetChanged < 27){
+				if (rc.isWeaponReady() && rc.canAttackLocation(target)
+						&& rc.getRoundNum() - lastTimeTargetChanged < 27) {
 					rc.attackLocation(target);
-				}
-				else{
-					if(currentIndexOfLastArray < lastScoutNotifiedArray.length-1){
+				} else {
+					if (currentIndexOfLastArray < lastScoutNotifiedArray.length - 1) {
 						currentIndexOfLastArray++;
 						target = lastScoutNotifiedArray[currentIndexOfLastArray];
 					}
-					while(!rc.canAttackLocation(target) && currentIndexOfLastArray < lastScoutNotifiedArray.length-1){
+					while (!rc.canAttackLocation(target)
+							&& currentIndexOfLastArray < lastScoutNotifiedArray.length - 1) {
 						currentIndexOfLastArray++;
 						target = lastScoutNotifiedArray[currentIndexOfLastArray];
 						lastTimeTargetChanged = rc.getRoundNum();
 					}
-					if(rc.isWeaponReady() && rc.canAttackLocation(target) && currentIndexOfLastArray != lastScoutNotifiedArray.length - 1){
+					if (rc.isWeaponReady() && rc.canAttackLocation(target)
+							&& currentIndexOfLastArray != lastScoutNotifiedArray.length - 1) {
 						rc.attackLocation(target);
-					}
-					else{
+					} else {
 						lastScoutNotifiedArray = null;
 					}
 				}
@@ -181,5 +209,5 @@ public class BotTurret extends Bot {
 		indicesOfTargetSignals[signals.length] = count;
 		return indicesOfTargetSignals;
 	}
-	*/
+
 }
