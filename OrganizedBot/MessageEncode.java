@@ -8,7 +8,8 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
 	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
 	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
-	STOP_BEING_MOBILE	  (5, new int[]{1,2},0);
+	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
+	MULTIPLE_TARGETS	  (6, new int[]{1,2,1,2,1,2}, 3);// 3 map locations (as ints)
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -26,14 +27,15 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 3 - notify a unit of the hunter archon loc
 	 * 4 - tell the archon where to go
 	 * 5 - tell the mobile archon to turtle (and where to do so)
+	 * 6 - give turrets more than one target
 	 * 
 	 * (if you increase the max number (7), make sure the space below matches)
 	 */
 
 	/* data number values
 	 * 0: reason (current max of 7)
-	 * 1: loc.x (sent as an offset from sender's loc, will have to offset by 100)
-	 * 2: loc.y (sent as an offset from sender's loc, will have to offset by 100)
+	 * 1: loc.x (sent as an offset from sender's loc, offset by 100)
+	 * 2: loc.y (sent as an offset from sender's loc, offset by 100)
 	 * 3: health (max 2000, dens)
 	 * 4: some radius squared (max 2^7) //if this changes change howMuchSpaceDataNeeds
 	 * 5: number of parts
