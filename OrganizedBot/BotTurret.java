@@ -27,27 +27,33 @@ public class BotTurret extends Bot {
 	}
 
 	private static void init() throws GameActionException {
-		//TODO have bot choose what type of turret it is
-		//if it is a mobile turret it needs to have a target loc
-		turretType = 0;
+		// TODO have bot choose what type of turret it is
+		// if it is a mobile turret it needs to have a target loc
+		chooseTurretType();
 		isTTM = false;
 		// MessageEncode.getMobileArchonLocation(); //NEW This should be a
 		// method
-		range = 2;
-		Signal[] signals = rc.emptySignalQueue();
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == them) {
-				continue;
-			}
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
-				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-				break;
+		if (turretType == 0) { // WE ARE TURTLING
+			range = 2;
+			Signal[] signals = rc.emptySignalQueue();
+			for (int i = 0; i < signals.length; i++) {
+				if (signals[i].getTeam() == them) {
+					continue;
+				}
+				int[] message = signals[i].getMessage();
+				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
+					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
+							message);
+					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+					break;
+				}
 			}
 		}
-
+		if (turretType == 1) { // OFFENSIVE
+			// MessageEncode.readMessagesAndUpdateInfo();
+			// this should set its target
+		}
 	}
 
 	private static void turn() throws GameActionException {
@@ -91,6 +97,11 @@ public class BotTurret extends Bot {
 	}
 
 	// NEW OPTIMIZE ALL OF THIS
+
+	private static void chooseTurretType() {
+		//We need to decide how we're going to choose this
+		turretType = 1;
+	}
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = Direction.NORTH;
