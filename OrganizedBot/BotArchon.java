@@ -140,12 +140,11 @@ public class BotArchon extends Bot {
 				return;
 			}
 			//else if targetDen is not null move towards it
-			if(targetDen != null){
+			/*if(targetDen != null){
 				updateAndMoveTowardTargetDen();
-			}
-			else{
-				updateAndMoveTowardTargetLocation();
-			}
+			}*/
+			//if nothing else to do move toward nearest neutral/[part
+			updateAndMoveTowardTargetLocation(hostiles);
 		}
 		/*
 		rc.setIndicatorString(2, "");
@@ -259,15 +258,21 @@ public class BotArchon extends Bot {
 		*/
 	}
 	
-	private static void updateAndMoveTowardTargetLocation() {
+	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException{
 		// TODO moves toward closest safe parts or neutral
-		
+		if(targetLocation.equals(here))
+			targetLocation = null;
+		if(targetLocation == null || !Combat.isSafe(targetLocation)){
+			updateTargetLocationMySelf(hostiles);
+		}
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostiles);
+		Nav.goTo(targetLocation, theSafety);
 	}
-
+/*
 	private static void updateAndMoveTowardTargetDen() {
 		// TODO makes sure the den it's heading towards still exists and if it doesn't change it
 		
-	}
+	}*/
 
 	private static boolean activateNeutralIfPossible(RobotInfo[] allies) throws GameActionException {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
@@ -495,8 +500,9 @@ public class BotArchon extends Bot {
 		}
 		if(closestLoc != null){
 			targetLocation = closestLoc;
+			/*
 			broadcastTargetLocation(allies);
-			huntingDen = false;
+			huntingDen = false;*/
 			return true;
 		}
 		return false;
