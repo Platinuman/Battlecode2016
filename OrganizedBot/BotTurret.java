@@ -25,7 +25,7 @@ public class BotTurret extends Bot {
 			Clock.yield();
 		}
 	}
-	
+
 	private static void init() throws GameActionException {
 		// TODO have bot choose what type of turret it is
 		// if it is a mobile turret it needs to have a target loc
@@ -52,9 +52,10 @@ public class BotTurret extends Bot {
 		}
 		if (turretType == 1) { // OFFENSIVE
 			// MessageEncode.readMessagesAndUpdateInfo();
+			targetLoc = center; // for now
 			Signal[] signals = rc.emptySignalQueue();
 			Harass.updateTargetLoc(signals);
-			//Harass.updateTargetLoc();
+			// Harass.updateTargetLoc();
 			// this should set its target
 		}
 	}
@@ -62,8 +63,10 @@ public class BotTurret extends Bot {
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.TURRET.sensorRadiusSquared);
-		Signal[] signals = rc.emptySignalQueue();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+		Signal[] signals = rc.emptySignalQueue();
+		Harass.updateTargetLoc(signals);
+		rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
 
 		// MessageEncode.updateRange(); //NEW update the range and get list of
 		// possible targets in same loop to conserve bytecode
@@ -74,12 +77,17 @@ public class BotTurret extends Bot {
 				attackIfApplicable(signals);
 				if (enemies.length == 0 && rc.getType().attackRadiusSquared < here.distanceSquaredTo(targetLoc)) {
 					rc.pack();
+					isTTM = true;
 				}
 			} else {
-				if (enemies.length != 0 || rc.getType().attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
-					rc.unpack();
-				} else {
-					Nav.goTo(targetLoc, theSafety);
+				if (rc.isCoreReady()) {
+					if (RobotType.TURRET.attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
+						rc.unpack();
+						isTTM = false;
+					} else {
+						rc.setIndicatorString(2, "moving my butt");
+						Nav.goTo(targetLoc, theSafety);
+					}
 				}
 			}
 		} else if (turretType == 0) {
@@ -102,7 +110,7 @@ public class BotTurret extends Bot {
 	// NEW OPTIMIZE ALL OF THIS
 
 	private static void chooseTurretType() {
-		//We need to decide how we're going to choose this
+		// We need to decide how we're going to choose this
 		turretType = 1;
 	}
 
@@ -159,53 +167,36 @@ public class BotTurret extends Bot {
 	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
 		if (rc.isWeaponReady()) {
 			Combat.shootAtNearbyEnemies();
-			MapLocation scoutNotifiedLocation = null;
-			int[] indicesOfTargetSignals = getIndicesOfTargetSignals(signals);
-			int numTargetSignals = indicesOfTargetSignals[indicesOfTargetSignals.length - 1];
-			if (numTargetSignals > 0) {
-				MapLocation[] hostileLocations = new MapLocation[numTargetSignals];
-				int[] healths = new int[numTargetSignals];
-				RobotType[] hostileTypes = new RobotType[numTargetSignals];
-				for (int i = 0; i < numTargetSignals; i++) {
-					int[] message = signals[indicesOfTargetSignals[i]].getMessage();
-					int[] decodedMessage = MessageEncode.TURRET_TARGET
-							.decode(signals[indicesOfTargetSignals[i]].getLocation(), message);
-					healths[i] = decodedMessage[0];
-					hostileTypes[i] = RobotType.values()[decodedMessage[1]];
-					hostileLocations[i] = new MapLocation(decodedMessage[2], decodedMessage[3]);
+		}
+		if (rc.isWeaponReady()) {
+			shootWithoutThinking(signals);
+		}
+	}
+
+	private static void shootWithoutThinking(Signal[] signals) throws GameActionException {
+		for (int i = signals.length - 1; i >= 0; i--) {
+			if (signals[i].getTeam() == us) {
+				if (signals[i].getMessage() == null) {
+					continue;
 				}
-				scoutNotifiedLocation = Combat.shootBestEnemyTakingIntoAccountScoutInfo(hostileLocations, healths,
-						hostileTypes);
-				if (scoutNotifiedLocation != null) {
-					lastScoutNotifiedArray = hostileLocations;
-					lastTimeTargetChanged = rc.getRoundNum();
-					currentIndexOfLastArray = 0;
+				int[] message = signals[i].getMessage();
+				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[i].getLocation(), message);
+				if (msgType == MessageEncode.TURRET_TARGET) {
+					MapLocation enemyLocation = new MapLocation(decodedMessage[2], decodedMessage[3]);
+					if (rc.canAttackLocation(enemyLocation)) {
+						rc.attackLocation(enemyLocation);
+						return;
+					}
 				}
-			}
-			if (scoutNotifiedLocation == null && lastScoutNotifiedArray != null) {
-				MapLocation target = lastScoutNotifiedArray[currentIndexOfLastArray];
-				if (rc.isWeaponReady() && rc.canAttackLocation(target)
-						&& rc.getRoundNum() - lastTimeTargetChanged < 27) {
-					rc.attackLocation(target);
-				} else {
-					if (currentIndexOfLastArray < lastScoutNotifiedArray.length - 1) {
-						currentIndexOfLastArray++;
-						target = lastScoutNotifiedArray[currentIndexOfLastArray];
-					}
-					while (!rc.canAttackLocation(target)
-							&& currentIndexOfLastArray < lastScoutNotifiedArray.length - 1) {
-						currentIndexOfLastArray++;
-						target = lastScoutNotifiedArray[currentIndexOfLastArray];
-						lastTimeTargetChanged = rc.getRoundNum();
-					}
-					if (rc.isWeaponReady() && rc.canAttackLocation(target)
-							&& currentIndexOfLastArray != lastScoutNotifiedArray.length - 1) {
-						rc.attackLocation(target);
-					} else {
-						lastScoutNotifiedArray = null;
-					}
+			} else {
+				MapLocation enemyLocation = signals[i].getLocation();
+				if (rc.canAttackLocation(enemyLocation)) {
+					rc.attackLocation(enemyLocation);
+					return;
 				}
 			}
+
 		}
 	}
 
