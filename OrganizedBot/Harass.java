@@ -712,7 +712,8 @@ public class Harass extends Bot {
 
 		}
 		else{
-		doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+		
+			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		if (rc.isCoreReady() && targetLoc != null) {
 			rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
 			Nav.goTo(targetLoc, theSafety);
@@ -721,6 +722,6 @@ public class Harass extends Bot {
 			Nav.explore(enemies);
 		
 		}
-		}
+		
 	}
 }
