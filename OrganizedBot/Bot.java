@@ -12,6 +12,9 @@ public class Bot {
 	public static MapLocation center;
     protected static Random rand;
     public static MapLocation[] targetDens;
+    public static MapLocation[] killedDens;
+    public static MapLocation targetLoc;
+    public static int killedDenSize;
     public static int targetDenSize;
     public static int bestIndex;
     public static int numDensToHunt;
@@ -30,7 +33,8 @@ public class Bot {
 		rand = new Random(rc.getID());
 		type = rc.getType();
 		targetDens = new MapLocation[10000];
-		targetDenSize = bestIndex = numDensToHunt = 0;
+		killedDens = new MapLocation[10000];
+		targetDenSize = bestIndex = numDensToHunt = killedDenSize = 0;
 		MapAnalysis.analyze();
 	}
 }

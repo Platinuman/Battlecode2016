@@ -8,13 +8,14 @@ public class Harass extends Bot {
 	// big ones.
 	// Once again Optimization.
 	static MapLocation turretLoc;
+	static MapLocation targetLoc;
 	static RobotInfo[] enemies;
 	static RobotInfo[] enemiesICanShoot;
 	static RobotInfo[] friends;
 	static MapLocation archonLoc;
-	static MapLocation targetLoc;
 	static boolean targetUpdated;
 	static boolean archonUpdated;
+	static boolean huntingDen;
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
@@ -164,6 +165,10 @@ public class Harass extends Bot {
 			 */
 			return false;
 		}
+		/*
+		else if (rc.getRoundNum() % 7 == 0){//call for help
+			rc.broadcastSignal((int)(rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+		}*/
 
 		int numEnemiesAttackingUs = 0;
 		RobotInfo[] enemiesAttackingUs = new RobotInfo[99];
@@ -262,7 +267,7 @@ public class Harass extends Bot {
 					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-						double targetingMetric = numAlliesAttackingEnemy / enemy.health;
+						double targetingMetric = numAlliesAttackingEnemy / enemy.health + enemy.attackPower;
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
 							bestTarget = enemy;
@@ -270,9 +275,9 @@ public class Harass extends Bot {
 					}
 				}
 
-				// multiple enemies are attacking us. stay in the fight iff
-				// enough allies are also engaged
-				if (maxAlliesAttackingAnEnemy >= numEnemiesAttackingUs) {
+
+				// multiple enemies are attacking us. stay in the fight iff enough allies are also engaged
+				if (maxAlliesAttackingAnEnemy >= numEnemiesAttackingUs && bestTarget != null) {
 					// enough allies are in the fight.
 					// Debug.indicate("micro", 0, "attacking because
 					// numEnemiesAttackingUs = " + numEnemiesAttackingUs + ",
@@ -291,33 +296,28 @@ public class Harass extends Bot {
 							// + ", maxAlliesAttackingEnemy = "
 							// + maxAlliesAttackingAnEnemy);
 							return true;
-						} else {
-							// we couldn't find anywhere to retreat to. fire a
-							// desperate shot if possible
-							// Debug.indicate("micro", 0, "no retreat square :(
-							// numEnemiesAttackingUs = " + numEnemiesAttackingUs
-							// +
+
+						} else if (bestTarget != null){
+							// we couldn't find anywhere to retreat to. fire a desperate shot if possible
+							// Debug.indicate("micro", 0, "no retreat square :( numEnemiesAttackingUs = " + numEnemiesAttackingUs +
 							// ", maxAlliesAttackingEnemy = "
 							// + maxAlliesAttackingAnEnemy);
 							attackIfReady(bestTarget.location);
 							return true;
 						}
 					} else {
-						// we can't move this turn. if it won't delay
-						// retreating, shoot instead
-						// Debug.indicate("micro", 0, "want to retreat but core
-						// on cooldown :( numEnemiesAttackingUs = " +
-						// numEnemiesAttackingUs
-						// + ", maxAlliesAttackingEnemy = " +
-						// maxAlliesAttackingAnEnemy);
-						if (rc.getType().cooldownDelay <= 1) {
+
+						// we can't move this turn. if it won't delay retreating, shoot instead
+						// Debug.indicate("micro", 0, "want to retreat but core on cooldown :( numEnemiesAttackingUs = " + numEnemiesAttackingUs
+						// + ", maxAlliesAttackingEnemy = " + maxAlliesAttackingAnEnemy);
+						if (rc.getType().cooldownDelay <= 1 && bestTarget != null) {
 							attackIfReady(bestTarget.location);
 						}
 						return true;
 					}
 				}
 			}
-		} else {
+			}else {
 			// no one is shooting at us. if we can shoot at someone, do so
 			RobotInfo bestTarget = null;
 			double minHealth = 1e99;
@@ -382,6 +382,7 @@ public class Harass extends Bot {
 			// Debug.indicate("micro", 0, "no micro action; core isn't ready");
 			return true;
 		}
+		return false;
 	}
 
 	private static boolean tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(MapLocation loc,
@@ -482,8 +483,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	private static boolean updateTargetLoc() throws GameActionException {
-		Signal[] signals = rc.emptySignalQueue();
+	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				//rc.setIndicatorString(1, "updating from message");
@@ -494,7 +494,7 @@ public class Harass extends Bot {
 					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
-						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)) {
+						if(!Util.containsMapLocation(targetDens, denLoc, targetDenSize) && !Util.containsMapLocation(killedDens, denLoc, killedDenSize)){
 							targetDens[targetDenSize] = denLoc;
 							targetDenSize++;
 							numDensToHunt++;
@@ -502,6 +502,7 @@ public class Harass extends Bot {
 									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
 								targetLoc = denLoc;
 								bestIndex = targetDenSize;
+								huntingDen = true;
 							}
 						}
 						return true;
@@ -512,16 +513,54 @@ public class Harass extends Bot {
 						return true;
 					}
 				}
+				else{
+					MapLocation signalLoc = signal.getLocation();
+					int distToSignal = here.distanceSquaredTo(signalLoc);
+					if(rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal && (targetLoc == null ||  distToSignal < here.distanceSquaredTo(targetLoc))){
+						targetLoc = signalLoc;
+						huntingDen = false;
+						return true;
+					}
+					else{//if a den has been killed don't go for it anymore
+						int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+						if(closestIndex != -1 && targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared){
+							rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+							killedDens[killedDenSize] = targetDens[closestIndex];
+							killedDenSize++;
+							targetDens[closestIndex] = null;
+							numDensToHunt--;
+						}
+					}
+				}
 			}
 		}
-		if (numDensToHunt > 0 && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
-			numDensToHunt--;
-			targetDens[bestIndex] = null;
+
+		if(huntingDen && (targetLoc == null || rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null)){
+			//tell people a den has been killed
+			if(targetLoc != null){
+				rc.broadcastSignal(10000);
+				killedDens[killedDenSize] = targetDens[bestIndex];
+				targetDens[bestIndex] = null;
+				killedDenSize++;
+				numDensToHunt--;
+			}
 			targetLoc = null;
-			if (numDensToHunt > 0) {
+			huntingDen = false;
+			if(numDensToHunt > 0){
+				huntingDen = true;
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
+			return true;
+		}
+		else if(!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10 && rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0){
+			targetLoc = null;
+			if(numDensToHunt > 0){
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+			return true;
 		}
 		/*
 		 * RobotInfo[] allies =
@@ -615,6 +654,7 @@ public class Harass extends Bot {
 		friends = rc.senseNearbyRobots(here,RobotType.SOLDIER.sensorRadiusSquared, us);
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
+		Signal[] signals = rc.emptySignalQueue();
 		boolean targetUpdated = updateTargetLoc();
 		boolean archonUpdated = updateArchonLoc();
 		boolean turretUpdated = updateTurretLoc();
@@ -651,6 +691,7 @@ public class Harass extends Bot {
 			rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
 			Nav.goTo(targetLoc, theSafety);
 		} else if (rc.isCoreReady()) {
+			rc.setIndicatorString(0, "I am exploring.");
 			Nav.explore();
 		}
 	}
