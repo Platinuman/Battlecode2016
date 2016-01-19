@@ -90,6 +90,7 @@ public class BotScout extends Bot {
 			Nav.explore();
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			notifySoldiersOfZombieDen(hostileRobots);
+			notifySoldiersOfTurtle(hostileRobots);
 			break;
 		case 1:
 			break;
@@ -207,6 +208,18 @@ public class BotScout extends Bot {
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
 	 */
+	private static void notifySoldiersOfTurtle(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
+		//RobotInfo[] turtleLocs;
+		for (RobotInfo hostileUnit : hostileRobots) {
+			if (hostileUnit.type == RobotType.TURRET) {
+				rc.setIndicatorString(1, "see a turtle and am notifiying");
+				MapLocation turtleLoc = hostileUnit.location;
+				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y });
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+			}
+		}
+	}
+
 	private static void notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
 		for (RobotInfo hostileUnit : hostileRobots) {
 			if (hostileUnit.type == RobotType.ZOMBIEDEN
