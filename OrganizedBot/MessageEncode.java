@@ -9,7 +9,8 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
 	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
 	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
-	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5);// 5 map locations (as ints) **x and y offset from sender must be <16
+	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations (as ints) **x and y offset from sender must be <16
+	WARN_ABOUT_TURRETS    (7, new int[]{7,8,7,8,7,8,7,8,7,8}, 5);// 5 map locations of enemy turrets -- (-1,-1) if fewer than 5
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -28,6 +29,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 4 - tell the archon where to go
 	 * 5 - tell the mobile archon to turtle (and where to do so)
 	 * 6 - give turrets more than one target
+	 * 7 - warn soldiers to avoid turrets they can't see
 	 * 
 	 * (if you increase the max number (7), make sure the space below matches)
 	 */
@@ -155,6 +157,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 4: return DIRECT_MOBILE_ARCHON;
 		case 5: return STOP_BEING_MOBILE;
 		case 6: return MULTIPLE_TARGETS;
+		case 7: return WARN_ABOUT_TURRETS;
 
 		default: return null;
 		}
@@ -173,6 +176,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 4: return "DIRECT_MOBILE_ARCHON";
 		case 5: return "STOP_BEING_MOBILE";
 		case 6: return "MULTIPLE_TARGETS";
+		case 7: return "WARN_ABOUT_TURRETS";
 
 		default: return "@Nate update the toString you idiot";
 		}
