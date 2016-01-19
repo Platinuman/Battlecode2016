@@ -222,16 +222,16 @@ public class Nav extends Bot {
 		}
 	}
 
-	private static void runAway() throws GameActionException {
-		Direction away = here.directionTo(Util.centroidOfUnits(rc.senseHostileRobots(here, -1)));
-		if (rc.canMove(away)) {
-			rc.move(away);
-		} else if (rc.canMove(away.rotateLeft())) {
-			rc.move(away.rotateLeft());
-		} else if (rc.canMove(away.rotateRight())) {
-			rc.move(away.rotateRight());
-		}
-	}
+//	private static void runAway() throws GameActionException {
+//		Direction away = here.directionTo(Util.centroidOfUnits(rc.senseHostileRobots(here, -1)));
+//		if (rc.canMove(away)) {
+//			rc.move(away);
+//		} else if (rc.canMove(away.rotateLeft())) {
+//			rc.move(away.rotateLeft());
+//		} else if (rc.canMove(away.rotateRight())) {
+//			rc.move(away.rotateRight());
+//		}
+//	}
 
 	public static void goTo(MapLocation theDest, NavSafetyPolicy theSafety) throws GameActionException {
 		if (!theDest.equals(dest)) {
@@ -245,9 +245,9 @@ public class Nav extends Bot {
 		safety = theSafety;
 
 		bugMove();
-		if (false && type==RobotType.ARCHON && rc.isCoreReady()) {
-			runAway();
-		}
+//		if (false && type==RobotType.ARCHON && rc.isCoreReady()) {
+//			runAway();
+//		}
 	}
 	
 	public static boolean moveInDir(Direction dir, NavSafetyPolicy theSafety) throws GameActionException{
@@ -258,16 +258,19 @@ public class Nav extends Bot {
 	
 	public static void flee(RobotInfo[] unfriendly)throws GameActionException{
 		MapLocation center = Util.centroidOfUnits(unfriendly);
-		Direction runAway = center.directionTo(here);
-		moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
-		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
-		if(rc.isCoreReady())
-			Combat.retreat(center);
+		Direction away = center.directionTo(here);
+		if (rc.canMove(away)) {
+			rc.move(away);
+		} else if (rc.canMove(away.rotateLeft())) {
+			rc.move(away.rotateLeft());
+		} else if (rc.canMove(away.rotateRight())) {
+			rc.move(away.rotateRight());
+		}
 	}
 	
 	public static void explore() throws GameActionException{ // NEW INTO HARASS
 		//explore 
-		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
+		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
 		if(rc.isCoreReady()){
 			if(directionIAmMoving == null){
@@ -286,7 +289,8 @@ public class Nav extends Bot {
 				}
 			}
 			if(!moved && hostileRobots.length > 0){
-				Combat.retreat(Util.closest(hostileRobots, here).location);
+				flee(hostileRobots);
+				//Combat.retreat(Util.closest(hostileRobots, here).location);
 			}
 		}
 	}
