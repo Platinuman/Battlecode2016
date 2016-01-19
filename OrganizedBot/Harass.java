@@ -486,7 +486,6 @@ public class Harass extends Bot {
 	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
-				//rc.setIndicatorString(1, "updating from message");
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MapLocation senderloc = signal.getLocation();
@@ -604,15 +603,15 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static boolean updateTurretLoc() {
-		Signal[] signals = rc.emptySignalQueue();
+	public static boolean updateTurretLoc(Signal[] signals) {
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
-				rc.setIndicatorString(1, "updating from message");
+				//rc.setIndicatorString(1, "updating from message");
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MapLocation senderloc = signal.getLocation();
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					rc.setIndicatorString(1, ""+ purpose.toString());
 					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
 						int[] data = purpose.decode(senderloc, message);
 						turretLoc = new MapLocation(data[0], data[1]);
@@ -654,9 +653,9 @@ public class Harass extends Bot {
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
+		rc.setIndicatorString(0,""+signals.length);
+		boolean turretUpdated = updateTurretLoc(signals);
 		boolean targetUpdated = updateTargetLoc(signals);
-		boolean turretUpdated = updateTurretLoc();
-		//rc.setIndicatorString(0, "updated turtle loc outer");
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		/*

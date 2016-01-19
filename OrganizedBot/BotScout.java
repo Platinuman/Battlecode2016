@@ -89,8 +89,8 @@ public class BotScout extends Bot {
 		case 0://exploring
 			Nav.explore();
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
-			notifySoldiersOfZombieDen(hostileRobots);
 			notifySoldiersOfTurtle(hostileRobots);
+			notifySoldiersOfZombieDen(hostileRobots);
 			break;
 		case 1:
 			break;
@@ -212,10 +212,10 @@ public class BotScout extends Bot {
 		//RobotInfo[] turtleLocs;
 		for (RobotInfo hostileUnit : hostileRobots) {
 			if (hostileUnit.type == RobotType.TURRET) {
-				rc.setIndicatorString(1, "see a turtle and am notifiying");
 				MapLocation turtleLoc = hostileUnit.location;
-				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y });
+				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y,-1,-1,-1,-1,-1,-1,-1,-1 });
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+				rc.setIndicatorString(1, "see a turtle and am notifiying");
 			}
 		}
 	}
