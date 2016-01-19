@@ -9,9 +9,9 @@ public class Harass extends Bot {
 	static RobotInfo[] enemies; 
 	static RobotInfo[] enemiesICanShoot;
 	static MapLocation archonLoc;
-	static MapLocation targetLoc;
 	static boolean targetUpdated;
 	static boolean archonUpdated;
+	static boolean huntingDen;
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
@@ -146,6 +146,9 @@ public class Harass extends Bot {
 			}
 		*/
 			return false;
+		}
+		else if (rc.getRoundNum() % 5 == 0){
+			rc.broadcastSignal((int)(rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		}
 
 
@@ -419,7 +422,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	private static boolean updateTargetLoc() throws GameActionException {
+	public static boolean updateTargetLoc() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -438,6 +441,7 @@ public class Harass extends Bot {
 							if(numDensToHunt == 1 || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
 								targetLoc = denLoc;
 								bestIndex = targetDenSize;
+								huntingDen = true;
 							}
 						}
 						return true;
@@ -448,13 +452,29 @@ public class Harass extends Bot {
 						return true;
 					}
 				}
+				else{
+					if(targetLoc == null || here.distanceSquaredTo(signal.getLocation()) < here.distanceSquaredTo(targetLoc)){
+						targetLoc = signal.getLocation();
+						huntingDen = false;
+					}
+				}
 			}
 		}
-		if(numDensToHunt > 0 && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null){
+		if(huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null){
 			numDensToHunt--;
 			targetDens[bestIndex] = null;
 			targetLoc = null;
+			huntingDen = false;
 			if(numDensToHunt > 0){
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+		}
+		else if(!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10 && rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0){
+			targetLoc = null;
+			if(numDensToHunt > 0){
+				huntingDen = true;
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}

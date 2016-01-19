@@ -214,7 +214,7 @@ public class RobotPlayer{
 
 			RobotInfo[] alliesToHelp = rc.senseNearbyRobots(rc.getType().attackRadiusSquared,rc.getTeam());
 			MapLocation weakestOne = findWeakest(alliesToHelp);
-			if(weakestOne!=null){
+			if(weakestOne!=null && rc.senseRobotAtLocation(weakestOne).type != RobotType.ARCHON){
 				rc.repair(weakestOne);
 				return;
 			}

@@ -52,6 +52,7 @@ public class BotTurret extends Bot {
 		}
 		if (turretType == 1) { // OFFENSIVE
 			// MessageEncode.readMessagesAndUpdateInfo();
+			Harass.updateTargetLoc();
 			// this should set its target
 		}
 	}
@@ -65,7 +66,7 @@ public class BotTurret extends Bot {
 		// MessageEncode.updateRange(); //NEW update the range and get list of
 		// possible targets in same loop to conserve bytecode
 
-		if (turretType == 1) {
+		if (turretType == 1 && targetLoc != null) {
 			if (!isTTM) {
 				// shoot anything in range and use scout
 				attackIfApplicable(signals);
