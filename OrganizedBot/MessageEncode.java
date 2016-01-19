@@ -72,13 +72,13 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	public int[] encode(int[] data) {
 		int[] mess = new int[2];
 		mess[0] = reasonNumber;
-		MapLocation myloc = Bot.rc.getLocation();
+		MapLocation myloc = Bot.here;
 		int powerOfTwo = multiplyByTwo(1,howMuchSpaceDataNeeds[0]);
 		for ( int i = 0; i < whereToSplitData; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - center.x + 40;
+				data[i] = data[i] - Bot.center.x + 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - center.y + 40;
+				data[i] = data[i] - Bot.center.y + 40;
 			else if (whichDataToInclude[i] == 7)
 				data[i] = data[i] - myloc.x + 15;
 			else if (whichDataToInclude[i] == 8)
@@ -89,9 +89,9 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - center.x + 40;
+				data[i] = data[i] - Bot.center.x + 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - center.y + 40;
+				data[i] = data[i] - Bot.center.y + 40;
 			else if (whichDataToInclude[i] == 7)
 				data[i] = data[i] - myloc.x + 15;
 			else if (whichDataToInclude[i] == 8)
@@ -114,26 +114,26 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		for ( int i = 0; i < whereToSplitData; i++){
 			data[i] = mess[0]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + center.x - 40;
+				data[i] = data[i] + Bot.center.x - 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + center.y - 40;
+				data[i] = data[i] + Bot.center.y - 40;
 			else if (whichDataToInclude[i] == 7)
-				data[i] = data[i] + myloc.x - 15;
+				data[i] = data[i] + Bot.here.x - 15;
 			else if (whichDataToInclude[i] == 8)
-				data[i] = data[i] + myloc.y - 15;
+				data[i] = data[i] + Bot.here.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			data[i] = mess[1]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + center.x - 40;
+				data[i] = data[i] + Bot.center.x - 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + center.y - 40;
+				data[i] = data[i] + Bot.center.y - 40;
 			else if (whichDataToInclude[i] == 7)
-				data[i] = data[i] + myloc.x - 15;
+				data[i] = data[i] + Bot.here.x - 15;
 			else if (whichDataToInclude[i] == 8)
-				data[i] = data[i] + myloc.y - 15;
+				data[i] = data[i] + Bot.here.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		return data;
