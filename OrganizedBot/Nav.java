@@ -56,6 +56,9 @@ public class Nav extends Bot {
 	}
 
 	private static boolean checkRubble(Direction dir) {
+		if (rc.getType() == RobotType.TTM){
+			return false;
+		}
 		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
 		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
 	}
