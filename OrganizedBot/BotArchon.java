@@ -48,7 +48,7 @@ public class BotArchon extends Bot {
 
 	private static void init() throws GameActionException {
 		//maxRange = 2;
-		Signal[] signals = rc.emptySignalQueue();
+		//Signal[] signals = rc.emptySignalQueue();
 		isMobileArchon = true;
 		targetDen = null;
 		//// MessageEncode.setArchonTypes(signals); //NEW This should be a method
@@ -94,7 +94,7 @@ public class BotArchon extends Bot {
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		repairBotMostInNeed();
-		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
+		RobotInfo[] enemies = rc.senseNearbyRobots(type.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isMobileArchon){
 				beMobileArchon(enemies);

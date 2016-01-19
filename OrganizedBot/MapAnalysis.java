@@ -9,7 +9,7 @@ public class MapAnalysis extends Bot {
 
 	protected static MapSymmetry mapSymmetry = null;
 	protected static int[] zombieRounds = null;
-	protected static int mapDifficulty; //0 = can turtle, 1 = cannot turtle
+	protected static int mapDifficulty = 1; //0 = can turtle, 1 = cannot turtle
 
 	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
 		mapSymmetry = null;// lol this needs to be fixed
@@ -31,6 +31,7 @@ public class MapAnalysis extends Bot {
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;
 		int bigZombieCount = 0;
+		return; // for now
 		ZombieSpawnSchedule spawnSchedule = rc.getZombieSpawnSchedule();
 		for (int i = 0; i < zombieRounds.length; i++){
 			if(zombieRounds[i] > 500){
