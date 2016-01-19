@@ -522,6 +522,14 @@ public class Harass extends Bot {
 						archonLoc = new MapLocation(data[0], data[1]);
 						return true;
 					}
+					if(purpose == MessageEncode.ENEMY_ARMY_NOTIF){
+						if(targetLoc == null){
+							huntingDen = false;
+							int[] data = purpose.decode(senderloc, message);
+							MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+							targetLoc = enemyLoc;
+						}
+					}
 				} else {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);

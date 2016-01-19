@@ -89,13 +89,19 @@ public class BotScout extends Bot {
 		here = rc.getLocation();
 		switch (scoutType) { // NEW should call methods in Harass why the hell should they be in harass they're literally only for scouts
 		case 0://exploring
-			Nav.explore();
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+			Nav.explore();
 			if(!foundTurtle)
 			notifySoldiersOfTurtle(hostileRobots);
 			notifySoldiersOfZombieDen(hostileRobots);
-			if(rc.getRoundNum() % 10 == 0)
+			if(rc.getRoundNum() % 5 == 0){
+				notifySoldiersOfEnemyArmy();
+			}
+			notifySoldiersOfEnemyArmy();
+			if(rc.getRoundNum() % 10 == 0){
 				notifyArchonOfPartOrNeutral();
+			}
 			break;
 		case 1:
 			break;
@@ -152,6 +158,14 @@ public class BotScout extends Bot {
 		 * else{ dest = null; } }
 		 */
 	}
+	private static void notifySoldiersOfEnemyArmy() throws GameActionException{
+		RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+		if(enemies.length > 2){
+			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
+		}
+	}
+
 	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
 		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared);
 		MapLocation partOrNeutralLoc = null;
@@ -250,17 +264,20 @@ public class BotScout extends Bot {
 	foundTurtle = true;
 	}
 
-	private static void notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
+	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
 		for (RobotInfo hostileUnit : hostileRobots) {
-			if (hostileUnit.type == RobotType.ZOMBIEDEN
-					&& !Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
-				dens[denSize] = hostileUnit.location;
-				denSize++;
-				MapLocation hostileLoc = hostileUnit.location;
-				int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
-				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+			if (hostileUnit.type == RobotType.ZOMBIEDEN) {
+				if (!Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
+					dens[denSize] = hostileUnit.location;
+					denSize++;
+					MapLocation hostileLoc = hostileUnit.location;
+					int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+				}
+				return true;
 			}
 		}
+		return false;
 	}
 	 /* 
 	 * private static void moveToLocFartherThanAlphaIfPossible(MapLocation here)

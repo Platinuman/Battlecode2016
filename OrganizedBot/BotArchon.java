@@ -89,6 +89,9 @@ public class BotArchon extends Bot {
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		// update target den
+		if(rc.getRoundNum() % 500 == 0){
+			scoutCreated = false;
+		}
 		updateInfoFromScouts();
 		rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
