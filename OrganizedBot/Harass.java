@@ -526,7 +526,7 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	private static boolean updateArchonLoc() {
+	private static boolean updateArchonLoc(Signal[] signals) {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		for (RobotInfo ally : allies) {
 			if (ally.ID == archonID) {

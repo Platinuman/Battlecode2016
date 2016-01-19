@@ -54,6 +54,7 @@ public class BotTurret extends Bot {
 			// MessageEncode.readMessagesAndUpdateInfo();
 			Signal[] signals = rc.emptySignalQueue();
 			Harass.updateTargetLoc(signals);
+			//Harass.updateTargetLoc();
 			// this should set its target
 		}
 	}
