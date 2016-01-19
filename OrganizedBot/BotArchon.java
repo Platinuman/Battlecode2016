@@ -25,7 +25,6 @@ public class BotArchon extends Bot {
 	*/
 	static MapLocation targetDen;
 	static boolean scoutCreated;
-	static Direction directionIAmMoving;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -266,7 +265,7 @@ public class BotArchon extends Bot {
 		if(targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
-			explore();
+			Nav.explore();
 	}
 /*
 	private static void updateAndMoveTowardTargetDen() {
@@ -452,31 +451,7 @@ public class BotArchon extends Bot {
 	//		}
 	//		return closest;
 	//	}
-	private static void explore() throws GameActionException{ // NEW INTO HARASS
-		//explore 
-		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
-		if(rc.isCoreReady()){
-			if(directionIAmMoving == null){
-				int fate = rand.nextInt(1000);
-				directionIAmMoving = Direction.values()[fate % 8];
-			}
-			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
-			if(!moved){
-				for(int i = 0; i < 8; i++){
-					directionIAmMoving = directionIAmMoving.rotateRight();
-					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
-					if(movedNow){
-						moved = true;
-						break;
-					}
-				}
-			}
-			if(!moved && hostileRobots.length > 0){
-				Combat.retreat(Util.closest(hostileRobots, here).location);
-			}
-		}
-	}
+
 	private static boolean updateTargetLocationMySelf(RobotInfo[] allies) throws GameActionException{ // NEW Harass???
 		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
 		MapLocation[] partLocations = rc.sensePartLocations(-1);//gets all the ones we can sense

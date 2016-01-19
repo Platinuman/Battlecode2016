@@ -522,5 +522,8 @@ public class Harass extends Bot {
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 			Nav.goTo(targetLoc, theSafety);
 		}
+		else if(rc.isCoreReady()){
+			Nav.explore();
+		}
 	}
 }

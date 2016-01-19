@@ -15,6 +15,7 @@ public class Bot {
     public static int targetDenSize;
     public static int bestIndex;
     public static int numDensToHunt;
+    public static Direction directionIAmMoving;
     protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 
