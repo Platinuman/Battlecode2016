@@ -270,7 +270,7 @@ public class Harass extends Bot {
 						// we can't move this turn. if it won't delay retreating, shoot instead
 						// Debug.indicate("micro", 0, "want to retreat but core on cooldown :( numEnemiesAttackingUs = " + numEnemiesAttackingUs
 						// + ", maxAlliesAttackingEnemy = " + maxAlliesAttackingAnEnemy);
-						if (rc.getType().cooldownDelay <= 1) {
+						if (rc.getType().cooldownDelay <= 1 && bestTarget != null) {
 							attackIfReady(bestTarget.location);
 						}
 						return true;
@@ -456,6 +456,7 @@ public class Harass extends Bot {
 					if(targetLoc == null || here.distanceSquaredTo(signal.getLocation()) < here.distanceSquaredTo(targetLoc)){
 						targetLoc = signal.getLocation();
 						huntingDen = false;
+						return true;
 					}
 				}
 			}
@@ -470,6 +471,7 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
+			return true;
 		}
 		else if(!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10 && rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0){
 			targetLoc = null;
@@ -478,6 +480,7 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
+			return true;
 		}
 		/*
 		 * RobotInfo[] allies =
