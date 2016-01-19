@@ -482,9 +482,10 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		boolean archonUpdated = updateArchonLoc();
-		if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
+		/*if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
 			return;
-		}
+		}*/
+		doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated);
 		if (rc.isCoreReady() && targetLoc != null) {
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 			Nav.goTo(targetLoc, theSafety);

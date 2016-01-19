@@ -33,7 +33,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
     }
     
    public static int closestLocation(MapLocation locs[], MapLocation toHere, int size) {
-       MapLocation closest = null;
+       //MapLocation closest = null;
        int bestDistSq = 999999;
        int bestIndex = -1;
        for (int i = 0; i < size; i++) {
@@ -43,7 +43,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
            int distSq = toHere.distanceSquaredTo(locs[i]);
            if (distSq < bestDistSq) {
                bestDistSq = distSq;
-               closest = locs[i];
+               //closest = locs[i];
                bestIndex = i;
            }
        }

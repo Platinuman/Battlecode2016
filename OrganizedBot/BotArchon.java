@@ -48,7 +48,7 @@ public class BotArchon extends Bot {
 	}
 
 	private static void init() throws GameActionException {
-		maxRange = 2;
+		//maxRange = 2;
 		Signal[] signals = rc.emptySignalQueue();
 		isMobileArchon = true;
 		targetDen = null;
@@ -98,7 +98,6 @@ public class BotArchon extends Bot {
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isMobileArchon){
-				//Harass.doMobileArchon();
 				beMobileArchon(enemies);
 				rc.setIndicatorString(0, "mobile as of round " + rc.getRoundNum());
 			} else if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
@@ -110,7 +109,7 @@ public class BotArchon extends Bot {
 		}
 	}
 	
-	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {// NEW INTO HARASS
+	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		//update target den
 		updateInfoFromScouts();
 		if(rc.isCoreReady()){
