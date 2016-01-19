@@ -1,4 +1,4 @@
-package OrganizedBot;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
 
@@ -93,9 +93,8 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 	 * 
 	 * @param robots
 	 */
-	public static MapLocation centroidOfUnits(RobotInfo[] robots){
-		// TODO: this method
-		float xavg = 0, yavg = 0;
+    public static MapLocation centroidOfUnits(RobotInfo[] robots){
+		int xavg = 0, yavg = 0;
 		MapLocation loc;
 		for(int i = 0; i < robots.length; i++){
 			loc = robots[i].location;
@@ -104,6 +103,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
 	}
+
 
 	public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
 		for(int i = 0; i < size; i++){

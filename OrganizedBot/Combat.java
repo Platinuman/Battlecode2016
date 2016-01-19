@@ -1,7 +1,6 @@
-package OrganizedBot;
+package Battlecode2016.OrganizedBot;
 
 import battlecode.common.*;
-//import team061.Util;
 
 public class Combat extends Bot { //NEW up to you guys what to do here, but please optimize everything and make it usable for multiple strategies
 									//NEW most of these methods should be called ONLY by the Harass class

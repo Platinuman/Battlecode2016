@@ -249,4 +249,5 @@ public class Nav extends Bot {
 			runAway();
 		}
 	}
+
 }
