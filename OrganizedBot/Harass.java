@@ -695,8 +695,11 @@ public class Harass extends Bot {
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+		if(rc.getRoundNum()>700){
+			crunch();
+		}
+		else{
 		if (turretLoc != null) {
-			rc.setIndicatorString(2, "turret");
 
 			RobotInfo turret = new RobotInfo(0, them, RobotType.TURRET, turretLoc, 0, 0, 0, 0, 0, 0, 0);
 			enemies = addRobotInfo(enemies, turret);
@@ -704,6 +707,8 @@ public class Harass extends Bot {
 
 			if (here.distanceSquaredTo(turretLoc) < 150 && rc.isCoreReady()) {
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+				rc.setIndicatorString(2, "turret");
+
 
 			}
 		}
@@ -715,5 +720,6 @@ public class Harass extends Bot {
 			rc.setIndicatorString(0, "I am exploring.");
 			Nav.explore(enemies);
 		}
+	}
 	}
 }
