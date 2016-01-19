@@ -526,7 +526,7 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	private static boolean updateArchonLoc() {
+	private static boolean updateArchonLoc(Signal[] signals) {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		for (RobotInfo ally : allies) {
 			if (ally.ID == archonID) {
@@ -547,8 +547,8 @@ public class Harass extends Bot {
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
-		boolean targetUpdated = updateTargetLoc();
-		boolean archonUpdated = updateArchonLoc(signals);
+		boolean targetUpdated = updateTargetLoc(signals);
+		//boolean archonUpdated = updateArchonLoc(signals);
 		/*
 		if(here.distanceSquaredTo(targetLoc)<rc.getType().attackRadiusSquared && enemies.length == 0)
 		{

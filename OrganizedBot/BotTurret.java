@@ -52,7 +52,7 @@ public class BotTurret extends Bot {
 		}
 		if (turretType == 1) { // OFFENSIVE
 			// MessageEncode.readMessagesAndUpdateInfo();
-			Harass.updateTargetLoc();
+			//Harass.updateTargetLoc();
 			// this should set its target
 		}
 	}
