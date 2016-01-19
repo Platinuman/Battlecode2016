@@ -1,7 +1,6 @@
-package Battlecode2016.OrganizedBot;
+package OrganizedBot;
 
 import java.util.*;
-
 import battlecode.common.*;
 
 public class Bot {
