@@ -617,7 +617,6 @@ public class Harass extends Bot {
 						int[] data = purpose.decode(senderloc, message);
 						turretLoc = new MapLocation(data[0], data[1]);
 						rc.setIndicatorString(2, "loc we looked at" + turretLoc);
-
 						return true;
 					}
 				}
