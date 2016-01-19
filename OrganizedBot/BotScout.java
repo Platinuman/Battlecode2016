@@ -19,18 +19,6 @@ public class BotScout extends Bot {
 	static MapLocation[] dens;
 	static int denSize;
 	static boolean foundTurtle;
-	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
-		init();
-		while (true) {
-			try {
-				turn();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Clock.yield();
-		}
-	}
 
 	private static void init() throws GameActionException {
 		foundTurtle = false;

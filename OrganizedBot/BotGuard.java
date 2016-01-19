@@ -1,4 +1,3 @@
-
 package OrganizedBot;
 
 import java.util.Random;
@@ -7,18 +6,6 @@ import battlecode.common.*;
 
 public class BotGuard extends Bot {
 	protected static MapLocation target;
-	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
-		init();
-		while (true) {
-			try {
-				turn();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Clock.yield();
-		}
-	}
 
 	private static void init() throws GameActionException {
 		//MessageEncode.getMobileArchonLocation(); // NEW This should be a method

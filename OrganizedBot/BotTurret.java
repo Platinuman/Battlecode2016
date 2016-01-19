@@ -13,19 +13,6 @@ public class BotTurret extends Bot {
 										// control?
 	protected static boolean isTTM;
 
-	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
-		init();
-		while (true) {
-			try {
-				turn();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Clock.yield();
-		}
-	}
-
 	private static void init() throws GameActionException {
 		// TODO have bot choose what type of turret it is
 		// if it is a mobile turret it needs to have a target loc
