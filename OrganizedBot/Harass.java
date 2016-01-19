@@ -439,7 +439,7 @@ public class Harass extends Bot {
 							targetDens[targetDenSize] = denLoc;
 							targetDenSize++;
 							numDensToHunt++;
-							if(numDensToHunt == 1 || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
+							if(targetLoc == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
 								targetLoc = denLoc;
 								bestIndex = targetDenSize;
 								huntingDen = true;
@@ -547,8 +547,8 @@ public class Harass extends Bot {
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
-		boolean targetUpdated = updateTargetLoc();
-		boolean archonUpdated = updateArchonLoc(signals);
+		boolean targetUpdated = updateTargetLoc(signals);
+		//boolean archonUpdated = updateArchonLoc(signals);
 		/*
 		if(here.distanceSquaredTo(targetLoc)<rc.getType().attackRadiusSquared && enemies.length == 0)
 		{
