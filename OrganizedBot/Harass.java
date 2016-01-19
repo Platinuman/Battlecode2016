@@ -645,6 +645,7 @@ public class Harass extends Bot {
 	}
 
 	public static void crunch() throws GameActionException {
+		if(friends.length>20)
 		if (rc.isCoreReady() && rc.canMove(here.directionTo(turretLoc))) {
 			RobotInfo[] blank = new RobotInfo[1];
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
@@ -694,12 +695,12 @@ public class Harass extends Bot {
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-		if(turretUpdated){
+		if(turretLoc!=null){
 		RobotInfo turret = new RobotInfo(0, them, RobotType.TURRET, turretLoc,0,0,0,0,0,0,0);
 		RobotInfo[] enemies2 = addRobotInfo(enemies,turret);
 		theSafety = new SafetyPolicyAvoidAllUnits(enemies2);
 		}
-		if(targetDenSize == killedDenSize && turretLoc!=null){
+		if(numDensToHunt == 0 && turretLoc!=null){
 			targetLoc = turretLoc;
 		}
 		if (turretLoc != null && turretLoc == targetLoc) {
