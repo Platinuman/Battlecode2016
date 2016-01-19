@@ -23,6 +23,9 @@ public class Bot {
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 
 	protected static RobotType type;
+	
+	public static ArrayList<RobotInfo> enemyTurrets;
+	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
 
@@ -35,6 +38,11 @@ public class Bot {
 		targetDens = new MapLocation[10000];
 		killedDens = new MapLocation[10000];
 		targetDenSize = bestIndex = numDensToHunt = killedDenSize = 0;
+		enemyTurrets = new ArrayList<RobotInfo>();
 		MapAnalysis.analyze();
+	}
+	
+	public static void updateTurretList(Signal[] signals){
+		
 	}
 }
