@@ -101,7 +101,7 @@ public class Harass extends Bot {
 			}
 		}
 
-		if (bestRetreatDir != null) {
+		if (bestRetreatDir != null && rc.isCoreReady()) {
 			rc.move(bestRetreatDir);
 			return true;
 		}
@@ -419,7 +419,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	private static boolean updateTargetLoc() {
+	private static boolean updateTargetLoc() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -433,10 +433,11 @@ public class Harass extends Bot {
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
 							targetDens[targetDenSize] = denLoc;
-							targetDenSize +=1;
-							if(targetLoc == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
+							targetDenSize++;
+							numDensToHunt++;
+							if(numDensToHunt == 1 || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
 								targetLoc = denLoc;
-								
+								bestIndex = targetDenSize;
 							}
 						}
 						return true;
@@ -447,6 +448,15 @@ public class Harass extends Bot {
 						return true;
 					}
 				}
+			}
+		}
+		if(numDensToHunt > 0 && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null){
+			numDensToHunt--;
+			targetDens[bestIndex] = null;
+			targetLoc = null;
+			if(numDensToHunt > 0){
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
 			}
 		}
 		/*
@@ -496,18 +506,19 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		boolean archonUpdated = updateArchonLoc();
+		/*
 		if(here.distanceSquaredTo(targetLoc)<rc.getType().attackRadiusSquared && enemies.length == 0)
 		{
 			rc.setIndicatorString(0, "I have killed the target and am looking for a new one");
 			updateTargetLoc();
 
-		}
+		}*/
 		/*if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
 			return;
 		}*/
 		doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated);
-		if (rc.isCoreReady() && targetLoc != null&& targetUpdated) {
-			rc.setIndicatorString(0, "I am moving to the new target");
+		if (rc.isCoreReady() && targetLoc != null) {
+			rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 			Nav.goTo(targetLoc, theSafety);
 		}
