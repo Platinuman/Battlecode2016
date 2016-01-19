@@ -98,6 +98,9 @@ public class BotArchon extends Bot {
 			// if(inDanger(allies, enemies, zombies)){
 			if (hostiles.length > 0) {
 				Nav.flee(hostiles);
+				if(rc.getRoundNum() % 5 == 0 && allies.length < hostiles.length){
+					callForHelp();
+				}
 				return;
 			}
 			// if i haven't created a scout create one
@@ -192,6 +195,11 @@ public class BotArchon extends Bot {
 		 * 
 		 * } else rc.setIndicatorString(2, "I did nothing this turn"); }
 		 */
+	}
+
+	private static void callForHelp() throws GameActionException {
+		rc.broadcastSignal((int)(RobotType.ARCHON.sensorRadiusSquared*GameConstants.BROADCAST_RANGE_MULTIPLIER));
+		rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
 	}
 
 	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {
