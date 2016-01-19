@@ -30,7 +30,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 4 - tell the archon where to go
 	 * 5 - tell the mobile archon to turtle (and where to do so)
 	 * 6 - give turrets more than one target
-	 * 7 - warn soldiers to avoid turrets they can't see
+	 * 7 - warn soldiers to avoid turrets they can't see -- (-1,-1) if fewer than 5
 	 * 
 	 * (if you increase the max number (7), make sure the space below matches)
 	 */

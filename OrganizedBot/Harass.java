@@ -15,7 +15,9 @@ public class Harass extends Bot {
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
-
+		
+		if(enemy.type == RobotType.ARCHON) return true;
+		
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / rc.getType().attackPower);
 		int turnsTillWeCanAttack;
 		int effectiveAttackDelay;
@@ -60,11 +62,12 @@ public class Harass extends Bot {
 		RobotInfo loneAttacker = null;
 		int numAttackers = 0;
 		for (RobotInfo enemy : enemies) {
-			switch (enemy.type) {// what is the point of this lol
+			switch (enemy.type) {
+			case ARCHON: break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
 					numAttackers++;
-					if (numAttackers >= 2) return false;
+					if (numAttackers > 1) return false;
 					loneAttacker = enemy;
 				}
 				break;
@@ -386,7 +389,7 @@ public class Harass extends Bot {
 	private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] enemies) {
 		int ret = 0;
 		for (int i = enemies.length; i-- > 0;) {
-			if (enemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(enemies[i].location)) ret++;
+			if (enemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(enemies[i].location) && enemies[i].type != RobotType.ARCHON) ret++;
 
 		}
 		return ret;
