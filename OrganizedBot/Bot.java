@@ -26,6 +26,21 @@ public class Bot {
 	
 	public static ArrayList<RobotInfo> enemyTurrets;
 	
+	public static void loop(RobotController theRC) throws GameActionException {
+		init(theRC);
+		init();
+		while (true) {
+			try {
+				turn();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			Clock.yield();
+		}
+	}
+	
+	private static void init() throws GameActionException{ return; }
+	private static void turn() throws GameActionException{ return; }
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
 

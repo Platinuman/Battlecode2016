@@ -23,26 +23,6 @@ public class BotArchon extends Bot {
 	static MapLocation targetDen;
 	static boolean scoutCreated;
 
-	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
-		init();
-		// Debug.init("micro");
-		while (true) {
-			try {
-				turn();
-				// Direction dir = chooseMoveLocAndDir(rc.getLocation());
-				// rc.move(dir);
-				// RobotInfo[] ourUnits = rc.senseNearbyRobots(attackRadiusSq,
-				// us);
-				// RobitType neededUnit = checkNeededUnits(ourUnits);
-				// constructNeededUnits(neededUnits);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Clock.yield();
-		}
-	}
-
 	private static void init() throws GameActionException {
 		// maxRange = 2;
 		// Signal[] signals = rc.emptySignalQueue();
