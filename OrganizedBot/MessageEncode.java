@@ -13,6 +13,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
 	//FOUND_NEUTRAL(6,new int[]{1, 2, 7}, 2);		// type.ordinal(), xloc, yloc
+	//TODO Scout notifies units of a turtle
 	/* 4 - scout notifies mobile archon that it found parts
 	 * 5 - scout notifies mobile archon of zombie den
 	 * 6 - scout notifies mobile archon of neutral bots*/

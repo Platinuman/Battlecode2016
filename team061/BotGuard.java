@@ -40,7 +40,7 @@ public class BotGuard extends Bot {
 	}
 
 	private static void turn() throws GameActionException {
-		int acceptableRangeSquared = RobotType.SOLDIER.attackRadiusSquared;
+		int acceptableRangeSquared = RobotType.SOLDIER.sensorRadiusSquared;
 		// Check where moving Archon is
 		here = rc.getLocation();
 		// Check for nearby enemies
