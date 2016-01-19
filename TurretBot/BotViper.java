@@ -7,10 +7,9 @@ public class BotViper extends Bot {
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		// Debug.init("micro");
-		Random rand = new Random(rc.getID());
 		while (true) {
 			try {
-				turn(rand);
+				turn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -18,7 +17,7 @@ public class BotViper extends Bot {
 		}
 	}
 
-	private static void turn(Random rand) throws GameActionException {
+	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		// This is a loop to prevent the run() method from returning. Because of
 		// the Clock.yield()
