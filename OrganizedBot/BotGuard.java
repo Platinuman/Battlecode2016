@@ -1,4 +1,4 @@
-package team061;
+package OrganizedBot;
 
 import java.util.Random;
 

@@ -1,4 +1,4 @@
-package Battlecode2016.OrganizedBot;
+package OrganizedBot;
 
 import battlecode.common.*;
 
@@ -16,6 +16,9 @@ public class BotScout extends Bot {
 	 * static boolean atScoutLocation; static MapLocation lastBroadcasted;
 	 * static int lastBroadcastedType;
 	 */
+	static Direction directionIAmMoving;
+	static MapLocation[] dens;
+	static int denSize;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -65,6 +68,9 @@ public class BotScout extends Bot {
 		 * alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2,
 		 * -4) };
 		 */
+		scoutType = 0;
+		denSize = 0;
+		dens = new MapLocation[10000];
 	}
 
 	/*
@@ -80,12 +86,13 @@ public class BotScout extends Bot {
 	 */
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		switch (scoutType) { // NEW should call methods in Harass
+		switch (scoutType) { // NEW should call methods in Harass why the hell should they be in harass they're literally only for scouts
+		case 0://exploring
+			explore();
+			break;
 		case 1:
 			break;
 		case 2:
-			break;
-		case 3:
 			break;
 		default:
 			break;
@@ -167,22 +174,40 @@ public class BotScout extends Bot {
 	 * rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
 	 * withinRange = false; for(RobotInfo ally : allies){ if(ally.ID ==
 	 * mobileID){ mobileLoc = ally.location; withinRange = true; break; } } } }
-	 * 
-	 * private static void explore() throws GameActionException{ //explore and
-	 * notify archon if you see anything RobotInfo[] hostileRobots =
-	 * rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
-	 * NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
-	 * if(rc.isCoreReady()){ if(directionIAmMoving == null){ directionIAmMoving
-	 * = here.directionTo(mobileLoc).opposite(); } boolean moved =
-	 * Nav.moveInDir(directionIAmMoving, theSafety); rc.setIndicatorString(1,
-	 * "moved is" + moved); if(!moved){ rc.setIndicatorString(0, "i'm trying");
-	 * int fate = rand.nextInt(1000); for(int i = 0; i < 8; i++){ if(fate % 2 ==
-	 * 0){ directionIAmMoving = directionIAmMoving.rotateRight(); } else{
-	 * directionIAmMoving = directionIAmMoving.rotateLeft(); } boolean movedNow
-	 * = Nav.moveInDir(directionIAmMoving, theSafety); if(movedNow){ moved =
-	 * true; break; } } } if(!moved){ Combat.retreat(Util.closest(hostileRobots,
-	 * here).location); } notifyArchonOfZombieDen(hostileRobots); } }
-	 * 
+	 * */
+	private static void explore() throws GameActionException { 
+		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
+		if (rc.isCoreReady()) {
+			if (directionIAmMoving == null) {
+				int fate = rand.nextInt(1000);
+				directionIAmMoving = Direction.values()[fate % 8];
+			}
+			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
+			rc.setIndicatorString(1, "moved is" + moved);
+			if (!moved) {
+				rc.setIndicatorString(0, "i'm trying");
+				int fate = rand.nextInt(1000);
+				for (int i = 0; i < 8; i++) {
+					if (fate % 2 == 0) {
+						directionIAmMoving = directionIAmMoving.rotateRight();
+					} else {
+						directionIAmMoving = directionIAmMoving.rotateLeft();
+					}
+					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
+					if (movedNow) {
+						moved = true;
+						break;
+					}
+				}
+			}
+			if (!moved) {
+				Combat.retreat(Util.closest(hostileRobots, here).location);
+			}
+			notifySoldiersOfZombieDen(hostileRobots);
+		}
+	}
+	  /*
 	 * private static void addPartsAndNeutrals() throws GameActionException{
 	 * //add all seen parts and neutrals to arrays, in a corresponding array add
 	 * a 1 if it's a neutral (stay 0 if part) MapLocation[] possibleLocs =
@@ -212,17 +237,20 @@ public class BotScout extends Bot {
 	 * rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc)
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
-	 * 
-	 * private static void notifyArchonOfZombieDen(RobotInfo[] hostileRobots)
-	 * throws GameActionException { //zombie dens first for(RobotInfo
-	 * hostileUnit: hostileRobots){ if(hostileUnit.type == RobotType.ZOMBIEDEN
-	 * && !Util.containsMapLocation(dens, hostileUnit.location, denSize)){
-	 * //notify archon dens[denSize] = hostileUnit.location; denSize++;
-	 * MapLocation hostileLoc = hostileUnit.location; int[] myMsg =
-	 * MessageEncode.DIRECT_MOBILE_ARCHON.encode(new
-	 * int[]{hostileLoc.x,hostileLoc.y}); rc.broadcastMessageSignal(myMsg[0],
-	 * myMsg[1], 10000); } } }
-	 * 
+	 */
+	private static void notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
+		for (RobotInfo hostileUnit : hostileRobots) {
+			if (hostileUnit.type == RobotType.ZOMBIEDEN
+					&& !Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
+				dens[denSize] = hostileUnit.location;
+				denSize++;
+				MapLocation hostileLoc = hostileUnit.location;
+				int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+			}
+		}
+	}
+	 /* 
 	 * private static void moveToLocFartherThanAlphaIfPossible(MapLocation here)
 	 * throws GameActionException { Direction dir = Direction.NORTH; boolean
 	 * shouldMove = false; Direction bestDir = dir; int bestScore = 0; int

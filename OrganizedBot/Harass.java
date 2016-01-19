@@ -1,4 +1,4 @@
-package Battlecode2016.OrganizedBot;
+package OrganizedBot;
 
 import battlecode.common.*;
 
@@ -494,7 +494,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
             return;
         }
 
-        if (rc.isCoreReady()) {
+        if (rc.isCoreReady() && targetLoc != null) {
     		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
             Nav.goTo(targetLoc, theSafety);
         }
