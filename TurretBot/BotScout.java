@@ -8,7 +8,6 @@ public class BotScout extends Bot {
 	static MapLocation alpha;
 	static MapLocation dest;
 	static int range;
-	static boolean firstTurn = true;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 
@@ -48,6 +47,11 @@ public class BotScout extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		Signal[] signals = rc.emptySignalQueue();
+		updateMaxRange(signals);
+		if (rc.isCoreReady()) {
+			moveToLocFartherThanAlphaIfPossible(here);
+		}
 		if (rc.isCoreReady()) {
 			Direction dirToClear = Direction.NORTH;
 			for (int i = 0; i < 8; i++) {
@@ -57,15 +61,10 @@ public class BotScout extends Bot {
 				dirToClear = dirToClear.rotateRight();
 			}
 		}
-		Signal[] signals = rc.emptySignalQueue();
-		updateMaxRange(signals);
-		if (rc.isCoreReady()) {
-			moveToLocFartherThanAlphaIfPossible(here);
-		}
 		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
 		Arrays.sort(enemyRobots, new Comparator<RobotInfo>() {
 		    public int compare(RobotInfo idx1, RobotInfo idx2) {
-		        return (int) (idx1.attackPower-idx2.attackPower);
+		        return (int) (100*(idx1.attackPower-idx2.attackPower) + (-idx1.health+idx2.health));
 		    }
 		});
 		for (int i = 0; i < enemyRobots.length; i++) {
@@ -77,14 +76,12 @@ public class BotScout extends Bot {
 			RobotType type = enemyRobots[i].type;
 			int[] message = MessageEncode.TURRET_TARGET
 					.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
-			rc.broadcastMessageSignal(message[0], message[1],
-					//(int) (RobotType.SCOUT.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
-					15);
+			rc.broadcastMessageSignal(message[0], message[1],16);
 		}
 	}
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
-		Direction dir = directions[rand.nextInt(8)];
+		Direction dir = here.directionTo(center);
 		boolean shouldMove = false;
 		Direction bestDir = dir;
 		int nearestScout = distToNearestScout(here);
@@ -108,7 +105,6 @@ public class BotScout extends Bot {
 			}
 			dir = dir.rotateLeft();
 		}
-		//rc.setIndicatorString(1, "Currently at: " + (distanceToAlpha - nearestScout) + " Could be at: " + bestScore);
 		if (rc.canMove(bestDir) && shouldMove) {
 			rc.move(bestDir);
 		}

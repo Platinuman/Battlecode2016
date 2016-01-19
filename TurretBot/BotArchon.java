@@ -39,15 +39,16 @@ public class BotArchon extends Bot {
 		if (!signalsFromOurTeam(signals)) {
 			MapLocation myLocation = rc.getLocation();
 			int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 80 * 80 * 2);
 			isAlphaArchon = true;
 			alpha = myLocation;
 			rc.setIndicatorString(0, "I am the Darth Jar Jar. Fear me.");
-			rc.setIndicatorString(1, "The ability to destroy a planet is insignificant next to the power of the Force.");
+			rc.setIndicatorString(1,
+					"The ability to destroy a planet is insignificant next to the power of the Force.");
 			rc.setIndicatorString(2, "I hope so for your sake, the emperor is not as forgiving as I am.");
 		} else {
 			for (int i = 0; i < signals.length; i++) {
-				if(signals[i].getTeam()!=us){
+				if (signals[i].getTeam() != us) {
 					continue;
 				}
 				int[] message = signals[i].getMessage();
@@ -75,35 +76,52 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
+	public static int distToNearest(MapLocation loc, RobotType myType) throws GameActionException {
+		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(loc, RobotType.ARCHON.sensorRadiusSquared, us);
+		double nearbyUnits = 0;
+		for (int i = 0; i < nearbyAllies.length; i++) {
+			if (nearbyAllies[i].type == myType) {
+				nearbyUnits += 1000.0 / nearbyAllies[i].location.distanceSquaredTo(loc);
+			}
+		}
+		return (int) nearbyUnits;
+	}
+
 	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {
-		// Check for sufficient parts
 		if (rc.hasBuildRequirements(neededUnit)) {
-			Direction dirToBuild = directions[rand.nextInt(8)];
+			Direction dirToBuild = here.directionTo(center);
 			Direction bestDir = dirToBuild;
 			if (neededUnit == RobotType.SCOUT) {
 				int bestScore = Integer.MAX_VALUE;
 				for (int i = 0; i < 8; i++) {
-					int score = BotScout.distToNearestScout(here.add(dirToBuild));
+					int score = distToNearest(here.add(dirToBuild), neededUnit);
 					if (rc.canBuild(dirToBuild, neededUnit) && score < bestScore) {
 						bestScore = score;
 						bestDir = dirToBuild;
 					}
+					dirToBuild = dirToBuild.rotateRight();
+				}
+			} else if (neededUnit == RobotType.TURRET) {
+				int bestScore = Integer.MAX_VALUE;
+				for (int i = 0; i < 8; i++) {
+					int score = distToNearest(here.add(dirToBuild), neededUnit);
+					if (rc.canBuild(dirToBuild, neededUnit) && score < bestScore) {
+						bestScore = score;
+						bestDir = dirToBuild;
+					}
+					dirToBuild = dirToBuild.rotateRight();
 				}
 			}
 			dirToBuild = bestDir;
-			for (int i = 0; i < 8; i++) {
-				if (rc.canBuild(dirToBuild, neededUnit)) {
-					rc.build(dirToBuild, neededUnit);
-					if (neededUnit == RobotType.SCOUT) {
-						numScoutsCreated++;
-					}
-					int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
-					int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-					rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
-					break;
+			if (rc.canBuild(dirToBuild, neededUnit)) {
+				rc.build(dirToBuild, neededUnit);
+				if (neededUnit == RobotType.SCOUT) {
+					numScoutsCreated++;
 				}
-				dirToBuild = dirToBuild.rotateLeft();
+				int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
+				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
+				rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
 			}
 
 			if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 20 == 0) {
@@ -141,9 +159,9 @@ public class BotArchon extends Bot {
 	private static void turn(Random rand) throws GameActionException {
 		repairBotMostInNeed();
 		here = rc.getLocation();
-		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
+		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		if (rc.isCoreReady()) {
-			if (isAlphaArchon || here.distanceSquaredTo(alpha) < 2) {
+			if (isAlphaArchon || here.distanceSquaredTo(alpha) < 3) {
 				aarons_shitty_strat();
 			} else {
 				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
@@ -153,19 +171,21 @@ public class BotArchon extends Bot {
 	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
-		Direction dirToBuild = directions[rand.nextInt(8)];
-		for (int i = 0; i < 8; i++) {
-			if (checkRubbleAndClear(dirToBuild)) {
-				break;
-			}
-			dirToBuild = dirToBuild.rotateRight();
+
+		RobotType needed = RobotType.TURRET;
+		if (isScoutNeeded()) {
+			needed = RobotType.SCOUT;
 		}
+		constructNeededUnits(needed);
+
 		if (rc.isCoreReady()) {
-			RobotType needed = RobotType.TURRET;
-			if (isScoutNeeded()) {
-				needed = RobotType.SCOUT;
+			Direction dir = Direction.NORTH;
+			for (int i = 0; i < 8; i++) {
+				if (checkRubbleAndClear(dir)) {
+					break;
+				}
+				dir = dir.rotateRight();
 			}
-			constructNeededUnits(needed);
 		}
 
 	}
@@ -173,13 +193,15 @@ public class BotArchon extends Bot {
 	private static boolean isScoutNeeded() {
 		RobotInfo[] teammates = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		int nearbyScouts = 0;
+		int nearbyTurrets = 0;
 		for (int i = 0; i < teammates.length; i++) {
 			if (teammates[i].type == RobotType.SCOUT) {
 				nearbyScouts++;
+			} else if (teammates[i].type == RobotType.TURRET) {
+				nearbyTurrets++;
 			}
 		}
-		if (numScoutsCreated < rc.getRoundNum() / 100 && nearbyScouts < (int) teammates.length / 6.0
-				&& teammates.length > 10) {
+		if (nearbyScouts < (int) teammates.length / 7.0 && nearbyTurrets >= 4) {
 			return true;
 		}
 		return false;
