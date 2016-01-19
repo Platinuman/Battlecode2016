@@ -422,7 +422,7 @@ public class Harass extends Bot { // NEW read up bot types for what they call in
     private static boolean updateTargetLoc() {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
-			if (signal.getTeam() == us && signal.getID() == archonID) {
+			if (signal.getTeam() == us) {
 				rc.setIndicatorString(1, "updating from message");
 				int[] message = signal.getMessage();
 				if (message != null) {
