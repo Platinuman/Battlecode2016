@@ -636,22 +636,13 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	public static void crunch() {
-		try {
-			if (here.distanceSquaredTo(turretLoc) < 3) {
-				Combat.shootAtNearbyEnemies();
-				// return false;
-			}
-			if (rc.isCoreReady() && rc.canMove(here.directionTo(turretLoc))) {
-				rc.move(here.directionTo(turretLoc));
-				Combat.shootAtNearbyEnemies();
-				// return true;
-			}
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
+	public static void crunch() throws GameActionException {
+		if (rc.isCoreReady() && rc.canMove(here.directionTo(turretLoc))) {
+			RobotInfo[] blank = new RobotInfo[1];
+			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
+			Nav.goTo(turretLoc, theSafety);
+			Combat.shootAtNearbyEnemies();
 		}
-
 	}
 
 	public static boolean updateMoveIn() {
@@ -660,7 +651,7 @@ public class Harass extends Bot {
 		return true;
 	}
 
-	public static void stayOutOfRange(NavSafetyPolicy theSafety) throws GameActionException{
+	public static void stayOutOfRange(NavSafetyPolicy theSafety) throws GameActionException {
 		if (here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 1) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 		}
@@ -676,13 +667,7 @@ public class Harass extends Bot {
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-		if(turretUpdated)
-		if(here.distanceSquaredTo(turretLoc)<50)
-			rc.setIndicatorString(2, "I am straight up stupid");
-
-		if (turretUpdated && here.distanceSquaredTo(turretLoc) < 65)
-			isPreparingForCrunch = true;
-		if (isPreparingForCrunch) {
+		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < 80) {
 			if (shouldMoveIn)
 				crunch();
 			else
