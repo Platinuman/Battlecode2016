@@ -625,7 +625,7 @@ public class Harass extends Bot {
 
 	public static void crunch() {
 		try {
-			if (here.distanceSquaredTo(turretLoc) < 5) {
+			if (here.distanceSquaredTo(turretLoc) < 3) {
 				Combat.shootAtNearbyEnemies();
 				// return false;
 			}
@@ -642,7 +642,7 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateMoveIn() {
-		if (friends == null || friends.length < 15)
+		if (friends == null || friends.length < 20)
 			return false;
 		return true;
 	}
