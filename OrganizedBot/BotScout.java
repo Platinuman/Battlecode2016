@@ -92,8 +92,9 @@ public class BotScout extends Bot {
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 			Nav.explore();
-			if(!foundTurtle)
+			//if(!foundTurtle)
 			notifySoldiersOfTurtle(hostileRobots);
+			rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
 			if(rc.getRoundNum() % 5 == 0){
 				notifySoldiersOfEnemyArmy();
