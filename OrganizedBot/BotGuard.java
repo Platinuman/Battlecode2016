@@ -1,4 +1,5 @@
-package Battlecode2016.OrganizedBot;
+
+package OrganizedBot;
 
 import java.util.Random;
 

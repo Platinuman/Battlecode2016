@@ -7,8 +7,8 @@ interface NavSafetyPolicy {
 }
 
 class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
-	RobotInfo[] nearbyEnemies;
 
+	RobotInfo[] nearbyEnemies ;
 	public SafetyPolicyAvoidAllUnits(RobotInfo[] nearbyEnemies) {
 		this.nearbyEnemies = nearbyEnemies;
 	}
@@ -47,15 +47,16 @@ public class Nav extends Bot {
 	private static int bugRotationCount;
 	private static int bugMovesSinceSeenObstacle = 0;
 
-	public static boolean move(Direction dir) throws GameActionException {
-		if(rc.isCoreReady()){
-			rc.move(dir);
-		}
+	private static boolean move(Direction dir) throws GameActionException {
+		rc.move(dir);
 		return true;
 	}
-	private static boolean checkRubble(Direction dir){
-		return rc.senseRubble(rc.getLocation().add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+
+	private static boolean checkRubble(Direction dir) {
+		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
 	}
+
 	private static boolean canMove(Direction dir) {
 		return rc.canMove(dir) && safety.isSafeToMoveTo(here.add(dir));
 	}
@@ -85,17 +86,6 @@ public class Nav extends Bot {
 			}
 		}
 		return false;
-	}
-	/*
-	 * Run away in terror. Safely first, then don't care
-	 */
-	public static void flee(RobotInfo[] unfriendly)throws GameActionException{
-		MapLocation center = Util.centroidOfUnits(unfriendly);
-		Direction runAway = center.directionTo(here);
-		moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
-		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
-		if(rc.isCoreReady())
-			Combat.retreat(center);
 	}
 
 	private static void startBug() throws GameActionException {
@@ -166,11 +156,11 @@ public class Nav extends Bot {
 		}
 	}
 
-	private static boolean detectBugIntoEdge() {
+	private static boolean detectBugIntoEdge() throws GameActionException {
 		if (bugWallSide == WallSide.LEFT) {
-			return rc.senseRubble(here.add(bugLastMoveDir.rotateLeft())) == 0;
+			return !rc.onTheMap(here.add(bugLastMoveDir.rotateLeft()));
 		} else {
-			return rc.senseRubble(here.add(bugLastMoveDir.rotateRight())) == 0;
+			return !rc.onTheMap(here.add(bugLastMoveDir.rotateRight()));
 		}
 	}
 
@@ -195,11 +185,6 @@ public class Nav extends Bot {
 		return (bugRotationCount <= 0 || bugRotationCount >= 8) && here.distanceSquaredTo(dest) <= bugStartDistSq;
 	}
 
-	private static void bugMoveOld() throws GameActionException {
-		tryMoveDirect();
-
-	}
-
 	private static void bugMove() throws GameActionException {
 		// Debug.clear("nav");
 		// Debug.indicate("nav", 0, "bugMovesSinceSeenObstacle = " +
@@ -219,22 +204,32 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if(checkRubble(here.directionTo(dest))){
+				if (checkRubble(here.directionTo(dest))) {
 					rc.clearRubble(here.directionTo(dest));
-				}
-				else{
+				} else {
 					bugState = BugState.BUG;
 					startBug();
 				}
-			} 
-				//checkRubbleAndClear(here.directionTo(dest));
-				// Debug.indicateAppend("nav", 1, "successful direct move; ");
+			}
+			// checkRubbleAndClear(here.directionTo(dest));
+			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
 
 		// If that failed, or if bugging, bug
 		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
+		}
+	}
+
+	private static void runAway() throws GameActionException {
+		Direction away = here.directionTo(Util.centroidOfUnits(rc.senseHostileRobots(here, -1)));
+		if (rc.canMove(away)) {
+			rc.move(away);
+		} else if (rc.canMove(away.rotateLeft())) {
+			rc.move(away.rotateLeft());
+		} else if (rc.canMove(away.rotateRight())) {
+			rc.move(away.rotateRight());
 		}
 	}
 
@@ -250,11 +245,21 @@ public class Nav extends Bot {
 		safety = theSafety;
 
 		bugMove();
+		if (false && type==RobotType.ARCHON && rc.isCoreReady()) {
+			runAway();
+		}
 	}
-	
 	public static boolean moveInDir(Direction dir, NavSafetyPolicy theSafety) throws GameActionException{
 		safety = theSafety;
 		dest = here.add(dir);
 		return tryMoveDirect();
+	}
+	public static void flee(RobotInfo[] unfriendly)throws GameActionException{
+		MapLocation center = Util.centroidOfUnits(unfriendly);
+		Direction runAway = center.directionTo(here);
+		moveInDir(runAway, new SafetyPolicyAvoidAllUnits(unfriendly));
+		rc.setIndicatorString(3	,"AHHHHHHHHH I'M TRAPPED :(");
+		if(rc.isCoreReady())
+			Combat.retreat(center);
 	}
 }

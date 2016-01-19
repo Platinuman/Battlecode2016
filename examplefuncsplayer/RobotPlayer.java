@@ -1,4 +1,4 @@
-package examplefuncsplayer;
+package Battlecode2016.examplefuncsplayer;
 
 import battlecode.common.*;
 
