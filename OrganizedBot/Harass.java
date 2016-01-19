@@ -9,13 +9,15 @@ public class Harass extends Bot {
 	static RobotInfo[] enemies; 
 	static RobotInfo[] enemiesICanShoot;
 	static MapLocation archonLoc;
-	static MapLocation targetLoc;
 	static boolean targetUpdated;
 	static boolean archonUpdated;
+	static boolean huntingDen;
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
-
+		
+		if(enemy.type == RobotType.ARCHON) return true;
+		
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / rc.getType().attackPower);
 		int turnsTillWeCanAttack;
 		int effectiveAttackDelay;
@@ -60,11 +62,12 @@ public class Harass extends Bot {
 		RobotInfo loneAttacker = null;
 		int numAttackers = 0;
 		for (RobotInfo enemy : enemies) {
-			switch (enemy.type) {// what is the point of this lol
+			switch (enemy.type) {
+			case ARCHON: break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
 					numAttackers++;
-					if (numAttackers >= 2) return false;
+					if (numAttackers > 1) return false;
 					loneAttacker = enemy;
 				}
 				break;
@@ -98,7 +101,7 @@ public class Harass extends Bot {
 			}
 		}
 
-		if (bestRetreatDir != null) {
+		if (bestRetreatDir != null && rc.isCoreReady()) {
 			rc.move(bestRetreatDir);
 			return true;
 		}
@@ -126,6 +129,7 @@ public class Harass extends Bot {
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight,RobotInfo[] enemiesICanShoot,boolean targetUpdated,boolean archonUpdated) throws GameActionException {
 		if (enemies.length == 0) {
+			/*
 			RobotInfo[] moreEnemies = rc.senseNearbyRobots(rc.getType().attackRadiusSquared, them);
 			if (moreEnemies.length == 0) {
 				// Debug.indicate("micro", 0, "no enemies, no micro");
@@ -140,6 +144,11 @@ public class Harass extends Bot {
 					return true;
 				}
 			}
+		*/
+			return false;
+		}
+		else if (rc.getRoundNum() % 5 == 0){
+			rc.broadcastSignal((int)(rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		}
 
 
@@ -261,7 +270,7 @@ public class Harass extends Bot {
 						// we can't move this turn. if it won't delay retreating, shoot instead
 						// Debug.indicate("micro", 0, "want to retreat but core on cooldown :( numEnemiesAttackingUs = " + numEnemiesAttackingUs
 						// + ", maxAlliesAttackingEnemy = " + maxAlliesAttackingAnEnemy);
-						if (rc.getType().cooldownDelay <= 1) {
+						if (rc.getType().cooldownDelay <= 1 && bestTarget != null) {
 							attackIfReady(bestTarget.location);
 						}
 						return true;
@@ -386,7 +395,7 @@ public class Harass extends Bot {
 	private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] enemies) {
 		int ret = 0;
 		for (int i = enemies.length; i-- > 0;) {
-			if (enemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(enemies[i].location)) ret++;
+			if (enemies[i].type.attackRadiusSquared >= loc.distanceSquaredTo(enemies[i].location) && enemies[i].type != RobotType.ARCHON) ret++;
 
 		}
 		return ret;
@@ -413,7 +422,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	private static boolean updateTargetLoc() {
+	public static boolean updateTargetLoc() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -426,8 +435,13 @@ public class Harass extends Bot {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
-							if(targetLoc == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
+							targetDens[targetDenSize] = denLoc;
+							targetDenSize++;
+							numDensToHunt++;
+							if(numDensToHunt == 1 || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
 								targetLoc = denLoc;
+								bestIndex = targetDenSize;
+								huntingDen = true;
 							}
 						}
 						return true;
@@ -438,7 +452,35 @@ public class Harass extends Bot {
 						return true;
 					}
 				}
+				else{
+					if(targetLoc == null || here.distanceSquaredTo(signal.getLocation()) < here.distanceSquaredTo(targetLoc)){
+						targetLoc = signal.getLocation();
+						huntingDen = false;
+						return true;
+					}
+				}
 			}
+		}
+		if(huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null){
+			numDensToHunt--;
+			targetDens[bestIndex] = null;
+			targetLoc = null;
+			huntingDen = false;
+			if(numDensToHunt > 0){
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+			return true;
+		}
+		else if(!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10 && rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0){
+			targetLoc = null;
+			if(numDensToHunt > 0){
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+			return true;
 		}
 		/*
 		 * RobotInfo[] allies =
@@ -487,13 +529,24 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		boolean archonUpdated = updateArchonLoc();
+		/*
+		if(here.distanceSquaredTo(targetLoc)<rc.getType().attackRadiusSquared && enemies.length == 0)
+		{
+			rc.setIndicatorString(0, "I have killed the target and am looking for a new one");
+			updateTargetLoc();
+
+		}*/
 		/*if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
 			return;
 		}*/
 		doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated);
 		if (rc.isCoreReady() && targetLoc != null) {
+			rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 			Nav.goTo(targetLoc, theSafety);
+		}
+		else if(rc.isCoreReady()){
+			Nav.explore();
 		}
 	}
 }

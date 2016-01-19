@@ -15,6 +15,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
 	//FOUND_NEUTRAL(6,new int[]{1, 2, 7}, 2);		// type.ordinal(), xloc, yloc
+	//TODO Scout notifies units of a turtle
 	/* 4 - scout notifies mobile archon that it found parts
 	 * 5 - scout notifies mobile archon of zombie den
 	 * 6 - scout notifies mobile archon of neutral bots*/
@@ -29,7 +30,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 4 - tell the archon where to go
 	 * 5 - tell the mobile archon to turtle (and where to do so)
 	 * 6 - give turrets more than one target
-	 * 7 - warn soldiers to avoid turrets they can't see
+	 * 7 - warn soldiers to avoid turrets they can't see -- (-1,-1) if fewer than 5
 	 * 
 	 * (if you increase the max number (7), make sure the space below matches)
 	 */

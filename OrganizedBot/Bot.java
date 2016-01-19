@@ -1,4 +1,4 @@
-package Battlecode2016.OrganizedBot;
+package OrganizedBot;
 
 import java.util.*;
 
@@ -12,7 +12,11 @@ public class Bot {
 	public static MapLocation center;
     protected static Random rand;
     public static MapLocation[] targetDens;
+    public static MapLocation targetLoc;
     public static int targetDenSize;
+    public static int bestIndex;
+    public static int numDensToHunt;
+    public static Direction directionIAmMoving;
     protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 
@@ -27,7 +31,7 @@ public class Bot {
 		rand = new Random(rc.getID());
 		type = rc.getType();
 		targetDens = new MapLocation[10000];
-		targetDenSize = 0;
+		targetDenSize = bestIndex = numDensToHunt = 0;
 		MapAnalysis.analyze();
 	}
 }

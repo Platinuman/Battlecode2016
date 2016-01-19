@@ -16,7 +16,6 @@ public class BotScout extends Bot {
 	 * static boolean atScoutLocation; static MapLocation lastBroadcasted;
 	 * static int lastBroadcastedType;
 	 */
-	static Direction directionIAmMoving;
 	static MapLocation[] dens;
 	static int denSize;
 
@@ -88,7 +87,9 @@ public class BotScout extends Bot {
 		here = rc.getLocation();
 		switch (scoutType) { // NEW should call methods in Harass why the hell should they be in harass they're literally only for scouts
 		case 0://exploring
-			explore();
+			Nav.explore();
+			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+			notifySoldiersOfZombieDen(hostileRobots);
 			break;
 		case 1:
 			break;
@@ -175,38 +176,6 @@ public class BotScout extends Bot {
 	 * withinRange = false; for(RobotInfo ally : allies){ if(ally.ID ==
 	 * mobileID){ mobileLoc = ally.location; withinRange = true; break; } } } }
 	 * */
-	private static void explore() throws GameActionException { 
-		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
-		if (rc.isCoreReady()) {
-			if (directionIAmMoving == null) {
-				int fate = rand.nextInt(1000);
-				directionIAmMoving = Direction.values()[fate % 8];
-			}
-			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
-			rc.setIndicatorString(1, "moved is" + moved);
-			if (!moved) {
-				rc.setIndicatorString(0, "i'm trying");
-				int fate = rand.nextInt(1000);
-				for (int i = 0; i < 8; i++) {
-					if (fate % 2 == 0) {
-						directionIAmMoving = directionIAmMoving.rotateRight();
-					} else {
-						directionIAmMoving = directionIAmMoving.rotateLeft();
-					}
-					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
-					if (movedNow) {
-						moved = true;
-						break;
-					}
-				}
-			}
-			if (!moved) {
-				Combat.retreat(Util.closest(hostileRobots, here).location);
-			}
-			notifySoldiersOfZombieDen(hostileRobots);
-		}
-	}
 	  /*
 	 * private static void addPartsAndNeutrals() throws GameActionException{
 	 * //add all seen parts and neutrals to arrays, in a corresponding array add
