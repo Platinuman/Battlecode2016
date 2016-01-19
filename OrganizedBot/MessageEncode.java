@@ -3,13 +3,13 @@ package OrganizedBot;
 import battlecode.common.*;
 
 public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
-	TURRET_TARGET(0, new int[]{3, 7, 1, 2}, 2),	// health, robotType, xloc, yloc
+	TURRET_TARGET(0, new int[]{3, 6, 1, 2}, 2),	// health, robotType, xloc, yloc
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
 	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
 	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
 	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
-	MULTIPLE_TARGETS	  (6, new int[]{1,2,1,2,1,2}, 3);// 3 map locations (as ints)
+	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5);// 5 map locations (as ints) **x and y offset from sender must be <16
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -39,14 +39,15 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 3: health (max 2000, dens)
 	 * 4: some radius squared (max 2^7) //if this changes change howMuchSpaceDataNeeds
 	 * 5: number of parts
-	 * 6: 
-	 * 7: robotType (max of 11, so 4 bits)
+	 * 6: robotType (max of 11, so 4 bits)
+	 * 7: special loc.x for multiple targets (restricted to 15 away from sender or less)
+	 * 8: special loc.x for multiple targets (restricted to 15 away from sender or less)
 	 * 
-	 * (make sure to update how much space data needs)
+	 * (make sure to update the how much space data needs array)
 	 */
 	private final int[] whichDataToInclude;
 	private final int whereToSplitData; // index in whichDataToInclude that gets bumped to 2nd int
-	private static final int[] howMuchSpaceDataNeeds = {3, 8, 8, 11, 7, 10, 0, 4};
+	private static final int[] howMuchSpaceDataNeeds = {3, 7, 7, 11, 7, 10, 4, 5, 5};
 	//get 30 slots total per int
 
 	// TODO: make "yell" method to do the actual broadcast too
@@ -75,18 +76,26 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		int powerOfTwo = multiplyByTwo(1,howMuchSpaceDataNeeds[0]);
 		for ( int i = 0; i < whereToSplitData; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - myloc.x + 80;
+				data[i] = data[i] - center.x + 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - myloc.y + 80;
+				data[i] = data[i] - center.y + 40;
+			else if (whichDataToInclude[i] == 7)
+				data[i] = data[i] - myloc.x + 15;
+			else if (whichDataToInclude[i] == 8)
+				data[i] = data[i] - myloc.y + 15;
 			mess[0] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] - myloc.x + 80;
+				data[i] = data[i] - center.x + 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] - myloc.y + 80;
+				data[i] = data[i] - center.y + 40;
+			else if (whichDataToInclude[i] == 7)
+				data[i] = data[i] - myloc.x + 15;
+			else if (whichDataToInclude[i] == 8)
+				data[i] = data[i] - myloc.y + 15;
 			mess[1] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
@@ -105,18 +114,26 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		for ( int i = 0; i < whereToSplitData; i++){
 			data[i] = mess[0]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + senderloc.x - 80;
+				data[i] = data[i] + center.x - 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + senderloc.y - 80;
+				data[i] = data[i] + center.y - 40;
+			else if (whichDataToInclude[i] == 7)
+				data[i] = data[i] + myloc.x - 15;
+			else if (whichDataToInclude[i] == 8)
+				data[i] = data[i] + myloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			data[i] = mess[1]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			if(whichDataToInclude[i] == 1)	
-				data[i] = data[i] + senderloc.x - 80;
+				data[i] = data[i] + center.x - 40;
 			else if (whichDataToInclude[i] == 2)
-				data[i] = data[i] + senderloc.y - 80;
+				data[i] = data[i] + center.y - 40;
+			else if (whichDataToInclude[i] == 7)
+				data[i] = data[i] + myloc.x - 15;
+			else if (whichDataToInclude[i] == 8)
+				data[i] = data[i] + myloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		return data;
