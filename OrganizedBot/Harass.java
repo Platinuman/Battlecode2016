@@ -129,6 +129,7 @@ public class Harass extends Bot {
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight,RobotInfo[] enemiesICanShoot,boolean targetUpdated,boolean archonUpdated) throws GameActionException {
 		if (enemies.length == 0) {
+			/*
 			RobotInfo[] moreEnemies = rc.senseNearbyRobots(rc.getType().attackRadiusSquared, them);
 			if (moreEnemies.length == 0) {
 				// Debug.indicate("micro", 0, "no enemies, no micro");
@@ -143,6 +144,8 @@ public class Harass extends Bot {
 					return true;
 				}
 			}
+		*/
+			return false;
 		}
 
 
@@ -429,8 +432,11 @@ public class Harass extends Bot {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+							targetDens[targetDenSize] = denLoc;
+							targetDenSize +=1;
 							if(targetLoc == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
 								targetLoc = denLoc;
+								
 							}
 						}
 						return true;
@@ -490,6 +496,12 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
 		boolean archonUpdated = updateArchonLoc();
+		if(here.distanceSquaredTo(targetLoc)<rc.getType().attackRadiusSquared && enemies.length == 0)
+		{
+			rc.setIndicatorString(0, "I have killed the target and am looking for a new one");
+			updateTargetLoc();
+
+		}
 		/*if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
 			return;
 		}*/
