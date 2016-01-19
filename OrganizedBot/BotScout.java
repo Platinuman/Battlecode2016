@@ -19,19 +19,6 @@ public class BotScout extends Bot {
 	static MapLocation[] dens;
 	static int denSize;
 
-	public static void loop(RobotController theRC) throws GameActionException {
-		Bot.init(theRC);
-		init();
-		while (true) {
-			try {
-				turn();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Clock.yield();
-		}
-	}
-
 	private static void init() throws GameActionException {
 		// MessageEncode.determineScoutType(); // NEW, based on strategy from
 		// archon in messages or something else
