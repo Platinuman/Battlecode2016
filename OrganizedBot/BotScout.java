@@ -18,8 +18,10 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
+	static boolean foundTurtle;
 
 	private static void init() throws GameActionException {
+		foundTurtle = false;
 		// MessageEncode.determineScoutType(); // NEW, based on strategy from
 		// archon in messages or something else
 
@@ -76,6 +78,7 @@ public class BotScout extends Bot {
 		case 0://exploring
 			Nav.explore();
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+			if(!foundTurtle)
 			notifySoldiersOfTurtle(hostileRobots);
 			notifySoldiersOfZombieDen(hostileRobots);
 			break;
@@ -205,6 +208,7 @@ public class BotScout extends Bot {
 				rc.setIndicatorString(1, "see a turtle and am notifiying");
 			}
 		}
+	foundTurtle = true;
 	}
 
 	private static void notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first

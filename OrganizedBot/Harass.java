@@ -642,7 +642,7 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateMoveIn() {
-		if (friends == null || friends.length < 20)
+		if (friends == null || friends.length < 15)
 			return false;
 		return true;
 	}
