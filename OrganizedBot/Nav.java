@@ -16,6 +16,8 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 	public boolean isSafeToMoveTo(MapLocation loc) {
 		for (RobotInfo enemy : nearbyEnemies) {
 			switch (enemy.type) {
+			case ARCHON:
+				break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
 					return false;
