@@ -331,4 +331,29 @@ public class Nav extends Bot {
 			}
 		}
 	}
+	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW INTO HARASS
+		// explore
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
+		if (rc.isCoreReady()) {
+			if (directionIAmMoving == null) {
+				int fate = rand.nextInt(1000);
+				directionIAmMoving = Direction.values()[fate % 8];
+			}
+			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
+			if (!moved) {
+				for (int i = 0; i < 8; i++) {
+					directionIAmMoving = directionIAmMoving.rotateRight();
+					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
+					if (movedNow) {
+						moved = true;
+						break;
+					}
+				}
+			}
+			if (!moved && hostileRobots.length > 0) {
+				flee(hostileRobots);
+				// Combat.retreat(Util.closest(hostileRobots, here).location);
+			}
+		}
+	}
 }

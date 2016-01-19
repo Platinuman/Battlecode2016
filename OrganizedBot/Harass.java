@@ -659,9 +659,28 @@ public class Harass extends Bot {
 		return true;
 	}
 
-	public static void stayOutOfRange(NavSafetyPolicy theSafety) throws GameActionException {
-		if (here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 1) {
+	public static RobotInfo[] addRobotInfo(RobotInfo[] series, RobotInfo newInt){
+	    //create a new array with extra index
+	    RobotInfo[] newSeries = new RobotInfo[series.length + 1];
+	    //copy the integers from series to newSeries    
+	    for (int i = 0; i < series.length; i++){
+	        newSeries[i] = series[i];
+	    }
+	//add the new integer to the last index     
+	    newSeries[newSeries.length - 1] = newInt;
+	    return newSeries;
+	     }
+	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
+		rc.setIndicatorString(2, "staying out of range");
+
+		RobotInfo turret = new RobotInfo(0, them, RobotType.TURRET, turretLoc,0,0,0,0,0,0,0);
+		RobotInfo[] enemies2 = addRobotInfo(enemies,turret);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies2);
+		if (here.distanceSquaredTo(turretLoc) < 64) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+		}
+		else{
+			Nav.goTo(turretLoc, theSafety);
 		}
 	}
 
@@ -675,11 +694,19 @@ public class Harass extends Bot {
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < 80) {
-			if (shouldMoveIn)
-				crunch();
+		if(turretUpdated){
+		RobotInfo turret = new RobotInfo(0, them, RobotType.TURRET, turretLoc,0,0,0,0,0,0,0);
+		RobotInfo[] enemies2 = addRobotInfo(enemies,turret);
+		theSafety = new SafetyPolicyAvoidAllUnits(enemies2);
+		}
+		if(targetDenSize == killedDenSize && turretLoc!=null){
+			targetLoc = turretLoc;
+		}
+		if (turretLoc != null && turretLoc == targetLoc) {
+			if(!shouldMoveIn)
+			stayOutOfRange(enemies);
 			else
-				stayOutOfRange(theSafety);
+			crunch();
 		} else {
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
@@ -687,7 +714,7 @@ public class Harass extends Bot {
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
 				rc.setIndicatorString(0, "I am exploring.");
-				Nav.explore();
+				Nav.explore(enemies);
 			}
 		}
 	}
