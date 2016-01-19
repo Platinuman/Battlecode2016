@@ -81,6 +81,8 @@ public class BotScout extends Bot {
 			if(!foundTurtle)
 			notifySoldiersOfTurtle(hostileRobots);
 			notifySoldiersOfZombieDen(hostileRobots);
+			if(rc.getRoundNum() % 10 == 0)
+				notifyArchonOfPartOrNeutral();
 			break;
 		case 1:
 			break;
@@ -137,6 +139,30 @@ public class BotScout extends Bot {
 		 * else{ dest = null; } }
 		 */
 	}
+	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
+		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared);
+		MapLocation partOrNeutralLoc = null;
+		for (MapLocation loc : possibleLocs) {
+			if (!rc.canSense(loc)) {
+				continue;
+			}
+			if (rc.senseParts(loc) > 0) {
+				partOrNeutralLoc = loc;
+				break;
+			} else {
+				RobotInfo ri = rc.senseRobotAtLocation(loc);
+				if (ri != null && ri.team == Team.NEUTRAL) {
+					partOrNeutralLoc = loc;
+					break;
+				}
+			}
+		}
+		if(partOrNeutralLoc != null){
+			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
+		}
+	}
+
 	/*
 	 * private static void followArchon() throws GameActionException{
 	 * if(rc.isCoreReady()){ RobotInfo[] hostileRobots =

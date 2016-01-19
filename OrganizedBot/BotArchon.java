@@ -219,6 +219,8 @@ public class BotArchon extends Bot {
 			}
 			return true;
 		}
+		else if(targetLocation != null && rc.canSense(targetLocation) && (rc.senseRobotAtLocation(targetLocation) == null || rc.senseRobotAtLocation(targetLocation).team != Team.NEUTRAL))
+			targetLocation = null;
 		return false;
 	}
 
@@ -365,6 +367,13 @@ public class BotArchon extends Bot {
 						 * false;
 						 */
 					}
+					else if(purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF){
+						int[] data = purpose.decode(senderLoc, message);
+						MapLocation targetLoc = new MapLocation(data[0], data[1]);
+						if(targetLocation == null){
+							targetLocation = targetLoc;
+						}
+					}
 				}
 			}
 		}
@@ -410,14 +419,14 @@ public class BotArchon extends Bot {
 		int smallestDistance = 1000000;
 		for (MapLocation loc : partLocations) {
 			int distanceToLoc = here.distanceSquaredTo(loc);
-			if (distanceToLoc < smallestDistance) {
+			if (distanceToLoc < smallestDistance && Combat.isSafe(loc)) {
 				closestLoc = loc;
 				smallestDistance = distanceToLoc;
 			}
 		}
 		for (RobotInfo ri : neutrals) {
 			int distanceToLoc = here.distanceSquaredTo(ri.location);
-			if (distanceToLoc < smallestDistance) {
+			if (distanceToLoc < smallestDistance && Combat.isSafe(ri.location)) {
 				closestLoc = ri.location;
 				smallestDistance = distanceToLoc;
 			}
