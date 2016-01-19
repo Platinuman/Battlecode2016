@@ -9,7 +9,7 @@ public class Bot {
 	protected static Team us;
 	protected static Team them;
 	protected static MapLocation here; // bot classes are responsible for keeping this up to date
-	protected static MapLocation center;
+	public static MapLocation center;
     protected static Random rand;
     protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
