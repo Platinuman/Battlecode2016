@@ -12,7 +12,8 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations (as ints) **x and y offset from sender must be <16
 	WARN_ABOUT_TURRETS    (7, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations of enemy turrets -- (-1,-1) if fewer than 5
 	PART_OR_NEUTRAL_NOTIF (8, new int[]{1,2},0),// map location of parts/neutral thing
-	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2},0);// map location of centroid
+	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2},0),// map location of centroid
+	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0);// map location where there is no longer a turret
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -35,6 +36,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 7 - warn soldiers to avoid turrets they can't see -- (-1,-1) if fewer than 5
 	 * 8 - scouts to tell archons about parts or neutrals to be interested in
 	 * 9 - for when scouts see a lot of enemies that aren't turrets
+	 * 10- if it sees a loc where there used to be a turret
 	 * 
 	 * (if you increase the max number (15), make sure the space below matches)
 	 */
@@ -165,6 +167,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 7: return WARN_ABOUT_TURRETS;
 		case 8: return PART_OR_NEUTRAL_NOTIF;
 		case 9: return ENEMY_ARMY_NOTIF;
+		case 10:return ENEMY_TURRET_DEATH;
 
 		default: return null;
 		}
@@ -186,6 +189,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 7: return "WARN_ABOUT_TURRETS";
 		case 8: return "PART_OR_NEUTRAL_NOTIF";
 		case 9: return "ENEMY_ARMY_NOTIF";
+		case 10:return "ENEMY_TURRET_DEATH";
 
 		default: return "@Nate update the toString you idiot";
 		}
