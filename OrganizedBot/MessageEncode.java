@@ -1,6 +1,7 @@
 package OrganizedBot;
 
 import battlecode.common.*;
+import bot_with_turret_array_list_not_working.Bot;
 
 public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
 	TURRET_TARGET(0, new int[]{3, 6, 1, 2}, 2),	// health, robotType, xloc, yloc
@@ -127,9 +128,9 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 			else if (whichDataToInclude[i] == 2)
 				data[i] = data[i] + Bot.center.y - 40;
 			else if (whichDataToInclude[i] == 7)
-				data[i] = data[i] + Bot.here.x - 15;
+				data[i] = data[i] + senderloc.x - 15;
 			else if (whichDataToInclude[i] == 8)
-				data[i] = data[i] + Bot.here.y - 15;
+				data[i] = data[i] + senderloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		powerOfTwo = 1;
@@ -140,9 +141,9 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 			else if (whichDataToInclude[i] == 2)
 				data[i] = data[i] + Bot.center.y - 40;
 			else if (whichDataToInclude[i] == 7)
-				data[i] = data[i] + Bot.here.x - 15;
+				data[i] = data[i] + senderloc.x - 15;
 			else if (whichDataToInclude[i] == 8)
-				data[i] = data[i] + Bot.here.y - 15;
+				data[i] = data[i] + senderloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
 		return data;
