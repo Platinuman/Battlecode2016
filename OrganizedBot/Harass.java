@@ -424,7 +424,12 @@ public class Harass extends Bot {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
 					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
 						int[] data = purpose.decode(senderloc, message);
-						targetLoc = new MapLocation(data[0], data[1]);
+						MapLocation denLoc = new MapLocation(data[0], data[1]);
+						if(!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+							if(targetLoc == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)){
+								targetLoc = denLoc;
+							}
+						}
 						return true;
 					}
 					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
