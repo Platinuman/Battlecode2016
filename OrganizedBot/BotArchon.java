@@ -23,6 +23,19 @@ public class BotArchon extends Bot {
 	static MapLocation targetDen;
 	static boolean scoutCreated;
 
+	public static void loop(RobotController theRC) throws GameActionException {
+		Bot.init(theRC);
+		init();
+		while (true) {
+			try {
+				turn();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			Clock.yield();
+		}
+	}
+	
 	private static void init() throws GameActionException {
 		// maxRange = 2;
 		// Signal[] signals = rc.emptySignalQueue();
