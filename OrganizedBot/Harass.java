@@ -606,7 +606,6 @@ public class Harass extends Bot {
 	public static boolean updateTurretLoc(Signal[] signals) {
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
-				//rc.setIndicatorString(1, "updating from message");
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MapLocation senderloc = signal.getLocation();
@@ -670,15 +669,11 @@ public class Harass extends Bot {
 		 * if (doMicro(enemies,enemiesICanShoot,targetUpdated,archonUpdated)) {
 		 * return; }
 		 */
-		if(turretUpdated)
-		if (here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared){
-		rc.setIndicatorString(0, "I am in the turrets range but cant seem him");
-		}
 		if (turretUpdated) {
 			if (shouldMoveIn) {
 			 crunch();
 			 }
-			if (here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared || !shouldMoveIn) {
+			if (here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared) {
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			}
 		}
