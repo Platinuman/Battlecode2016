@@ -1,4 +1,4 @@
-package OrganizedBot;
+package bot_with_turret_array_list_not_working;
 
 import java.util.*;
 
@@ -8,7 +8,7 @@ public class Bot {
 	public static RobotController rc;
 	protected static Team us;
 	protected static Team them;
-	protected static MapLocation here; // bot classes are responsible for keeping this up to date
+	public static MapLocation here; // bot classes are responsible for keeping this up to date
 	public static MapLocation center;
 	protected static Random rand;
 	public static MapLocation[] targetDens;
@@ -57,19 +57,51 @@ public class Bot {
 		MapAnalysis.analyze();
 	}
 
-	public static void updateTurretList(Signal[] signals){
-//		for (Signal signal : signals) {
-//			if (signal.getTeam() == us) {
-//				int[] message = signal.getMessage();
-//				if (message != null) {
-//					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-//					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
-//						int[] data = purpose.decode(signal.getLocation(), message);
-//						turretLoc = new MapLocation(data[0], data[1]);
-//						rc.setIndicatorString(2, "loc we looked at" + turretLoc);
-//					}
-//				}
-//			}
-//		}
+	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies){
+		boolean updated = false;
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us) {
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
+						int[] data = purpose.decode(signal.getLocation(), message);
+						for(int i = 0; i< data.length; i +=2){
+							if(data[i] == -1) break;
+							enemyTurrets.add(new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0));
+						}
+						updated = true;
+					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
+						int[] data = purpose.decode(signal.getLocation(), message);
+						MapLocation deathLoc = new MapLocation(data[0],data[1]);
+						removeLocFromTurretArray(deathLoc);
+						updated = true;
+					}
+				}
+			}
+		}
+		return updated;
+	}
+
+	public static void removeLocFromTurretArray(MapLocation loc) {
+		for(RobotInfo ri : enemyTurrets){
+			if( ri.location.equals(loc)){
+				enemyTurrets.remove(ri);
+				System.out.println("removed turret");
+				return;
+			}
+		}
+	}
+	
+	public static boolean locationInTurretArray(MapLocation loc){
+		System.out.println(loc);
+		for(RobotInfo ri : enemyTurrets){
+			System.out.println(ri.location);
+			if( ri.location.equals(loc)){
+				System.out.println("found one");
+				return true;
+			}
+		}
+		return false;
 	}
 }

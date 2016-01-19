@@ -103,14 +103,14 @@ public class BotArchon extends Bot {
 			if (hostiles.length > 0) {
 				Nav.flee(hostiles);
 				if (rc.getRoundNum() % 5 == 0)// && allies.length <
-												// hostiles.length){
+					// hostiles.length){
 					callForHelp();
 				return;
 			}
 			// if i haven't created a scout create one
 			if (createScoutIfNecessary(allies)) // isn't running away more
-												// important? meh can fix later
-												// if necessary
+				// important? meh can fix later
+				// if necessary
 				return;
 
 			// else if i can activate a neutral do it

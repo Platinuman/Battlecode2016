@@ -1,5 +1,7 @@
 package bot_with_turret_array_list_not_working;
 
+import Battlecode2016.OrganizedBot.Combat;
+import Battlecode2016.OrganizedBot.MessageEncode;
 import battlecode.common.*;
 
 public class BotArchon extends Bot {
@@ -14,7 +16,7 @@ public class BotArchon extends Bot {
 	// NEW darn this is a ton of static initializers, are you sure there isnt a
 	// more efficient way to do this?
 	static MapLocation targetLocation;// partsLoc, denLoc, neutralLoc;
-	static int cautionLevel = 16; // how close a zombie has to be to run away
+	// static int cautionLevel = 16; // how close a zombie has to be to run away
 	/*
 	 * static final int NO_SCOUT = -1000; static int lastTurnSeenScout =
 	 * NO_SCOUT; static MapLocation[] densToHunt; static int numDensToHunt;
@@ -89,6 +91,9 @@ public class BotArchon extends Bot {
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		// update target den
+		if(rc.getRoundNum() % 500 == 0){
+			scoutCreated = false;
+		}
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
 		if (rc.isCoreReady()) {
@@ -98,15 +103,15 @@ public class BotArchon extends Bot {
 			// if(inDanger(allies, enemies, zombies)){
 			if (hostiles.length > 0) {
 				Nav.flee(hostiles);
-				if(rc.getRoundNum() % 5 == 0 && allies.length < hostiles.length){
+				if (rc.getRoundNum() % 5 == 0)// && allies.length <
+					// hostiles.length){
 					callForHelp();
-				}
 				return;
 			}
 			// if i haven't created a scout create one
 			if (createScoutIfNecessary(allies)) // isn't running away more
-												// important? meh can fix later
-												// if necessary
+				// important? meh can fix later
+				// if necessary
 				return;
 
 			// else if i can activate a neutral do it
@@ -206,9 +211,12 @@ public class BotArchon extends Bot {
 		// TODO moves toward closest safe parts or neutral
 		if (targetLocation != null && targetLocation.equals(here))
 			targetLocation = null;
+		/*
 		if (targetLocation == null || !Combat.isSafe(targetLocation)) {
 			updateTargetLocationMySelf(hostiles);
 		}
+		*/
+		updateTargetLocationMySelf(hostiles);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostiles));
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
@@ -231,6 +239,10 @@ public class BotArchon extends Bot {
 				targetLocation = null;
 			}
 			return true;
+		}
+		else if(targetLocation != null && rc.canSense(targetLocation) && (rc.senseRobotAtLocation(targetLocation) == null || rc.senseRobotAtLocation(targetLocation).team != Team.NEUTRAL)){
+			rc.setIndicatorString(2,"hi");
+			targetLocation = null;
 		}
 		return false;
 	}
@@ -376,7 +388,14 @@ public class BotArchon extends Bot {
 						 * new MapLocation(data[0],data[1]); isMobileArchon =
 						 * false;
 						 */
+					} else if (purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF) {
+						int[] data = purpose.decode(senderLoc, message);
+						MapLocation targetLoc = new MapLocation(data[0], data[1]);
+						if (targetLocation == null) {
+							targetLocation = targetLoc;
+						}
 					}
+
 				}
 			}
 		}
@@ -422,14 +441,14 @@ public class BotArchon extends Bot {
 		int smallestDistance = 1000000;
 		for (MapLocation loc : partLocations) {
 			int distanceToLoc = here.distanceSquaredTo(loc);
-			if (distanceToLoc < smallestDistance) {
+			if (distanceToLoc < smallestDistance && Combat.isSafe(loc) && !rc.isLocationOccupied(loc)) {
 				closestLoc = loc;
 				smallestDistance = distanceToLoc;
 			}
 		}
 		for (RobotInfo ri : neutrals) {
 			int distanceToLoc = here.distanceSquaredTo(ri.location);
-			if (distanceToLoc < smallestDistance) {
+            if (distanceToLoc < smallestDistance && Combat.isSafe(ri.location)) {
 				closestLoc = ri.location;
 				smallestDistance = distanceToLoc;
 			}
@@ -452,14 +471,14 @@ public class BotArchon extends Bot {
 		return fighters >= 7;
 	}
 
-	private static boolean inDanger(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies) {// NEW
-																									// Combat
-		if (enemies.length > 0 || zombies.length > allies.length + 2
-				|| !(zombies.length == 1 && zombies[0].type == RobotType.ZOMBIEDEN) && (zombies.length > 0
-						&& here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel))
-			return true;
-		return false;
-	}
+//	private static boolean inDanger(RobotInfo[] allies, RobotInfo[] enemies, RobotInfo[] zombies) {// NEW
+//																									// Combat
+//		if (enemies.length > 0 || zombies.length > allies.length + 2
+//				|| !(zombies.length == 1 && zombies[0].type == RobotType.ZOMBIEDEN) && (zombies.length > 0
+//						&& here.distanceSquaredTo(Util.closest(zombies, here).location) < cautionLevel))
+//			return true;
+//		return false;
+//	}
 
 	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New
 																														// Util
