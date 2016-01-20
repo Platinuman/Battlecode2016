@@ -170,7 +170,6 @@ public class BotScout extends Bot {
 			if (e.type == RobotType.TURRET){
 				if(!isLocationInTurretArray(e.location)){
 					enemyTurrets.add(e);
-					System.out.println(enemyTurrets.size() + " found a new turret\n "+enemyTurrets.get(enemyTurrets.size()-1).toString()+"\n "+e.toString());
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					rc.setIndicatorString(1, "see a turtle and am notifiying");

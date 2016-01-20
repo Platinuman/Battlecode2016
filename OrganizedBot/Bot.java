@@ -88,14 +88,12 @@ public class Bot {
 		for(RobotInfo ri : enemyTurrets){
 			if( ri.location.equals(loc)){
 				enemyTurrets.remove(ri);
-				System.out.println("removed turret");
 				return;
 			}
 		}
 	}
 	
 	public static boolean isLocationInTurretArray(MapLocation loc){
-		System.out.println(loc);
 		for(RobotInfo ri : enemyTurrets){
 			System.out.println(ri.location);
 			if( ri.location.equals(loc)){
