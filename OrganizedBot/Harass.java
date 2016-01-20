@@ -692,7 +692,7 @@ public class Harass extends Bot {
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), enemies));
 		
-			if (here.distanceSquaredTo(turretLoc) < 81 && rc.isCoreReady()) {
+			if (turretLoc!=null && here.distanceSquaredTo(turretLoc) < 81 && rc.isCoreReady()) {
 				//this is impossible!!
 				// TODO: wtf was this supposed to do @theauthor
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
