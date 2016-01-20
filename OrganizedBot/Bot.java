@@ -95,9 +95,7 @@ public class Bot {
 	
 	public static boolean isLocationInTurretArray(MapLocation loc){
 		for(RobotInfo ri : enemyTurrets){
-			System.out.println(ri.location);
 			if( ri.location.equals(loc)){
-				System.out.println("found one");
 				return true;
 			}
 		}
