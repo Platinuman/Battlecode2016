@@ -697,7 +697,7 @@ public class Harass extends Bot {
 				// TODO: wtf was this supposed to do @theauthor
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 				rc.setIndicatorString(2, "turret");
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+			//doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		}
 		else{
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
