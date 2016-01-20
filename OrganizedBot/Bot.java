@@ -7,6 +7,7 @@ public class Bot {
 	public static RobotController rc;
 	protected static Team us;
 	protected static Team them;
+	protected static RobotType type;
 	public static MapLocation here; // bot classes are responsible for keeping this up to date
 	public static MapLocation center;
 	protected static Random rand;
@@ -20,9 +21,6 @@ public class Bot {
 	public static Direction directionIAmMoving;
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
-
-	protected static RobotType type;
-
 	public static ArrayList<RobotInfo> enemyTurrets;
 
 //	public static void loop(RobotController theRC) throws GameActionException {
@@ -56,7 +54,11 @@ public class Bot {
 		MapAnalysis.analyze();
 	}
 
-	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies){
+//---- Enemy turret tracking methods below ----
+	/*
+	 * Keeps known turret location list up to date based only on message signals (from scouts).
+	 */
+	public static boolean updateTurretList(Signal[] signals) throws GameActionException{
 		boolean updated = false;
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -92,7 +94,7 @@ public class Bot {
 		}
 	}
 	
-	public static boolean locationInTurretArray(MapLocation loc){
+	public static boolean isLocationInTurretArray(MapLocation loc){
 		System.out.println(loc);
 		for(RobotInfo ri : enemyTurrets){
 			System.out.println(ri.location);

@@ -353,7 +353,7 @@ public class BotArchon extends Bot {
 
 	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { // NEW into MessageEncode
 		Signal[] signals = rc.emptySignalQueue();
-		updateTurretList(signals, enemies);
+		updateTurretList(signals);
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();

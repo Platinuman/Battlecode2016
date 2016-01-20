@@ -686,7 +686,7 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		rc.setIndicatorString(0, "" + signals.length);
-		updateTurretList(signals,enemies);
+		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
