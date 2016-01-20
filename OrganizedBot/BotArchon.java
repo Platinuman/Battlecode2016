@@ -92,12 +92,12 @@ public class BotArchon extends Bot {
 		if(rc.getRoundNum() % 500 == 0){
 			scoutCreated = false;
 		}
-		updateInfoFromScouts();
+		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
+		updateInfoFromScouts(hostiles);
 		rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
 			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
-			RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 			// if i can see enemies run away
 			// if(inDanger(allies, enemies, zombies)){
 			if (hostiles.length > 0) {
@@ -213,7 +213,7 @@ public class BotArchon extends Bot {
 		}
 		*/
 		updateTargetLocationMySelf(hostiles);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostiles);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostiles));
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
@@ -351,10 +351,9 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts() throws GameActionException { // NEW
-																			// into
-																			// MessageEncode
+	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { // NEW into MessageEncode
 		Signal[] signals = rc.emptySignalQueue();
+		updateTurretList(signals, enemies);
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();

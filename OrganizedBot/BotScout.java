@@ -18,7 +18,6 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
-	static boolean foundTurtle;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -34,7 +33,6 @@ public class BotScout extends Bot {
 	}
 	
 	private static void init() throws GameActionException {
-		foundTurtle = false;
 		// MessageEncode.determineScoutType(); // NEW, based on strategy from
 		// archon in messages or something else
 
@@ -91,10 +89,10 @@ public class BotScout extends Bot {
 		case 0://exploring
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+			scoutUpdateTurretList(rc.emptySignalQueue(), hostileRobots);
 			Nav.explore();
-			//if(!foundTurtle)
-			notifySoldiersOfTurtle(hostileRobots);
-			rc.setIndicatorString(2, "found T");
+			//notifySoldiersOfTurtle(hostileRobots);
+			//rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
 			if(rc.getRoundNum() % 5 == 0){
 				notifySoldiersOfEnemyArmy();
@@ -159,6 +157,52 @@ public class BotScout extends Bot {
 		 * else{ dest = null; } }
 		 */
 	}
+	
+	public static void scoutUpdateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us) {
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
+						int[] data = purpose.decode(signal.getLocation(), message);
+						for(int i = 0; i< data.length; i +=2){
+							if(data[i] == -1) break;
+							enemyTurrets.add(new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0));
+						}
+					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
+						int[] data = purpose.decode(signal.getLocation(), message);
+						MapLocation deathLoc = new MapLocation(data[0],data[1]);
+						removeLocFromTurretArray(deathLoc);
+					}
+				}
+			}
+		}
+		for (RobotInfo e : enemies)
+			if (e.type == RobotType.TURRET){
+				if(!locationInTurretArray(e.location)){
+					enemyTurrets.add(e);
+					System.out.println(enemyTurrets.size() + " found a new turret\n "+enemyTurrets.get(enemyTurrets.size()-1).toString()+"\n "+e.toString());
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					rc.setIndicatorString(1, "see a turtle and am notifiying");
+				}
+			}
+		for(int i = 0 ; i < enemyTurrets.size() ; i++){
+			RobotInfo t = enemyTurrets.get(i);
+			if(rc.canSenseLocation(t.location)){
+				rc.setIndicatorString(2,t.location.x + ", " + t.location.y + " and " + here.x + ", " + here.y);
+				RobotInfo bot = rc.senseRobotAtLocation(t.location);
+				if(bot == null || bot.type != RobotType.TURRET){
+					enemyTurrets.remove(t);
+					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(new int[] {t.location.x, t.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					i--;
+				}
+			}
+		}
+	}
+
 	private static void notifySoldiersOfEnemyArmy() throws GameActionException{
 		RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 		if(enemies.length > 2){
@@ -252,18 +296,17 @@ public class BotScout extends Bot {
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
 	 */
-	private static void notifySoldiersOfTurtle(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
-		//RobotInfo[] turtleLocs;
-		for (RobotInfo hostileUnit : hostileRobots) {
-			if (hostileUnit.type == RobotType.TURRET) {
-				MapLocation turtleLoc = hostileUnit.location;
-				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y,-1,-1,-1,-1,-1,-1,-1,-1 });
-				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-				rc.setIndicatorString(1, "see a turtle and am notifiying");
-			}
-		}
-	foundTurtle = true;
-	}
+//	private static void notifySoldiersOfTurtle(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
+//		//RobotInfo[] turtleLocs;
+//		for (RobotInfo hostileUnit : hostileRobots) {
+//			if (hostileUnit.type == RobotType.TURRET) {
+//				MapLocation turtleLoc = hostileUnit.location;
+//				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y,-1,-1,-1,-1,-1,-1,-1,-1 });
+//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+//				rc.setIndicatorString(1, "see a turtle and am notifiying");
+//			}
+//		}
+//	}
 
 	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
 		for (RobotInfo hostileUnit : hostileRobots) {

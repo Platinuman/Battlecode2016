@@ -1,7 +1,6 @@
-package bot_with_turret_array_list_not_working;
+package OrganizedBot;
 
 import java.util.*;
-
 import battlecode.common.*;
 
 public class Bot {

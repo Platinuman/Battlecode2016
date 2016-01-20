@@ -311,7 +311,7 @@ public class Nav extends Bot {
 	public static void explore() throws GameActionException { // NEW INTO HARASS
 		// explore
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, type.sensorRadiusSquared);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostileRobots));
 		if (rc.isCoreReady()) {
 			if (directionIAmMoving == null) {
 				int fate = rand.nextInt(1000);
@@ -336,7 +336,7 @@ public class Nav extends Bot {
 	}
 	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW INTO HARASS
 		// explore
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostileRobots);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostileRobots));
 		if (rc.isCoreReady()) {
 			if (directionIAmMoving == null) {
 				int fate = rand.nextInt(1000);
@@ -346,11 +346,8 @@ public class Nav extends Bot {
 			if (!moved) {
 				for (int i = 0; i < 8; i++) {
 					directionIAmMoving = directionIAmMoving.rotateRight();
-					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
-					if (movedNow) {
-						moved = true;
-						break;
-					}
+					moved = Nav.moveInDir(directionIAmMoving, theSafety);
+					if (moved) break;
 				}
 			}
 			if (!moved && hostileRobots.length > 0) {

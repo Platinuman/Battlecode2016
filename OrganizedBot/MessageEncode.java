@@ -1,7 +1,6 @@
 package OrganizedBot;
 
 import battlecode.common.*;
-import bot_with_turret_array_list_not_working.Bot;
 
 public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
 	TURRET_TARGET(0, new int[]{3, 6, 1, 2}, 2),	// health, robotType, xloc, yloc

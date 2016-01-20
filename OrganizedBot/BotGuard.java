@@ -1,7 +1,6 @@
 package OrganizedBot;
 
 import java.util.Random;
-
 import battlecode.common.*;
 
 public class BotGuard extends Bot {

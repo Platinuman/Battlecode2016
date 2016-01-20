@@ -1,7 +1,5 @@
 package bot_with_turret_array_list_not_working;
 
-import Battlecode2016.OrganizedBot.Combat;
-import Battlecode2016.OrganizedBot.MessageEncode;
 import battlecode.common.*;
 
 public class BotArchon extends Bot {
