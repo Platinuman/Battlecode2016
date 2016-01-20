@@ -296,17 +296,6 @@ public class BotScout extends Bot {
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
 	 */
-//	private static void notifySoldiersOfTurtle(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
-//		//RobotInfo[] turtleLocs;
-//		for (RobotInfo hostileUnit : hostileRobots) {
-//			if (hostileUnit.type == RobotType.TURRET) {
-//				MapLocation turtleLoc = hostileUnit.location;
-//				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y,-1,-1,-1,-1,-1,-1,-1,-1 });
-//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-//				rc.setIndicatorString(1, "see a turtle and am notifiying");
-//			}
-//		}
-//	}
 
 	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
 		for (RobotInfo hostileUnit : hostileRobots) {
