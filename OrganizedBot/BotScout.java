@@ -3,8 +3,9 @@ package OrganizedBot;
 import battlecode.common.*;
 
 public class BotScout extends Bot {
-	protected static int scoutType; // NEW 0 = turret helper; 1 = mobile helper,
-									// 2 = explorer etc
+	protected static int scoutType; // NEW 0 = turret helper;
+									//     1 = mobile helper;
+									//	   2 = explorer
 	/*
 	 * NEW re add these if they are absolutely necessary (many will be) static
 	 * MapLocation alpha; static MapLocation mobileLoc; static int mobileID;

@@ -9,8 +9,7 @@ public class BotTurret extends Bot {
 	static int currentIndexOfLastArray = 0;
 	static int lastTimeTargetChanged;
 	protected static int range; // NEW not necessary for mobile
-	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map
-										// control?
+	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
 	protected static boolean isTTM;
 
 	public static void loop(RobotController theRC) throws GameActionException {

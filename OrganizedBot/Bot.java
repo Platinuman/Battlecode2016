@@ -22,22 +22,7 @@ public class Bot {
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 	public static ArrayList<RobotInfo> enemyTurrets;
-
-//	public static void loop(RobotController theRC) throws GameActionException {
-//		init(theRC);
-//		init();
-//		while (true) {
-//			try {
-//				turn();
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//			Clock.yield();
-//		}
-//	}
-
-//	public static void init() throws GameActionException{ return; }
-//	public static void turn() throws GameActionException{ return; }
+	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
 
@@ -83,7 +68,6 @@ public class Bot {
 		}
 		return updated;
 	}
-
 	public static void removeLocFromTurretArray(MapLocation loc) {
 		for(RobotInfo ri : enemyTurrets){
 			if( ri.location.equals(loc)){
@@ -92,7 +76,6 @@ public class Bot {
 			}
 		}
 	}
-	
 	public static boolean isLocationInTurretArray(MapLocation loc){
 		for(RobotInfo ri : enemyTurrets){
 			if( ri.location.equals(loc)){
