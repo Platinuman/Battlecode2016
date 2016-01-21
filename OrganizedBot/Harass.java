@@ -187,10 +187,13 @@ public class Harass extends Bot {
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (canWin1v1(loneAttacker)/* && !loneAttacker.type.isZombie*/ ) {
+					if (canWin1v1(loneAttacker) || loneAttacker.type == type.ARCHON ) {
 						// we can beat the other guy 1v1. fire away!
 						// Debug.indicate("micro", 0, "winning 1v1");
 						attackIfReady(loneAttacker.location);
+						if(loneAttacker.type == type.ARCHON && rc.isCoreReady())
+							shadowHarasser(loneAttacker, enemies);
+	
 						return true;
 					} else {
 						// check if we actually have some allied support. if so
