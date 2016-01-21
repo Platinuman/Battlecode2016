@@ -88,6 +88,28 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
     	return combo;
     }
     
+    public static RobotInfo[] combineTwoRIArrays( RobotInfo[] array1, int a1size, RobotInfo[] array2){
+    	RobotInfo[] combo = new RobotInfo[a1size + array2.length];
+    	for (int i = 0; i < a1size; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < array2.length; i++){
+			combo[i + a1size] = array2[i];
+		}
+    	return combo;
+    }
+    
+    public static RobotInfo[] combineTwoRIArrays( RobotInfo[] array1, RobotInfo[] array2, int a2size){
+    	RobotInfo[] combo = new RobotInfo[array1.length + a2size];
+    	for (int i = 0; i < array1.length; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < a2size; i++){
+			combo[i + array1.length] = array2[i];
+		}
+    	return combo;
+    }
+    
 	/**
 	 * This method finds the location of the "center of mass" of an array of robots
 	 * 
@@ -144,5 +166,11 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
             }
         }
         return farthest;
+	}
+	
+	public static void removeIndexFromArray(Object[] array, int index, int size){
+		for(int i = index; i < size - 1; i++){
+			array[i] = array[i+1];
+		}
 	}
 }

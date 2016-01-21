@@ -86,6 +86,15 @@ public class BotScout extends Bot {
 	 */
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		rc.setIndicatorString(0, "");
+		rc.setIndicatorString(1, "");
+		rc.setIndicatorString(2, "");
+		//display wft the turret list is
+		String s = "";
+		for(int i = 0; i < turretSize; i++){
+			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
+		}
+		rc.setIndicatorString(0, s + " " + turretSize);
 		switch (scoutType) { // NEW should call methods in Harass why the hell should they be in harass they're literally only for scouts
 		case 0://exploring
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
@@ -95,11 +104,10 @@ public class BotScout extends Bot {
 			//notifySoldiersOfTurtle(hostileRobots);
 			//rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
-			if(rc.getRoundNum() % 5 == 0){
-				notifySoldiersOfEnemyArmy();
+			if(rc.getRoundNum() % 15 == 0){
+				notifySoldiersOfEnemyArmy(enemies);
 			}
-			notifySoldiersOfEnemyArmy();
-			if(rc.getRoundNum() % 10 == 0){
+			if(rc.getRoundNum() % 15 == 0){
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -170,22 +178,24 @@ public class BotScout extends Bot {
 		for (RobotInfo e : enemies)
 			if (e.type == RobotType.TURRET){
 				if(!isLocationInTurretArray(e.location)){
-					enemyTurrets.add(e);
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
+					enemyTurrets[turretSize]= e;
+					turretSize++;
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,here.x,here.y,here.x,here.y,here.x,here.y,here.x,here.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(1, "see a turtle and am notifiying");
+					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
 					updated = true;
 				}
 			}
-		for(int i = 0 ; i < enemyTurrets.size() ; i++){
-			RobotInfo t = enemyTurrets.get(i);
-			if(rc.canSenseLocation(t.location)){
-				rc.setIndicatorString(2,t.location.x + ", " + t.location.y + " and " + here.x + ", " + here.y);
-				RobotInfo bot = rc.senseRobotAtLocation(t.location);
+		for(int i = 0 ; i < turretSize ; i++){
+			MapLocation t = enemyTurrets[i].location;
+			if(rc.canSenseLocation(t)){
+				rc.setIndicatorString(2,t.x + ", " + t.y + " and " + here.x + ", " + here.y);
+				RobotInfo bot = rc.senseRobotAtLocation(t);
 				if(bot == null || bot.type != RobotType.TURRET){
-					enemyTurrets.remove(t);
-					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(new int[] {t.location.x, t.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
+					removeLocFromTurretArray(t);
+					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(new int[] {t.x, t.y,here.x,here.y,here.x,here.y,here.x,here.y,here.x,here.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					rc.setIndicatorString(2, "turret death at " + t.x + ", " + t.y);
 					i--;
 					updated = true;
 				}
@@ -194,8 +204,7 @@ public class BotScout extends Bot {
 		return updated;
 	}
 
-	private static void notifySoldiersOfEnemyArmy() throws GameActionException{
-		RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException{
 		if(enemies.length > 2){
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
