@@ -108,6 +108,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 			mess[1] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
+		Bot.rc.setIndicatorString(2,"just encoded " + toString());
 		return mess;
 	}
 	/**
@@ -145,6 +146,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 				data[i] = data[i] + senderloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
+		Bot.rc.setIndicatorString(2,"just decoded " + toString());
 		return data;
 	}
 	/**

@@ -72,12 +72,17 @@ public class BotArchon extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		String s = "";
+		for(int i = 0; i < turretSize; i++){
+			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
+		}
+		rc.setIndicatorString(0, s + " " + turretSize);
 		repairBotMostInNeed();
 		RobotInfo[] enemies = rc.senseNearbyRobots(type.sensorRadiusSquared, them);
 		if (rc.isCoreReady()) {
 			if (isMobileArchon) {
 				beMobileArchon(enemies);
-				rc.setIndicatorString(0, "mobile as of round " + rc.getRoundNum());
+				//rc.setIndicatorString(0, "mobile as of round " + rc.getRoundNum());
 			} else if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
 				aarons_shitty_strat();
 			} else {
@@ -213,7 +218,7 @@ public class BotArchon extends Bot {
 		}
 		*/
 		updateTargetLocationMySelf(hostiles);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostiles));
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else

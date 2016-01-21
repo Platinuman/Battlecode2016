@@ -2,8 +2,22 @@ package team061;
 
 import battlecode.common.*;
 
-public class Util extends Bot {
+public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
+	public static boolean checkRubbleAndClear(Direction dir) {//NEW MOVE TO UTIL
+
+		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			try {
+				rc.clearRubble(dir);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
+	}
+	
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;
         int bestDistSq = 999999;
@@ -19,7 +33,7 @@ public class Util extends Bot {
     }
     
    public static int closestLocation(MapLocation locs[], MapLocation toHere, int size) {
-       MapLocation closest = null;
+       //MapLocation closest = null;
        int bestDistSq = 999999;
        int bestIndex = -1;
        for (int i = 0; i < size; i++) {
@@ -29,7 +43,7 @@ public class Util extends Bot {
            int distSq = toHere.distanceSquaredTo(locs[i]);
            if (distSq < bestDistSq) {
                bestDistSq = distSq;
-               closest = locs[i];
+               //closest = locs[i];
                bestIndex = i;
            }
        }
@@ -74,14 +88,35 @@ public class Util extends Bot {
     	return combo;
     }
     
+    public static RobotInfo[] combineTwoRIArrays( RobotInfo[] array1, int a1size, RobotInfo[] array2){
+    	RobotInfo[] combo = new RobotInfo[a1size + array2.length];
+    	for (int i = 0; i < a1size; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < array2.length; i++){
+			combo[i + a1size] = array2[i];
+		}
+    	return combo;
+    }
+    
+    public static RobotInfo[] combineTwoRIArrays( RobotInfo[] array1, RobotInfo[] array2, int a2size){
+    	RobotInfo[] combo = new RobotInfo[array1.length + a2size];
+    	for (int i = 0; i < array1.length; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < a2size; i++){
+			combo[i + array1.length] = array2[i];
+		}
+    	return combo;
+    }
+    
 	/**
 	 * This method finds the location of the "center of mass" of an array of robots
 	 * 
 	 * @param robots
 	 */
-	public static MapLocation centroidOfUnits(RobotInfo[] robots){
-		// TODO: this method
-		float xavg = 0, yavg = 0;
+    public static MapLocation centroidOfUnits(RobotInfo[] robots){
+		int xavg = 0, yavg = 0;
 		MapLocation loc;
 		for(int i = 0; i < robots.length; i++){
 			loc = robots[i].location;
@@ -90,6 +125,7 @@ public class Util extends Bot {
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
 	}
+
 
 	public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
 		for(int i = 0; i < size; i++){
@@ -130,5 +166,11 @@ public class Util extends Bot {
             }
         }
         return farthest;
+	}
+	
+	public static void removeIndexFromArray(Object[] array, int index, int size){
+		for(int i = index; i < size - 1; i++){
+			array[i] = array[i+1];
+		}
 	}
 }

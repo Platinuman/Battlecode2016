@@ -27,35 +27,47 @@ public class BotArchon extends Bot {
 	private static void init() throws GameActionException {
 		if (MapAnalysis.mapDifficulty == 0) {
 			maxRange = 4;
-			Signal[] signals = rc.emptySignalQueue();
-			if (!signalsFromOurTeam(signals)) {
-				MapLocation myLocation = rc.getLocation();
-				int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
-				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 80 * 80 * 2);
+			alpha = MapAnalysis.getAlphaLocation();
+			if(here.equals(alpha)){
 				isAlphaArchon = true;
-				alpha = myLocation;
 				rc.setIndicatorString(0, "I am the Darth Jar Jar. Fear me.");
 				rc.setIndicatorString(1,
 						"The ability to destroy a planet is insignificant next to the power of the Force.");
 				rc.setIndicatorString(2, "I hope so for your sake, the emperor is not as forgiving as I am.");
-			} else {
-				for (int i = 0; i < signals.length; i++) {
-					if (signals[i].getTeam() != us) {
-						continue;
-					}
-					int[] message = signals[i].getMessage();
-					MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-					if (msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-						int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
-								message);
-						alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-						rc.setIndicatorString(1, "found alpha");
-						break;
-					}
-				}
+			}
+			else{
 				isAlphaArchon = false;
 				rc.setIndicatorString(0, "We make.");
 			}
+//			Signal[] signals = rc.emptySignalQueue();
+//			if (!signalsFromOurTeam(signals)) {
+//				MapLocation myLocation = rc.getLocation();
+//				int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { myLocation.x, myLocation.y });
+//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 80 * 80 * 2);
+//				isAlphaArchon = true;
+//				alpha = myLocation;
+//				rc.setIndicatorString(0, "I am the Darth Jar Jar. Fear me.");
+//				rc.setIndicatorString(1,
+//						"The ability to destroy a planet is insignificant next to the power of the Force.");
+//				rc.setIndicatorString(2, "I hope so for your sake, the emperor is not as forgiving as I am.");
+//			} else {
+//				for (int i = 0; i < signals.length; i++) {
+//					if (signals[i].getTeam() != us) {
+//						continue;
+//					}
+//					int[] message = signals[i].getMessage();
+//					MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//					if (msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
+//						int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
+//								message);
+//						alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+//						//rc.setIndicatorString(1, "found alpha");
+//						break;
+//					}
+//				}
+//				isAlphaArchon = false;
+//				rc.setIndicatorString(0, "We make.");
+//			}
 		} else {
 			return;
 		}
@@ -137,7 +149,7 @@ public class BotArchon extends Bot {
 		if (allies.length > 0) {
 			RobotInfo mostInNeed = Util.leastHealth(allies, 1);
 			if (mostInNeed != null) {
-				rc.setIndicatorString(2, "repairing unit at: " + mostInNeed.location.x + " "+ mostInNeed.location.y);
+				rc.setIndicatorString(2, "repairing unit at: " + mostInNeed.location.x + " " + mostInNeed.location.y);
 				rc.repair(mostInNeed.location);
 			}
 		}

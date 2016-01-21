@@ -21,7 +21,8 @@ public class Bot {
 	public static Direction directionIAmMoving;
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
-	public static ArrayList<RobotInfo> enemyTurrets;
+	public static RobotInfo[] enemyTurrets;
+	public static int turretSize;
 	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
@@ -35,8 +36,9 @@ public class Bot {
 		targetDens = new MapLocation[10000];
 		killedDens = new MapLocation[10000];
 		targetDenSize = bestIndex = numDensToHunt = killedDenSize = 0;
-		enemyTurrets = new ArrayList<RobotInfo>();
 		MapAnalysis.analyze();
+		enemyTurrets = new RobotInfo[64];
+		turretSize = 0;
 	}
 
 //---- Enemy turret tracking methods below ----
@@ -51,16 +53,18 @@ public class Bot {
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
 					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
-						int[] data = purpose.decode(signal.getLocation(), message);
+						MapLocation senderloc = signal.getLocation();
+						int[] data = purpose.decode(senderloc, message);
 						for(int i = 0; i< data.length; i +=2){
-							if(data[i] == -1) break;
-							enemyTurrets.add(new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0));
+							if(data[i] == senderloc.x) break;
+							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0);
+							turretSize++;
+							System.out.println("added turret @ " + data[i] + ", " + data[i+1]);
 						}
 						updated = true;
 					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
 						int[] data = purpose.decode(signal.getLocation(), message);
-						MapLocation deathLoc = new MapLocation(data[0],data[1]);
-						removeLocFromTurretArray(deathLoc);
+						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
 						updated = true;
 					}
 				}
@@ -69,16 +73,17 @@ public class Bot {
 		return updated;
 	}
 	public static void removeLocFromTurretArray(MapLocation loc) {
-		for(RobotInfo ri : enemyTurrets){
-			if( ri.location.equals(loc)){
-				enemyTurrets.remove(ri);
+		for(int i = 0 ; i < turretSize; i++){
+			if( enemyTurrets[i].location.equals(loc)){
+				Util.removeIndexFromArray(enemyTurrets, i, turretSize);
+				turretSize--;
 				return;
 			}
 		}
 	}
 	public static boolean isLocationInTurretArray(MapLocation loc){
-		for(RobotInfo ri : enemyTurrets){
-			if( ri.location.equals(loc)){
+		for(int i = 0 ; i < turretSize; i++){
+			if( enemyTurrets[i].location.equals(loc)){
 				return true;
 			}
 		}

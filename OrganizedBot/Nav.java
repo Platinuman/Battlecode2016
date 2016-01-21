@@ -312,7 +312,7 @@ public class Nav extends Bot {
 		// explore
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostileRobots));
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
 		if (rc.isCoreReady()){
 			if(type != RobotType.SCOUT && allies.length > 1){
 				directionIAmMoving = here.directionTo(Util.centroidOfUnits(allies));
@@ -325,9 +325,8 @@ public class Nav extends Bot {
 			if (!moved) {
 				for (int i = 0; i < 8; i++) {
 					directionIAmMoving = directionIAmMoving.rotateRight();
-					boolean movedNow = Nav.moveInDir(directionIAmMoving, theSafety);
-					if (movedNow) {
-						moved = true;
+					moved = Nav.moveInDir(directionIAmMoving, theSafety);
+					if (moved) {
 						break;
 					}
 				}
@@ -340,7 +339,7 @@ public class Nav extends Bot {
 	}
 	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW INTO HARASS
 		// explore
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostileRobots));
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
 		if (rc.isCoreReady()) {
 			if (directionIAmMoving == null) {
 				int fate = rand.nextInt(1000);

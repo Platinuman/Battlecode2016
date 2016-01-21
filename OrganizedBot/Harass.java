@@ -542,8 +542,7 @@ public class Harass extends Bot {
 						int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
 						if (closestIndex != -1 && targetDens[closestIndex]
 								.distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
-							rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex]
-									+ " on round " + rc.getRoundNum());
+							//rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex]+ " on round " + rc.getRoundNum());
 							killedDens[killedDenSize] = targetDens[closestIndex];
 							killedDenSize++;
 							targetDens[closestIndex] = null;
@@ -625,12 +624,13 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateTurretLoc() {
-		if (enemyTurrets.size() > 0) {
+
+		if(turretSize > 0){
 			int min = 999999;
 			int dist;
 			MapLocation turret;
-			for (int i = 0; i < enemyTurrets.size(); i++) {
-				turret = enemyTurrets.get(i).location;
+			for(int i = 0 ; i < turretSize; i++){
+				turret = enemyTurrets[i].location;
 				dist = here.distanceSquaredTo(turret);
 				if (dist < min) {
 					turretLoc = turret;
@@ -641,6 +641,15 @@ public class Harass extends Bot {
 		}
 		turretLoc = null;
 		return false;
+
+	}
+
+
+	public static boolean updateMoveIn() {
+		// TODO: make this be based on turrets
+		if (friends == null || friends.length < 15)
+			return false;
+		return true;
 	}
 
 	public static void crunch() throws GameActionException {
@@ -652,15 +661,14 @@ public class Harass extends Bot {
 		Combat.shootAtNearbyEnemies();
 	}
 
-	public static int updateMoveIn() {
-		// if (turretLoc != null && friends != null && friends.length > 15 &&
-		// numDensToHunt == 0)
-		//TODO use a ration and decide based on that if we should crunch
-		if(rc.getRoundNum()>1500)
-			return 2;
-		if (rc.getRoundNum() > 500 && turretLoc!=null)
-			return 1;
-		return 0;
+	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
+		rc.setIndicatorString(2, "staying out of range");
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
+		if (here.distanceSquaredTo(turretLoc) < 64) {
+			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+		} else {
+			Nav.goTo(turretLoc, theSafety);
+		}
 	}
 
 	/*
@@ -688,23 +696,13 @@ public class Harass extends Bot {
 		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
-		int shouldMoveIn = updateMoveIn();
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-				Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), enemies));
-		enemies = Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), enemies);
+		boolean shouldMoveIn = updateMoveIn();
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
 
-//		if (shouldMoveIn == 1) {
-//			rc.setIndicatorString(1, "crunch");
-//			crunch();
-//		}
-//		if(shouldMoveIn == 2){
-//			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
-//
-//		}
-		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < 64 && rc.isCoreReady()) {
+		if (turretLoc!=null && here.distanceSquaredTo(turretLoc) < 81 && rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-			rc.setIndicatorString(1, "hiding from turtle");
-
+			rc.setIndicatorString(2, "turret");
+			//doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		}
 
 		else {

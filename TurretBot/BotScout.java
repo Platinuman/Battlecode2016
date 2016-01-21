@@ -47,7 +47,7 @@ public class BotScout extends Bot {
 			moveToLocFartherThanAlphaIfPossible(here);
 		}
 		if (rc.isCoreReady()) {
-			Util.checkRubbleAndClear(here.directionTo(center));
+			Util.checkRubbleAndClear(here.directionTo(alpha));
 		}
 		broadcastEnemies();
 		
@@ -62,7 +62,7 @@ public class BotScout extends Bot {
 		for (int i = Integer.max(0,enemyRobots.length-20); i < enemyRobots.length; i++) {
 			MapLocation loc = enemyRobots[i].location;
 			int[] message = MessageEncode.TURRET_TARGET.encode(new int[] { loc.x, loc.y });
-			rc.broadcastMessageSignal(message[0], message[1],(int)GameConstants.BROADCAST_RANGE_MULTIPLIER*RobotType.SCOUT.sensorRadiusSquared);
+			rc.broadcastMessageSignal(message[0], message[1],15);//(int)GameConstants.BROADCAST_RANGE_MULTIPLIER*RobotType.SCOUT.sensorRadiusSquared);
 		}
 	}
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
