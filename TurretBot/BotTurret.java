@@ -36,7 +36,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
+				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
 			}
@@ -52,30 +52,36 @@ public class BotTurret extends Bot {
 			attackIfApplicable(signals);
 		}
 		if (rc.isCoreReady()) {
-			moveToLocFartherThanAlphaIfPossible(here);
+			moveToLocFartherThanAlphaIfPossible();
+		}
+		if (rc.isWeaponReady()) {
+			shootRandomly();
+		}
 	}
 
-	}
-
-	private static boolean isSafeToMove(Signal[] signals) {
-		for (int i = signals.length - 1; i >= 0; i--) {
-			if (signals[i].getTeam() == us) {
-				int[] message = signals[i].getMessage();
-				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-
-				if (msgType == MessageEncode.TURRET_TARGET) {
-					int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
-					if (Util.getTeam(RobotType.values()[decodedMessage[1]]) == Team.ZOMBIE) {
-						return false;
-					}
+	private static void shootRandomly() throws GameActionException{
+		if (rc.getRoundNum() > 500) {
+			Direction trueAway = alpha.directionTo(here);
+			Direction away = trueAway;
+			MapLocation enemyLocation = here;
+			int count = 0;
+			while (count < 4 || rc.canAttackLocation(enemyLocation.add(away))) {
+				enemyLocation = enemyLocation.add(away);
+				away = (new Direction[] { trueAway, trueAway.rotateLeft(), trueAway.rotateRight(),
+						trueAway.rotateLeft().rotateLeft(), trueAway.rotateRight().rotateRight() })[rand.nextInt(5)];
+				count++;
+				if(rc.canSenseLocation(enemyLocation) && !rc.onTheMap(enemyLocation)){
+					return;
 				}
 			}
-
+			if (rc.canAttackLocation(enemyLocation)) {
+				rc.attackLocation(enemyLocation);
+				return;
+			}
 		}
-		return true;
 	}
 
-	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
+	private static void moveToLocFartherThanAlphaIfPossible() throws GameActionException {
 		Direction dir = directions[rand.nextInt(8)];
 		boolean shouldMove = false;
 		Direction bestDir = dir;
@@ -120,7 +126,7 @@ public class BotTurret extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
+				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
 				range = decodedMessage[0];
 				break;
 			}
@@ -141,9 +147,9 @@ public class BotTurret extends Bot {
 			if (signals[i].getTeam() == us) {
 				int[] message = signals[i].getMessage();
 				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(message);
+				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[i].getLocation(), message);
 				if (msgType == MessageEncode.TURRET_TARGET) {
-					MapLocation enemyLocation = new MapLocation(decodedMessage[2], decodedMessage[3]);
+					MapLocation enemyLocation = new MapLocation(decodedMessage[0], decodedMessage[1]);
 					if (rc.canAttackLocation(enemyLocation)) {
 						rc.attackLocation(enemyLocation);
 						// lastSignal = enemyLocation;
@@ -164,21 +170,22 @@ public class BotTurret extends Bot {
 		// rc.attackLocation(lastSignal);
 		// }
 		// }
-		if (false && rc.getRoundNum() > 500) {
-			Direction trueAway = alpha.directionTo(here);
-			Direction away = trueAway;
-			MapLocation enemyLocation = here;
-			int count = 0;
-			while (count < 4 || rc.canAttackLocation(enemyLocation.add(away))) {
-				enemyLocation = enemyLocation.add(away);
-				away = (new Direction[] { trueAway, trueAway.rotateLeft(), trueAway.rotateRight() })[rand.nextInt(3)];
-				count++;
-
-			}
-			if (rc.canAttackLocation(enemyLocation)) {
-				rc.attackLocation(enemyLocation);
-				return;
-			}
-		}
+		// if (false && rc.getRoundNum() > 500) {
+		// Direction trueAway = alpha.directionTo(here);
+		// Direction away = trueAway;
+		// MapLocation enemyLocation = here;
+		// int count = 0;
+		// while (count < 4 || rc.canAttackLocation(enemyLocation.add(away))) {
+		// enemyLocation = enemyLocation.add(away);
+		// away = (new Direction[] { trueAway, trueAway.rotateLeft(),
+		// trueAway.rotateRight() })[rand.nextInt(3)];
+		// count++;
+		//
+		// }
+		// if (rc.canAttackLocation(enemyLocation)) {
+		// rc.attackLocation(enemyLocation);
+		// return;
+		// }
+		// }
 	}
 }
