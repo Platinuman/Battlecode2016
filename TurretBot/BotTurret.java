@@ -82,7 +82,7 @@ public class BotTurret extends Bot {
 	}
 
 	private static void moveToLocFartherThanAlphaIfPossible() throws GameActionException {
-		Direction dir = directions[rand.nextInt(8)];
+		Direction dir = here.directionTo(center);
 		boolean shouldMove = false;
 		Direction bestDir = dir;
 		int bestScore = 0;

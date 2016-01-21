@@ -56,6 +56,18 @@ public class MapAnalysis extends Bot {
 			mapDifficulty = 1;
 		}
 	}
+	public static MapLocation getAlphaLocation(){
+		int maxDist = 0;
+		MapLocation alpha = null;
+		for (MapLocation loc : rc.getInitialArchonLocations(us)){
+			int dist = loc.distanceSquaredTo(center);
+			if (dist > maxDist){
+				maxDist = dist;
+				alpha = loc;
+			}
+		}
+		return alpha;
+	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);
 		MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
