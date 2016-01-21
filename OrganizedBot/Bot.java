@@ -19,8 +19,10 @@ public class Bot {
 	public static int bestIndex;
 	public static int numDensToHunt;
 	public static Direction directionIAmMoving;
+	// TODO: get rid of this stupid directions thing and use direction order and dir.ordinal()
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+	protected static int[] directionOrder = {0,1,-1,2,-2,3,-3,4};
 	public static RobotInfo[] enemyTurrets;
 	public static int turretSize;
 	
@@ -55,11 +57,15 @@ public class Bot {
 					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
 						MapLocation senderloc = signal.getLocation();
 						int[] data = purpose.decode(senderloc, message);
+						MapLocation loc;
 						for(int i = 0; i< data.length; i +=2){
 							if(data[i] == senderloc.x) break;
-							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0);
-							turretSize++;
-							System.out.println("added turret @ " + data[i] + ", " + data[i+1]);
+							loc = new MapLocation(data[i], data[i+1]);
+							if(!isLocationInTurretArray(loc)){
+								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+								turretSize++;
+								//System.out.println("added turret @ " + data[i] + ", " + data[i+1]);
+							}
 						}
 						updated = true;
 					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
@@ -88,5 +94,13 @@ public class Bot {
 			}
 		}
 		return false;
+	}
+	public static int numTurretsInRange(int range){
+		int count = 0;
+		for(int i = 0; i < turretSize ; i++){
+			if(enemyTurrets[i].location.distanceSquaredTo(here) <= range)
+				count++;
+		}
+		return count;
 	}
 }
