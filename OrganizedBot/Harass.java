@@ -647,7 +647,7 @@ public class Harass extends Bot {
 
 	public static boolean updateMoveIn() {
 		// TODO: make this be based on turrets
-		if (friends == null || friends.length*3 < numTurretsInRange(64))
+		if (friends == null || friends.length < 15)
 			return false;
 		return true;
 	}
@@ -704,7 +704,6 @@ public class Harass extends Bot {
 			rc.setIndicatorString(2, "turret");
 			//doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		}
-
 		else {
 			if (turretLoc != null)
 				rc.setIndicatorString(2, "" + turretLoc);
