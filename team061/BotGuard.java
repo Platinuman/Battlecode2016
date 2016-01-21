@@ -1,18 +1,14 @@
 package team061;
 
 import java.util.Random;
-
 import battlecode.common.*;
 
 public class BotGuard extends Bot {
-
-	static MapLocation targetLoc;
-	static int archonID;
+	protected static MapLocation target;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		init();
-		// Debug.init("micro");
 		while (true) {
 			try {
 				turn();
@@ -22,9 +18,11 @@ public class BotGuard extends Bot {
 			Clock.yield();
 		}
 	}
-
+	
 	private static void init() throws GameActionException {
-		// atScoutLocation = false;
+		//MessageEncode.getMobileArchonLocation(); // NEW This should be a method
+
+		/* NEW THIS SHOULD GO IN MESSAGEENCODE
 		Signal[] signals = rc.emptySignalQueue();
 		for (int i = 0; i < signals.length; i++) {
 			int[] message = signals[i].getMessage();
@@ -37,12 +35,16 @@ public class BotGuard extends Bot {
 				break;
 			}
 		}
+		*/
 	}
 
 	private static void turn() throws GameActionException {
-		int acceptableRangeSquared = RobotType.SOLDIER.sensorRadiusSquared;
-		// Check where moving Archon is
 		here = rc.getLocation();
+		//Harass.doMobileGuard();// NEW Most of this should be moved to Harass
+		
+		/*
+		int acceptableRangeSquared = RobotType.SOLDIER.attackRadiusSquared;
+		// Check where moving Archon is
 		// Check for nearby enemies
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.GUARD.sensorRadiusSquared);
 		boolean targetUpdated = updateTargetLoc();
@@ -102,9 +104,10 @@ public class BotGuard extends Bot {
 
 			}
 		}
+		*/
 
 	}
-
+	/* NEW INTO THE HARASS METHODS
 	private static boolean updateTargetLoc() {
 		Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
@@ -121,15 +124,15 @@ public class BotGuard extends Bot {
 					}
 				}
 			}
-		}
+		}*/
 		/*
 		 * RobotInfo[] allies =
 		 * rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		 * for(RobotInfo ally : allies){ if(ally.ID == archonID){ targetLoc =
 		 * ally.location; return true; } }
 		 */
-		return false;
-	}
+		//return false;
+//	}
 	/*
 	 * private static MapLocation checkScouttargetLoc(Signal[] signals) {
 	 * MapLocation targetLoc; for (int i = 0; i < signals.length; i++) { if
@@ -141,7 +144,7 @@ public class BotGuard extends Bot {
 	 * MapLocation(decodedMessage[0], decodedMessage[1]); return targetLoc; } }
 	 * // }
 	 */
-
+/*
 	private static void moveInFrontOfTheArchon(RobotInfo closestEnemy) {
 		// RobotInfo closestEnemy = Util.closest(enemies, here);
 		Direction directionToEnemyFromArchon = targetLoc.directionTo(closestEnemy.location);
@@ -234,6 +237,6 @@ public class BotGuard extends Bot {
 				ret++;
 		}
 		return ret;
-	}
+	}*/
 
 }

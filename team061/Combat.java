@@ -1,9 +1,9 @@
 package team061;
 
 import battlecode.common.*;
-import team061.Util;
 
-public class Combat extends Bot {
+public class Combat extends Bot { //NEW up to you guys what to do here, but please optimize everything and make it usable for multiple strategies
+									//NEW most of these methods should be called ONLY by the Harass class
 	public static RobotInfo scoutChooseTarget(){
 		RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, them);
 		RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
