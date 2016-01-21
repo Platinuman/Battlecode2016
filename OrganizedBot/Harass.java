@@ -193,7 +193,6 @@ public class Harass extends Bot {
 						attackIfReady(loneAttacker.location);
 						if(loneAttacker.type == type.ARCHON && rc.isCoreReady())
 							shadowHarasser(loneAttacker, enemies);
-	
 						return true;
 					} else {
 						// check if we actually have some allied support. if so
@@ -711,6 +710,8 @@ public class Harass extends Bot {
 		boolean shouldMoveIn = updateMoveIn();
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
 
+		if(shouldMoveIn)
+			crunch();
 		if (turretLoc!=null && here.distanceSquaredTo(turretLoc) < 81 && rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			rc.setIndicatorString(2, "turret");
