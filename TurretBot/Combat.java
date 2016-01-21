@@ -12,6 +12,9 @@ public class Combat extends Bot {
 		if (target == null){
 			target = chooseTarget(rc.senseNearbyRobots(attackRadiusSq, Team.ZOMBIE),0);
 		}
+		if (target == null){
+			target = chooseTarget(rc.senseNearbyRobots(attackRadiusSq, Team.NEUTRAL),0);
+		}
 		if (target != null) {
 			rc.attackLocation(target.location);
 		}

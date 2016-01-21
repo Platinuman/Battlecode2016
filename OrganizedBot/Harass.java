@@ -187,7 +187,7 @@ public class Harass extends Bot {
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (canWin1v1(loneAttacker)) {
+					if (canWin1v1(loneAttacker)/* && !loneAttacker.type.isZombie*/ ) {
 						// we can beat the other guy 1v1. fire away!
 						// Debug.indicate("micro", 0, "winning 1v1");
 						attackIfReady(loneAttacker.location);
@@ -332,7 +332,7 @@ public class Harass extends Bot {
 			double minHealth = 1e99;
 			for (RobotInfo enemy : enemies) {
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-					if (enemy.health < minHealth) {
+					if (enemy.health < minHealth || enemy.type == type.ARCHON) {
 						minHealth = enemy.health;
 						bestTarget = enemy;
 					}
@@ -534,7 +534,7 @@ public class Harass extends Bot {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);
 					if (rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
-							&& (targetLoc == null || distToSignal < here.distanceSquaredTo(targetLoc))) {
+							&& (targetLoc == null || distToSignal < here.distanceSquaredTo(targetLoc))) {//call for help
 						targetLoc = signalLoc;
 						huntingDen = false;
 						return true;
@@ -685,7 +685,7 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		rc.setIndicatorString(0, "" + signals.length);
-		updateTurretList(signals, enemies);
+		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
 		int shouldMoveIn = updateMoveIn();
@@ -693,15 +693,15 @@ public class Harass extends Bot {
 				Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), enemies));
 		enemies = Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), enemies);
 
-		if (shouldMoveIn == 1) {
-			rc.setIndicatorString(1, "crunch");
-			crunch();
-		}
-		if(shouldMoveIn == 2){
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
-
-		}
-		if (shouldMoveIn ==0&& turretLoc != null && here.distanceSquaredTo(turretLoc) < 64 && rc.isCoreReady()) {
+//		if (shouldMoveIn == 1) {
+//			rc.setIndicatorString(1, "crunch");
+//			crunch();
+//		}
+//		if(shouldMoveIn == 2){
+//			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+//
+//		}
+		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < 64 && rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			rc.setIndicatorString(1, "hiding from turtle");
 
@@ -712,10 +712,10 @@ public class Harass extends Bot {
 				rc.setIndicatorString(2, "" + turretLoc);
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
-				rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
+				rc.setIndicatorString(1, "I am moving to the target " + targetLoc);
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-				rc.setIndicatorString(0, "I am exploring.");
+				rc.setIndicatorString(1, "I am exploring.");
 				Nav.explore(enemies);
 
 			}

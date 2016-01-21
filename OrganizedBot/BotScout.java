@@ -3,8 +3,9 @@ package OrganizedBot;
 import battlecode.common.*;
 
 public class BotScout extends Bot {
-	protected static int scoutType; // NEW 0 = turret helper; 1 = mobile helper,
-									// 2 = explorer etc
+	protected static int scoutType; // NEW 0 = turret helper;
+									//     1 = mobile helper;
+									//	   2 = explorer
 	/*
 	 * NEW re add these if they are absolutely necessary (many will be) static
 	 * MapLocation alpha; static MapLocation mobileLoc; static int mobileID;
@@ -89,7 +90,7 @@ public class BotScout extends Bot {
 		case 0://exploring
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			scoutUpdateTurretList(rc.emptySignalQueue(), hostileRobots);
+			updateTurretList(rc.emptySignalQueue(), hostileRobots);
 			Nav.explore();
 			//notifySoldiersOfTurtle(hostileRobots);
 			//rc.setIndicatorString(2, "found T");
@@ -158,34 +159,22 @@ public class BotScout extends Bot {
 		 */
 	}
 	
-	public static void scoutUpdateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
-		for (Signal signal : signals) {
-			if (signal.getTeam() == us) {
-				int[] message = signal.getMessage();
-				if (message != null) {
-					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
-						int[] data = purpose.decode(signal.getLocation(), message);
-						for(int i = 0; i< data.length; i +=2){
-							if(data[i] == -1) break;
-							enemyTurrets.add(new RobotInfo(0, them, RobotType.TURRET, new MapLocation(data[i], data[i+1]),0,0,0,0,0,0,0));
-						}
-					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
-						int[] data = purpose.decode(signal.getLocation(), message);
-						MapLocation deathLoc = new MapLocation(data[0],data[1]);
-						removeLocFromTurretArray(deathLoc);
-					}
-				}
-			}
-		}
+	/*
+	 * Overrides updateTurretList in Bot because scouts also have to send signals.
+	 * In addition to functions in Bot's version, scouts:
+	 * 		-check if they can see any turrets that haven't been seen before
+	 * 		-notify units of turrets that are no longer there
+	 */
+	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
+		boolean updated = Bot.updateTurretList(signals);
 		for (RobotInfo e : enemies)
 			if (e.type == RobotType.TURRET){
-				if(!locationInTurretArray(e.location)){
+				if(!isLocationInTurretArray(e.location)){
 					enemyTurrets.add(e);
-					System.out.println(enemyTurrets.size() + " found a new turret\n "+enemyTurrets.get(enemyTurrets.size()-1).toString()+"\n "+e.toString());
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					rc.setIndicatorString(1, "see a turtle and am notifiying");
+					updated = true;
 				}
 			}
 		for(int i = 0 ; i < enemyTurrets.size() ; i++){
@@ -198,9 +187,11 @@ public class BotScout extends Bot {
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(new int[] {t.location.x, t.location.y,-1,-1,-1,-1,-1,-1,-1,-1 });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					i--;
+					updated = true;
 				}
 			}
 		}
+		return updated;
 	}
 
 	private static void notifySoldiersOfEnemyArmy() throws GameActionException{
@@ -296,17 +287,6 @@ public class BotScout extends Bot {
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
 	 */
-//	private static void notifySoldiersOfTurtle(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
-//		//RobotInfo[] turtleLocs;
-//		for (RobotInfo hostileUnit : hostileRobots) {
-//			if (hostileUnit.type == RobotType.TURRET) {
-//				MapLocation turtleLoc = hostileUnit.location;
-//				int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {turtleLoc.x, turtleLoc.y,-1,-1,-1,-1,-1,-1,-1,-1 });
-//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-//				rc.setIndicatorString(1, "see a turtle and am notifiying");
-//			}
-//		}
-//	}
 
 	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
 		for (RobotInfo hostileUnit : hostileRobots) {
