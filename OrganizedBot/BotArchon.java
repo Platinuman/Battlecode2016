@@ -336,8 +336,7 @@ public class BotArchon extends Bot {
 							targetDenSize++;
 							numDensToHunt++;
 
-							if (targetDen == null
-									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
+							if (targetDen == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetDen)) {
 								targetDen = denLoc;
 								bestIndex = targetDenSize;
 							}
@@ -388,9 +387,12 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void broadcastTargetDen(RobotInfo[] allies) throws GameActionException { // New INTO MESSAGE ENCODE
-		if (!haveEnoughFighters(allies))
-			return;
+	private static void broadcastTargetDen(RobotInfo[] allies) throws GameActionException { // New
+																							// INTO
+																							// MESSAGE
+																							// ENCODE
+		/*if (!haveEnoughFighters(allies))
+			return;*/
 		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { targetDen.x, targetDen.y });
 		rc.broadcastMessageSignal(msg[0], msg[1], (int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 	}
