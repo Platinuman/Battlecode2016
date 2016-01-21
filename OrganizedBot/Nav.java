@@ -311,8 +311,12 @@ public class Nav extends Bot {
 	public static void explore() throws GameActionException { // NEW INTO HARASS
 		// explore
 		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+		RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]), hostileRobots));
-		if (rc.isCoreReady()) {
+		if (rc.isCoreReady()){
+			if(type != RobotType.SCOUT && allies.length > 1){
+				directionIAmMoving = here.directionTo(Util.centroidOfUnits(allies));
+			}
 			if (directionIAmMoving == null) {
 				int fate = rand.nextInt(1000);
 				directionIAmMoving = Direction.values()[fate % 8];

@@ -534,7 +534,7 @@ public class Harass extends Bot {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);
 					if (rc.getType().sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
-							&& (targetLoc == null || distToSignal < here.distanceSquaredTo(targetLoc))) {
+							&& (targetLoc == null || distToSignal < here.distanceSquaredTo(targetLoc))) {//call for help
 						targetLoc = signalLoc;
 						huntingDen = false;
 						return true;
@@ -686,7 +686,7 @@ public class Harass extends Bot {
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		rc.setIndicatorString(0, "" + signals.length);
-		updateTurretList(signals,enemies);
+		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn();
@@ -702,10 +702,10 @@ public class Harass extends Bot {
 		else{
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
-				rc.setIndicatorString(0, "I am moving to the target " + targetLoc);
+				rc.setIndicatorString(1, "I am moving to the target " + targetLoc);
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-				rc.setIndicatorString(0, "I am exploring.");
+				rc.setIndicatorString(1, "I am exploring.");
 				Nav.explore(enemies);
 
 			}
