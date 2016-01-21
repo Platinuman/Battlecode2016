@@ -654,7 +654,7 @@ public class Harass extends Bot {
 
 	public static boolean updateMoveIn() {
 		// TODO: make this be based on turrets
-		if (friends == null || friends.length < 15)
+		if (friends == null || friends.length*3 < numTurretsInRange(64))
 			return false;
 		return true;
 	}
