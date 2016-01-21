@@ -54,7 +54,7 @@ public class Bot {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.WARN_ABOUT_TURRETS) {
+					if (purpose == MessageEncode.WARN_ABOUT_TURRETS || purpose == MessageEncode.RELAY_TURRET_INFO) {
 						MapLocation senderloc = signal.getLocation();
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation loc;

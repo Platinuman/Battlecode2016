@@ -665,11 +665,15 @@ public class Harass extends Bot {
 
 	public static void crunch() throws GameActionException {
 		// if (friends.length > 20)
-		RobotInfo[] blank = new RobotInfo[0];
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
-		if (turretLoc != null && rc.isCoreReady())
+		if (turretLoc != null && rc.isCoreReady()){
+			RobotInfo[] blank = new RobotInfo[0];
+			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
 			Nav.goTo(turretLoc, theSafety);
-		Combat.shootAtNearbyEnemies();
+		}
+		if(rc.isWeaponReady()){
+			Combat.shootAtNearbyEnemies();
+			return;
+		}
 	}
 
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {

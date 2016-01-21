@@ -499,29 +499,31 @@ public class BotArchon extends Bot {
 
 	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
 		int[] myMsg;
+		
 		if(alpha != null){
 			myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 		}
+		
 		if (targetDen != null)
 			broadcastTargetDen(allies);
+		
 		// now notify them of turrets
-		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,};
+		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
 		MapLocation t;
 		for(int i = 0; i < turretSize; i++){
 			t = enemyTurrets[i].location;
-			turretLocs[i*2] = t.x;
-			turretLocs[i*2+1] = t.y;
-			if(i % 5 == 4){
+			turretLocs[(i%3)*2] = t.x;
+			turretLocs[(i%3)*2+1] = t.y;
+			if(i % 3 == 2){
 				//send
-				myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(turretLocs);
-				turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,};
+				myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+				turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y};
 			}
 		}
 		//send
-		myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(turretLocs);
-		turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,here.x, here.y,};
+		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
 

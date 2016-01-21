@@ -2,7 +2,8 @@ package OrganizedBot;
 
 import battlecode.common.*;
 
-public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
+public enum MessageEncode {
+	// TODO: OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CLASSES FOR NEW METHODS TO IMPLEMENT, THIS SHOULD BE DOING ALL THE WORK RATHER THAN THE BOTS
 	TURRET_TARGET(0, new int[]{3, 6, 1, 2}, 2),	// health, robotType, xloc, yloc
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
@@ -10,10 +11,14 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
 	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
 	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations (as ints) **x and y offset from sender must be <16
-	WARN_ABOUT_TURRETS    (7, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations of enemy turrets -- (-1,-1) if fewer than 5
+						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
+	WARN_ABOUT_TURRETS    (7, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations of enemy turrets -- (here.x,here.y) if fewer than 5
+						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	PART_OR_NEUTRAL_NOTIF (8, new int[]{1,2},0),// map location of parts/neutral thing
 	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2},0),// map location of centroid
-	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0);// map location where there is no longer a turret
+	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
+						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
+	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3);// so archons can tell new things where all the turrets are
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -33,7 +38,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 	 * 4 - tell the archon where to go
 	 * 5 - tell the mobile archon to turtle (and where to do so)
 	 * 6 - give turrets more than one target
-	 * 7 - warn soldiers to avoid turrets they can't see -- (-1,-1) if fewer than 5
+	 * 7 - warn soldiers to avoid turrets they can't see -- (here.x,here.y) if fewer than 5
 	 * 8 - scouts to tell archons about parts or neutrals to be interested in
 	 * 9 - for when scouts see a lot of enemies that aren't turrets
 	 * 10- if it sees a loc where there used to be a turret
@@ -170,6 +175,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 8: return PART_OR_NEUTRAL_NOTIF;
 		case 9: return ENEMY_ARMY_NOTIF;
 		case 10:return ENEMY_TURRET_DEATH;
+		case 11:return RELAY_TURRET_INFO;
 
 		default: return null;
 		}
@@ -192,6 +198,7 @@ public enum MessageEncode { // NEW OPTIMIZE THIS IF YOU CAN, ALSO LOOK IN BOT CL
 		case 8: return "PART_OR_NEUTRAL_NOTIF";
 		case 9: return "ENEMY_ARMY_NOTIF";
 		case 10:return "ENEMY_TURRET_DEATH";
+		case 11:return "RELAY_TURRET_INFO";
 
 		default: return "@Nate update the toString you idiot";
 		}
