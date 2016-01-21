@@ -471,9 +471,7 @@ public class BotArchon extends Bot {
 		if (rc.hasBuildRequirements(neededUnit)) {
 			// Choose a random direction to try to build in
 			Direction dirToBuild = directions[rand.nextInt(8)];
-			if (buildUnitInDir(dirToBuild, neededUnit, allies) && neededUnit == RobotType.SCOUT) {
-				numScoutsCreated++;
-			}
+			buildUnitInDir(dirToBuild, neededUnit, allies);
 			if(rc.isCoreReady()){//failed... try to clear rubble
 				for(int i : directionOrder)
 					if (Util.checkRubbleAndClear(dirToBuild)) break;
@@ -498,8 +496,11 @@ public class BotArchon extends Bot {
 	}
 
 	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
-		int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
-		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+		int[] myMsg;
+		if(alpha != null){
+			myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+		}
 		if (targetDen != null)
 			broadcastTargetDen(allies);
 		// now notify them of turrets
