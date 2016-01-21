@@ -187,7 +187,7 @@ public class Harass extends Bot {
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (canWin1v1(loneAttacker)) {
+					if (canWin1v1(loneAttacker)/* && !loneAttacker.type.isZombie*/ ) {
 						// we can beat the other guy 1v1. fire away!
 						// Debug.indicate("micro", 0, "winning 1v1");
 						attackIfReady(loneAttacker.location);
@@ -332,7 +332,7 @@ public class Harass extends Bot {
 			double minHealth = 1e99;
 			for (RobotInfo enemy : enemies) {
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-					if (enemy.health < minHealth) {
+					if (enemy.health < minHealth || enemy.type == type.ARCHON) {
 						minHealth = enemy.health;
 						bestTarget = enemy;
 					}
@@ -624,6 +624,7 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateTurretLoc() {
+
 		if(turretSize > 0){
 			int min = 999999;
 			int dist;
@@ -631,7 +632,7 @@ public class Harass extends Bot {
 			for(int i = 0 ; i < turretSize; i++){
 				turret = enemyTurrets[i].location;
 				dist = here.distanceSquaredTo(turret);
-				if(dist < min){
+				if (dist < min) {
 					turretLoc = turret;
 					min = dist;
 				}
@@ -640,17 +641,9 @@ public class Harass extends Bot {
 		}
 		turretLoc = null;
 		return false;
+
 	}
 
-	public static void crunch() throws GameActionException {
-		if (friends.length > 20)
-			if (rc.isCoreReady() && rc.canMove(here.directionTo(turretLoc))) {
-				RobotInfo[] blank = new RobotInfo[1];
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
-				Nav.goTo(turretLoc, theSafety);
-				Combat.shootAtNearbyEnemies();
-			}
-	}
 
 	public static boolean updateMoveIn() {
 		// TODO: make this be based on turrets
@@ -659,16 +652,13 @@ public class Harass extends Bot {
 		return true;
 	}
 
-	public static RobotInfo[] addRobotInfo(RobotInfo[] series, RobotInfo newInt) {
-		// create a new array with extra index
-		RobotInfo[] newSeries = new RobotInfo[series.length + 1];
-		// copy the integers from series to newSeries
-		for (int i = 0; i < series.length; i++) {
-			newSeries[i] = series[i];
-		}
-		// add the new integer to the last index
-		newSeries[newSeries.length - 1] = newInt;
-		return newSeries;
+	public static void crunch() throws GameActionException {
+		// if (friends.length > 20)
+		RobotInfo[] blank = new RobotInfo[0];
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
+		if (turretLoc != null && rc.isCoreReady())
+			Nav.goTo(turretLoc, theSafety);
+		Combat.shootAtNearbyEnemies();
 	}
 
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
@@ -681,6 +671,22 @@ public class Harass extends Bot {
 		}
 	}
 
+	/*
+	 * public static RobotInfo[] addRobotInfo(RobotInfo[] series, RobotInfo
+	 * newInt) { // create a new array with extra index RobotInfo[] newSeries =
+	 * new RobotInfo[series.length + 1]; // copy the integers from series to
+	 * newSeries for (int i = 0; i < series.length; i++) { newSeries[i] =
+	 * series[i]; } // add the new integer to the last index
+	 * newSeries[newSeries.length - 1] = newInt; return newSeries; }
+	 * 
+	 * public static void stayOutOfRange(RobotInfo[] enemies) throws
+	 * GameActionException { rc.setIndicatorString(2, "staying out of range");
+	 * NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
+	 * Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]),
+	 * enemies)); if (here.distanceSquaredTo(turretLoc) < 64) {
+	 * Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety); } else {
+	 * Nav.goTo(turretLoc, theSafety); } }
+	 */
 	public static void doHarass() throws GameActionException {
 		friends = rc.senseNearbyRobots(here, RobotType.SOLDIER.sensorRadiusSquared, us);
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
@@ -698,7 +704,10 @@ public class Harass extends Bot {
 			rc.setIndicatorString(2, "turret");
 			//doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		}
-		else{
+
+		else {
+			if (turretLoc != null)
+				rc.setIndicatorString(2, "" + turretLoc);
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
 				rc.setIndicatorString(1, "I am moving to the target " + targetLoc);

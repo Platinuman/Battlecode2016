@@ -122,7 +122,7 @@ public class BotArchon extends Bot {
 			if (activateNeutralIfPossible(allies)) {
 				return;
 			}
-			// else if has enough parts for a soldier
+			// else if has enough parts for a SOLDIER
 			if (rc.hasBuildRequirements(RobotType.SOLDIER)) {
 				if (targetDen != null)
 					buildUnitInDir(here.directionTo(targetDen), RobotType.SOLDIER, allies);
