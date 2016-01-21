@@ -356,7 +356,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { // NEW into MessageEncode
+	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { 
 		Signal[] signals = rc.emptySignalQueue();
 		updateTurretList(signals);
 		for (Signal signal : signals) {
@@ -367,10 +367,18 @@ public class BotArchon extends Bot {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
 					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
 						int[] data = purpose.decode(senderLoc, message);
-						MapLocation targetLoc = new MapLocation(data[0], data[1]);
-						if (targetDen == null
-								|| here.distanceSquaredTo(targetLoc) < here.distanceSquaredTo(targetDen)) {
-							targetDen = targetLoc;
+						MapLocation denLoc = new MapLocation(data[0], data[1]);
+						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+								&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+							targetDens[targetDenSize] = denLoc;
+							targetDenSize++;
+							numDensToHunt++;
+
+							if (targetDen == null
+									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
+								targetDen = denLoc;
+								bestIndex = targetDenSize;
+							}
 						}
 						/*
 						 * int[] data = purpose.decode(senderloc, message);
@@ -395,6 +403,22 @@ public class BotArchon extends Bot {
 						MapLocation targetLoc = new MapLocation(data[0], data[1]);
 						if (targetLocation == null) {
 							targetLocation = targetLoc;
+						}
+					}
+				} else {
+					MapLocation signalLoc = signal.getLocation();
+					int distToSignal = here.distanceSquaredTo(signalLoc);
+					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+					if (closestIndex != -1 && targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
+						rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+						killedDens[killedDenSize] = targetDens[closestIndex];
+						killedDenSize++;
+						targetDens[closestIndex] = null;
+						numDensToHunt--;
+						targetDen = null;
+						if (numDensToHunt > 0) {
+							bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+							targetDen = targetDens[bestIndex];
 						}
 					}
 				}
@@ -500,8 +524,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void notifyNewUnitOfCreator(RobotInfo[] allies) throws GameActionException {// New
-																								// Util
+	private static void notifyNewUnitOfCreator(RobotInfo[] allies) throws GameActionException {// New																			// Util
 		if (isMobileArchon) {
 			if (targetDen != null)
 				broadcastTargetDen(allies);

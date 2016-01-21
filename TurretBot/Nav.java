@@ -16,6 +16,8 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 	public boolean isSafeToMoveTo(MapLocation loc) {
 		for (RobotInfo enemy : nearbyEnemies) {
 			switch (enemy.type) {
+			case ARCHON:
+				break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
 					return false;
@@ -54,7 +56,7 @@ public class Nav extends Bot {
 
 	private static boolean checkRubble(Direction dir) {
 		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 10000; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {

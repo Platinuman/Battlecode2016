@@ -31,19 +31,13 @@ public class BotScout extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(message);
+				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),message);
 				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
 				break;
 			}
 		}
 	}
-	private static boolean checkRubbleAndClear(Direction dir)throws GameActionException {
-		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
-				rc.clearRubble(dir);
-			return true;
-		}
-		return false;
-	}
+	
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
@@ -53,33 +47,24 @@ public class BotScout extends Bot {
 			moveToLocFartherThanAlphaIfPossible(here);
 		}
 		if (rc.isCoreReady()) {
-			Direction dirToClear = Direction.NORTH;
-			for (int i = 0; i < 8; i++) {
-				if (checkRubbleAndClear(dirToClear)) {
-					break;
-				}
-				dirToClear = dirToClear.rotateRight();
-			}
+			Util.checkRubbleAndClear(here.directionTo(center));
 		}
+		broadcastEnemies();
+		
+	}
+	private static void broadcastEnemies() throws GameActionException{
 		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
 		Arrays.sort(enemyRobots, new Comparator<RobotInfo>() {
 		    public int compare(RobotInfo idx1, RobotInfo idx2) {
 		        return (int) (100*(idx1.attackPower-idx2.attackPower) + (-idx1.health+idx2.health));
 		    }
 		});
-		for (int i = 0; i < enemyRobots.length; i++) {
-			if (i == 20) {
-				break;
-			}
+		for (int i = Integer.max(0,enemyRobots.length-20); i < enemyRobots.length; i++) {
 			MapLocation loc = enemyRobots[i].location;
-			double health = enemyRobots[i].health;
-			RobotType type = enemyRobots[i].type;
-			int[] message = MessageEncode.TURRET_TARGET
-					.encode(new int[] { (int) (health), type.ordinal(), loc.x, loc.y });
-			rc.broadcastMessageSignal(message[0], message[1],16);
+			int[] message = MessageEncode.TURRET_TARGET.encode(new int[] { loc.x, loc.y });
+			rc.broadcastMessageSignal(message[0], message[1],(int)GameConstants.BROADCAST_RANGE_MULTIPLIER*RobotType.SCOUT.sensorRadiusSquared);
 		}
 	}
-
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = here.directionTo(center);
 		boolean shouldMove = false;
@@ -93,8 +78,8 @@ public class BotScout extends Bot {
 			MapLocation newLoc = here.add(dir);
 			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
 				int newDistanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				int newNearestScout = distToNearestScout(newLoc);
 				if (newDistanceToAlpha <= range && theSafety.isSafeToMoveTo(newLoc)) {
+					int newNearestScout = distToNearestScout(newLoc);
 					int score = newDistanceToAlpha - newNearestScout;
 					if (score > bestScore) {
 						bestScore = score;
@@ -127,7 +112,7 @@ public class BotScout extends Bot {
 			int[] message = signals[i].getMessage();
 			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
 			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(message);
+				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(),message);
 				range = decodedMessage[0] - 1;
 				break;
 			}
