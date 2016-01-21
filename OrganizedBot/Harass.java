@@ -493,6 +493,16 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
+		RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
+		for(RobotInfo zombie: zombies){
+			if(zombie.type == RobotType.ZOMBIEDEN){
+				if(targetLoc == null || zombie.location != targetLoc){
+					targetLoc = zombie.location;
+					return true;
+				}
+				return false;
+			}
+		}
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();
@@ -540,9 +550,8 @@ public class Harass extends Bot {
 						return true;
 					} else {// if a den has been killed don't go for it anymore
 						int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-						if (closestIndex != -1 && targetDens[closestIndex]
-								.distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
-							//rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex]+ " on round " + rc.getRoundNum());
+						if (closestIndex != -1 && targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
+							//rc.setIndicatorString(1, "not going for den at loc " + targetDens[closestIndex]+ " on round " + rc.getRoundNum());
 							killedDens[killedDenSize] = targetDens[closestIndex];
 							killedDenSize++;
 							targetDens[closestIndex] = null;

@@ -104,10 +104,10 @@ public class BotScout extends Bot {
 			//notifySoldiersOfTurtle(hostileRobots);
 			//rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
-			if(rc.getRoundNum() % 15 == 0){
+			if(rc.getRoundNum() % 30 == 0){
 				notifySoldiersOfEnemyArmy(enemies);
 			}
-			if(rc.getRoundNum() % 15 == 0){
+			if(rc.getRoundNum() % 30 == 0){
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -205,7 +205,7 @@ public class BotScout extends Bot {
 	}
 
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException{
-		if(enemies.length > 2){
+		if(enemies.length > 1){
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
 		}
