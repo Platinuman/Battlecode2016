@@ -124,7 +124,7 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// if i haven't created a scout create one
-			if (createScoutIfNecessary(allies)) // isn't running away more
+			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
 				// important? meh can fix later
 				// if necessary
 				return;
@@ -136,7 +136,7 @@ public class BotArchon extends Bot {
 			// else if has enough parts for a SOLDIER
 			if(typeToBuild == null)
 				determineTypeToBuild();
-			if (rc.hasBuildRequirements(typeToBuild)) {
+			if (rc.hasBuildRequirements(typeToBuild) && scoutCreated) {
 				if (targetDen != null)
 					buildUnitInDir(here.directionTo(targetDen), typeToBuild, allies);
 				else
@@ -497,15 +497,14 @@ public class BotArchon extends Bot {
 			Direction dirToBuild = directions[rand.nextInt(8)];
 			buildUnitInDir(dirToBuild, neededUnit, allies);
 			if(rc.isCoreReady()){//failed... try to clear rubble
-				for(int i : directionOrder)
-					if (Util.checkRubbleAndClear(dirToBuild)) break;
+					Util.checkRubbleAndClear(dirToBuild,true);
 			}
 		}
-		if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
-			maxRange++;
-			int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-			rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
-		}
+//		if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
+//			maxRange++;
+//			int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
+//			rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
+//		}
 	}
 
 	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New Util
@@ -549,14 +548,14 @@ public class BotArchon extends Bot {
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
 
-	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
-
-		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
-			rc.clearRubble(dir);
-			return true;
-		}
-		return false;
-	}
+//	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
+//
+//		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
+//			rc.clearRubble(dir);
+//			return true;
+//		}
+//		return false;
+//	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
@@ -569,7 +568,7 @@ public class BotArchon extends Bot {
 		if (rc.isCoreReady()) {
 			Direction dir = Direction.NORTH;
 			for (int i = 0; i < 8; i++) {
-				if (checkRubbleAndClear(dir)) {
+				if (Util.checkRubbleAndClear(dir,true)) {
 					break;
 				}
 				dir = dir.rotateRight();

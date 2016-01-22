@@ -19,6 +19,7 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
+	static MapLocation circlingLoc;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -89,7 +90,7 @@ public class BotScout extends Bot {
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
-		//display wft the turret list is
+		//display wtf the turret list is
 		String s = "";
 		for(int i = 0; i < turretSize; i++){
 			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
@@ -99,8 +100,13 @@ public class BotScout extends Bot {
 		case 0://exploring
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			updateTurretList(rc.emptySignalQueue(), hostileRobots);
-			Nav.explore();
+			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), hostileRobots);
+			if(circlingLoc != null){
+				if(rc.isCoreReady())
+					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostileRobots));
+			}
+			else	
+				Nav.explore();
 			//notifySoldiersOfTurtle(hostileRobots);
 			//rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
@@ -177,6 +183,7 @@ public class BotScout extends Bot {
 		boolean updated = Bot.updateTurretList(signals);
 		for (RobotInfo e : enemies)
 			if (e.type == RobotType.TURRET){
+				circlingLoc = e.location;
 				if(!isLocationInTurretArray(e.location)){
 					enemyTurrets[turretSize]= e;
 					turretSize++;
@@ -201,6 +208,8 @@ public class BotScout extends Bot {
 				}
 			}
 		}
+		if(turretSize == 0)
+			circlingLoc = null;
 		return updated;
 	}
 
