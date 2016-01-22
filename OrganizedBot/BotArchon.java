@@ -8,6 +8,7 @@ public class BotArchon extends Bot {
 	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
+	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
 	// mobile archon fields here:
@@ -41,6 +42,7 @@ public class BotArchon extends Bot {
 		// Signal[] signals = rc.emptySignalQueue();
 		isMobileArchon = true;
 		targetDen = null;
+		typeToBuild = null;
 		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
 		//// method
 		// analyzeMap();
@@ -113,7 +115,7 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// if i haven't created a scout create one
-			if (createScoutIfNecessary(allies)) // isn't running away more
+			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
 				// important? meh can fix later
 				// if necessary
 				return;
@@ -123,11 +125,14 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// else if has enough parts for a SOLDIER
-			if (rc.hasBuildRequirements(RobotType.SOLDIER)) {
+			if(typeToBuild == null)
+				determineTypeToBuild();
+			if (rc.hasBuildRequirements(typeToBuild) && scoutCreated) {
 				if (targetDen != null)
-					buildUnitInDir(here.directionTo(targetDen), RobotType.SOLDIER, allies);
+					buildUnitInDir(here.directionTo(targetDen), typeToBuild, allies);
 				else
-					buildUnitInDir(here.directionTo(center), RobotType.SOLDIER, allies);
+					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
+				typeToBuild = null;
 				return;
 			}
 			// else if targetDen is not null move towards it
@@ -202,6 +207,14 @@ public class BotArchon extends Bot {
 	 * 
 	 * } else rc.setIndicatorString(2, "I did nothing this turn"); }
 	 */
+
+	private static void determineTypeToBuild() {
+		int fate = rand.nextInt(1000);
+		if(fate % 10 == 0)
+			typeToBuild = RobotType.VIPER;
+		else
+			typeToBuild = RobotType.SOLDIER;
+	}
 
 	private static void callForHelp() throws GameActionException {
 		rc.broadcastSignal((int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
