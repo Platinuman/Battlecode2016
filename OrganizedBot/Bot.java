@@ -12,10 +12,10 @@ public class Bot {
 	public static MapLocation center;
 	protected static Random rand;
 	public static MapLocation[] targetDens;
-	public static MapLocation[] killedDens;
-	public static MapLocation targetLoc;
-	public static int killedDenSize;
 	public static int targetDenSize;
+	public static MapLocation[] killedDens;
+	public static int killedDenSize;
+	public static MapLocation targetLoc;
 	public static int bestIndex;
 	public static int numDensToHunt;
 	public static Direction directionIAmMoving;
