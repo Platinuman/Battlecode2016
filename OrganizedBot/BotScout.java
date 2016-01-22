@@ -212,22 +212,14 @@ public class BotScout extends Bot {
 	}
 
 	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
-		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared);
 		MapLocation partOrNeutralLoc = null;
-		for (MapLocation loc : possibleLocs) {
-			if (!rc.canSense(loc)) {
-				continue;
-			}
-			if (rc.senseParts(loc) > 0) {
-				partOrNeutralLoc = loc;
-				break;
-			} else {
-				RobotInfo ri = rc.senseRobotAtLocation(loc);
-				if (ri != null && ri.team == Team.NEUTRAL) {
-					partOrNeutralLoc = loc;
-					break;
-				}
-			}
+		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
+		if(neutrals.length > 0){
+			partOrNeutralLoc = neutrals[0].location;
+		} else {
+			MapLocation[] parts = rc.sensePartLocations(-1);
+			if(parts.length > 0)
+				partOrNeutralLoc = parts[0];
 		}
 		if(partOrNeutralLoc != null){
 			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });

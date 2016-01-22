@@ -21,6 +21,7 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 				break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
+					// TODO: make archons stay even further away
 					return false;
 				break;
 			}
