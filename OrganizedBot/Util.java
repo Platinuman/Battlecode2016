@@ -4,16 +4,42 @@ import battlecode.common.*;
 
 public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
-	public static boolean checkRubbleAndClear(Direction dir) {//NEW MOVE TO UTIL
+	public static boolean checkRubbleAndClear(Direction dir) throws GameActionException { // NEW Now checks all directions
 
 		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			try {
-				rc.clearRubble(dir);
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-			}
+			rc.clearRubble(dir);
 			return true;
+		}
+		Direction dirLeft = dir.rotateLeft();
+		Direction dirRight = dir.rotateRight();
+		for (int i = 0; i <= 4; i++) {
+
+			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				rc.clearRubble(dirLeft);
+				return true;
+			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				rc.clearRubble(dirRight);
+				return true;
+			}
+			dirLeft = dirLeft.rotateLeft();
+			dirRight = dirRight.rotateRight();
+		}
+		if (rc.senseRubble(here.add(dir)) > 0) {
+			rc.clearRubble(dir);
+			return true;
+		}
+		dirLeft = dir.rotateLeft();
+		dirRight = dir.rotateRight();
+		for (int i = 0; i <= 4; i++) {
+			if (rc.senseRubble(here.add(dirLeft)) > 0) {
+				rc.clearRubble(dirLeft);
+				return true;
+			} else if (rc.senseRubble(here.add(dirRight)) > 0) {
+				rc.clearRubble(dirRight);
+				return true;
+			}
+			dirLeft = dirLeft.rotateLeft();
+			dirRight = dirRight.rotateRight();
 		}
 		return false;
 	}

@@ -20,8 +20,7 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			case ARCHON:
 				break;
 			default:
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
-					// TODO: make archons stay even further away
+				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location) - ((type == RobotType.ARCHON)? 10:0))//hardcoded 10
 					return false;
 				break;
 			}
@@ -61,7 +60,7 @@ public class Nav extends Bot {
 			return false;
 		}
 		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 2000; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -267,17 +266,17 @@ public class Nav extends Bot {
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction away = center.directionTo(here);
-		if (rc.canMove(away) && rc.onTheMap(here.add(away, 4))) {
+		if (rc.canMove(away) && rc.onTheMap(here.add(away, away.isDiagonal()? (int)(Math.sqrt(type.sensorRadiusSquared/2.0)): (int)(Math.sqrt(type.sensorRadiusSquared/1.0)) ))) {
 			rc.move(away);
 		} else {
 			Direction dirLeft = away.rotateLeft();
 			Direction dirRight = away.rotateRight();
 			for (int i = 0; i < 3; i++) {
 
-				if (rc.canMove(dirLeft) && rc.onTheMap(here.add(dirLeft, 4))) {
+				if (rc.canMove(dirLeft) && rc.onTheMap(here.add(dirLeft, dirLeft.isDiagonal()? (int)(Math.sqrt(type.sensorRadiusSquared/2.0)): (int)(Math.sqrt(type.sensorRadiusSquared/1.0)) ))) {
 					rc.move(dirLeft);
 					break;
-				} else if (rc.canMove(dirRight) && rc.onTheMap(here.add(dirRight, 4))) {
+				} else if (rc.canMove(dirRight) && rc.onTheMap(here.add(dirRight, dirRight.isDiagonal()? (int)(Math.sqrt(type.sensorRadiusSquared/2.0)): (int)(Math.sqrt(type.sensorRadiusSquared/1.0)) ))) {
 					rc.move(dirRight);
 					break;
 				}
