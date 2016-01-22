@@ -95,7 +95,7 @@ public class Bot {
 		}
 		return false;
 	}
-	public static int numTurretsInRange(int range){
+	public static int numTurretsInRangeSquared(int range){
 		int count = 0;
 		for(int i = 0; i < turretSize ; i++){
 			if(enemyTurrets[i].location.distanceSquaredTo(here) <= range)
