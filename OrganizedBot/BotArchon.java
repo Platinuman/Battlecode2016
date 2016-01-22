@@ -475,15 +475,14 @@ public class BotArchon extends Bot {
 			Direction dirToBuild = directions[rand.nextInt(8)];
 			buildUnitInDir(dirToBuild, neededUnit, allies);
 			if(rc.isCoreReady()){//failed... try to clear rubble
-				for(int i : directionOrder)
-					if (Util.checkRubbleAndClear(dirToBuild)) break;
+					Util.checkRubbleAndClear(dirToBuild,true);
 			}
 		}
-		if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
-			maxRange++;
-			int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-			rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
-		}
+//		if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
+//			maxRange++;
+//			int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
+//			rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
+//		}
 	}
 
 	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New Util
@@ -527,14 +526,14 @@ public class BotArchon extends Bot {
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
 
-	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
-
-		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
-			rc.clearRubble(dir);
-			return true;
-		}
-		return false;
-	}
+//	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
+//
+//		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
+//			rc.clearRubble(dir);
+//			return true;
+//		}
+//		return false;
+//	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
@@ -547,7 +546,7 @@ public class BotArchon extends Bot {
 		if (rc.isCoreReady()) {
 			Direction dir = Direction.NORTH;
 			for (int i = 0; i < 8; i++) {
-				if (checkRubbleAndClear(dir)) {
+				if (Util.checkRubbleAndClear(dir,true)) {
 					break;
 				}
 				dir = dir.rotateRight();
