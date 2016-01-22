@@ -375,7 +375,7 @@ public class BotArchon extends Bot {
 							numDensToHunt++;
 
 							if (targetDen == null
-									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
+									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetDen)) {
 								targetDen = denLoc;
 								bestIndex = targetDenSize;
 							}
