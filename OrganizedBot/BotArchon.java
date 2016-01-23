@@ -230,7 +230,7 @@ public class BotArchon extends Bot {
 		if(numScoutsCreated * 10 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
 		else if((numVipersCreated + 1) * 5 < numSoldiersCreated && numVipersCreated < 2)
-			typeToBuild = RobotType.SOLDIER;
+			typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
