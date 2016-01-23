@@ -101,14 +101,15 @@ public class BotScout extends Bot {
 		case 0:// exploring
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
 			if (circlingLoc != null) {
 				if (rc.isCoreReady())
-					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(rc.senseHostileRobots(here, type.sensorRadiusSquared)));
+					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
 				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
 				// us).length);
 			} else
-				Nav.explore();
+				Nav.explore(hostiles);
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(zombies);

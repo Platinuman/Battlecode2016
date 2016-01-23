@@ -8,6 +8,8 @@ public class BotArchon extends Bot {
 	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
+	static int numVipersCreated = 0;
+	static int numSoldiersCreated = 0;
 	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
@@ -103,9 +105,10 @@ public class BotArchon extends Bot {
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		// update target den
+		/*
 		if(rc.getRoundNum() % 500 == 0){
 			scoutCreated = false;
-		}
+		}*/
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
 		rc.setIndicatorString(1,"target loc is " + targetLocation);
@@ -122,11 +125,12 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// if i haven't created a scout create one
+			/*
 			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
 				// important? meh can fix later
 				// if necessary
 				return;
-
+*/
 			// else if i can activate a neutral do it
 			if (activateNeutralIfPossible(allies)) {
 				return;
@@ -134,7 +138,10 @@ public class BotArchon extends Bot {
 			// else if has enough parts for a SOLDIER
 			if(typeToBuild == null)
 				determineTypeToBuild();
-			if (rc.hasBuildRequirements(typeToBuild) && scoutCreated) {
+			rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
+			rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
+			rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
+			if (rc.hasBuildRequirements(typeToBuild)) {
 				if (targetDen != null)
 					buildUnitInDir(here.directionTo(targetDen), typeToBuild, allies);
 				else
@@ -216,9 +223,10 @@ public class BotArchon extends Bot {
 	 */
 
 	private static void determineTypeToBuild() {
-		int fate = rand.nextInt(1000);
-		if(fate % 10 == 0)
-			typeToBuild = RobotType.SOLDIER;
+		if(numScoutsCreated * 10 <= numSoldiersCreated)
+			typeToBuild = RobotType.SCOUT;
+		else if((numVipersCreated + 1) * 3 < numSoldiersCreated && numVipersCreated < 3)
+			typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
@@ -242,7 +250,8 @@ public class BotArchon extends Bot {
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
-			Nav.explore();
+			return;
+		//Nav.explore();
 	}
 	/*
 	 * private static void updateAndMoveTowardTargetDen() { // TODO makes sure
@@ -483,7 +492,7 @@ public class BotArchon extends Bot {
 	// || !(zombies.length == 1 && zombies[0].type == RobotType.ZOMBIEDEN) &&
 	// (zombies.length > 0
 	// && here.distanceSquaredTo(Util.closest(zombies, here).location) <
-	// cautionLevel))
+	// cautionLevel)) 
 	// return true;
 	// return false;
 	// }
@@ -510,10 +519,28 @@ public class BotArchon extends Bot {
 			if (rc.canBuild(Direction.values()[(dir.ordinal()+i+8)%8], r) && rc.isCoreReady()) {
 				rc.build(Direction.values()[(dir.ordinal()+i+8)%8], r);
 				sendNewUnitImportantData(allies);
+				incrementTypeCount(r);
+				typeToBuild = null;
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private static void incrementTypeCount(RobotType r) {
+		switch (r){
+		case SCOUT:
+			numScoutsCreated++;
+			break;
+		case SOLDIER:
+			numSoldiersCreated++;
+			break;
+		case VIPER:
+			numVipersCreated++;
+			break;
+		default:
+			break;
+		}
 	}
 
 	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
