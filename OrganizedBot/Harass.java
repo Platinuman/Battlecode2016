@@ -809,15 +809,10 @@ public class Harass extends Bot {
 		} else if (!crunching) {
 
 			if (rc.isCoreReady() && targetLoc != null) {
-				// rc.setIndicatorString(1, "I am moving to the target " +
-				// targetLoc);
-				if (rc.isCoreReady())
 					Nav.goTo(targetLoc, theSafety);
 			}
 			if (rc.isCoreReady()) {
-				// doMicro(enemies, enemiesICanShoot, targetUpdated,
-				// archonUpdated);
-				Util.checkRubbleAndClear(here.directionTo(center), true);
+			    Util.checkRubbleAndClear(here.directionTo(center), true);
 				Nav.explore(enemies, friends);
 
 			}
