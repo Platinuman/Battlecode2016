@@ -26,16 +26,7 @@ public class BotScout extends Bot {
 	private static void init() throws GameActionException {
 		rc.setIndicatorString(0, "We see.");
 		range = 3;
-		Signal[] signals = rc.emptySignalQueue();
-		for (int i = 0; i < signals.length; i++) {
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),message);
-				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-				break;
-			}
-		}
+		alpha = MapAnalysis.getAlphaLocation();
 	}
 	
 

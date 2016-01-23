@@ -150,10 +150,10 @@ public class Harass extends Bot {
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
 			boolean archonUpdated) throws GameActionException {
 		if (enemies.length == 0) {
-			if(0>rc.getHealth() - (40-(rc.getRoundNum()-rc.getViperInfectedTurns())*2)&& rc.isCoreReady()){
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(friends);
-				Nav.goTo(Util.closest(friends,here).location, theSafety);
-			}
+//			if (0 > rc.getHealth() - (40 - (rc.getRoundNum() - rc.getViperInfectedTurns()) * 2) && rc.isCoreReady()) {
+//				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(friends);
+//				Nav.goTo(Util.closest(friends, here).location, theSafety);
+//			}
 			return false;
 		}
 		/*
@@ -267,10 +267,10 @@ public class Harass extends Bot {
 							bestTarget = enemy;
 						}
 					}
-				if(enemy.type == RobotType.ARCHON){
-					bestTarget = enemy;
-				break;
-				}
+					if (enemy.type == RobotType.ARCHON) {
+						bestTarget = enemy;
+						break;
+					}
 				}
 
 				// multiple enemies are attacking us. stay in the fight iff
@@ -719,9 +719,9 @@ public class Harass extends Bot {
 	 * Nav.goTo(turretLoc, theSafety); } }
 	 */
 	public static void doHarass() throws GameActionException {
-		friends = rc.senseNearbyRobots(here, RobotType.SOLDIER.sensorRadiusSquared, us);
-		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
-		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
+		friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
+		enemies = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+		enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		// rc.setIndicatorString(0, "" + signals.length);
 		updateTurretList(signals);
@@ -733,20 +733,16 @@ public class Harass extends Bot {
 
 		if (shouldMoveIn || crunching) {
 			crunch();
-
 		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
 				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-			// doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		} else {
-			if (turretLoc != null)
+			if (turretLoc == null)
 				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
-				// rc.setIndicatorString(1, "I am moving to the target " +
-				// targetLoc);
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-
 				rc.setIndicatorString(1, "I am exploring.");
 				Util.checkRubbleAndClear(here.directionTo(center), true);
 				Nav.explore(enemies);

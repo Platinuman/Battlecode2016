@@ -28,19 +28,7 @@ public class BotTurret extends Bot {
 		isTTM = false;
 		range = 4;
 		// patience = 0;
-		Signal[] signals = rc.emptySignalQueue();
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == them) {
-				continue;
-			}
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-				int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(), message);
-				alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-				break;
-			}
-		}
+		alpha = MapAnalysis.getAlphaLocation();
 		// lastSignal = alpha;
 	}
 
