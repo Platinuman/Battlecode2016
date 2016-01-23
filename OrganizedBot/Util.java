@@ -76,17 +76,17 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
        return bestIndex;
    }
       
-    public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
-        RobotInfo ret = null;
-        double minHealth = 1e99;
-        for(int i = robots.length; i --> 0; ) {
-            if(robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
-                minHealth = robots[i].health;
-                ret = robots[i];
-            }
-        }
-        return ret;
-    }
+   public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
+		RobotInfo ret = null;
+		double minHealth = 1e99;
+		for (int i = 0; i < robots.length; i++) {
+			if ((int)robots[i].health != (int)robots[i].maxHealth &&  robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
+				minHealth = robots[i].health;
+				ret = robots[i];
+			}
+		}
+		return ret;
+	}
     
     public static Team getTeam(RobotType type){
         switch(type){
