@@ -495,6 +495,9 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
+		if(type == RobotType.VIPER){
+			return updateViperTargetLoc(signals);
+		}
 		RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
 		for (RobotInfo zombie : zombies) {
 			if (zombie.type == RobotType.ZOMBIEDEN) {
@@ -535,10 +538,9 @@ public class Harass extends Bot {
 						return true;
 					}
 					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
-						if (targetLoc == null) {
-							huntingDen = false;
-							int[] data = purpose.decode(senderloc, message);
-							MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+						int[] data = purpose.decode(senderloc, message);
+						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+						if (!huntingDen && (targetLoc == null || (double)here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc)))) {
 							targetLoc = enemyLoc;
 						}
 					}
@@ -587,7 +589,7 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 			return true;
-		} else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10
+		} else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
 				&& rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0) {
 			targetLoc = null;
 			if (numDensToHunt > 0) {
@@ -596,7 +598,7 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 			return true;
-		}
+		} 
 		/*
 		 * RobotInfo[] allies =
 		 * rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
@@ -604,6 +606,39 @@ public class Harass extends Bot {
 		 * ally.location; return true; } }
 		 */
 		return false;
+	}
+
+	private static boolean updateViperTargetLoc(Signal[] signals) {
+		boolean updated = false;
+		if (targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+				&& rc.senseHostileRobots(here, rc.getType().sensorRadiusSquared).length == 0) {
+			targetLoc = null;
+			updated = true;
+		}
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us) {
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MapLocation senderLoc = signal.getLocation();
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
+						int[] data = purpose.decode(senderLoc, message);
+						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+						if (targetLoc == null || (double)here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc))) {
+							targetLoc = enemyLoc;
+							updated = true;
+						}
+					}
+				}
+			}
+		}
+		if(targetLoc == null){
+			MapLocation[] enemyArchonLocations = rc.getInitialArchonLocations(them);
+			int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
+			targetLoc = enemyArchonLocations[locIndex];
+			updated = true;
+		}
+		return updated;
 	}
 
 	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
