@@ -125,30 +125,12 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	// currently our micro looks like this:
 	// if we are getting owned, and we have core delay, try to retreat
 	// if we can hit an enemy, attack if our weapon delay is up. otherwise sit
 	// still
 	// try to stick to enemy harassers, engaging them if we can win the 1v1
 	// try to move toward undefended workers, engaging them if we can win the
 	// 1v1
-
-	// here's a better micro:
-	// if we are getting hit:
-	// - if we are getting owned and have core delay and can retreat, do so
-	// - otherwise hit an enemy if we can
-	// if we are not getting hit:
-	// - if we can assist an ally who is engaged, do so
-	// - if we can move to engage a worker, do so
-	// - if there is an enemy harasser nearby, stick to them
-	// - - optionally, engage if we can win the 1v1 or if there is a lot of
-	// allied support
-
-	// it's definitely good to take 1v1s if there are no nearby enemies. however
-	// we maybe
-	// should avoid initiating 1v1s if there are enemies nearby that can
-	// support.
-
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot) throws GameActionException {
 		boolean willDieFromViper = (rc.isInfected() && 0 > rc.getHealth() - (40 - (rc.getViperInfectedTurns()) * 2));
 		RobotInfo[] blank = new RobotInfo[] {};
