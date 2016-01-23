@@ -151,18 +151,12 @@ public class Harass extends Bot {
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
 			boolean archonUpdated) throws GameActionException {
-<<<<<<< HEAD
-		boolean willDieFromViper = (rc.getViperInfectedTurns() > 0 && 0 > rc.getHealth() - (40 - (rc.getViperInfectedTurns()) * 2));
+		boolean willDieFromViper = (rc.isInfected()&& 0 > rc.getHealth() - (40 - (rc.getViperInfectedTurns()) * 2));
 		RobotInfo[] blank  = new RobotInfo[]{};
 		NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(blank);
 		if (enemies.length!=0&&willDieFromViper && rc.isCoreReady()) {
 			//System.out.println(Util.closest(enemies, here).location);
-=======
-		boolean willDieFromViper = (rc.isInfected()
-				&& 0 > rc.getHealth() - (40 - rc.getViperInfectedTurns() * 2));
-		if (willDieFromViper) {
-			NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(friends);
->>>>>>> 1f79e9b53820776595bff332492da8eb89b4e189
+
 			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
 		}
 		if (enemies.length == 0) {
