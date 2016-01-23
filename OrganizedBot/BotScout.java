@@ -103,13 +103,14 @@ public class BotScout extends Bot {
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
-			if (circlingLoc != null) {
-				if (rc.isCoreReady())
+			if (rc.isCoreReady()) {
+				if (circlingLoc != null) {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
-				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
-				// us).length);
-			} else
-				Nav.explore(hostiles);
+					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
+					// us).length);
+				} else
+					Nav.explore(hostiles);
+			}
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(zombies);
@@ -119,7 +120,7 @@ public class BotScout extends Bot {
 			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
 			}
-			if ((rc.getRoundNum()+15) % 30 == 0) {
+			if ((rc.getRoundNum() + 15) % 30 == 0) {
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -190,8 +191,8 @@ public class BotScout extends Bot {
 		for (RobotInfo e : enemies)
 
 			if (e.type == RobotType.TURRET) {
-				if(circlingLoc == null){
-				circlingLoc = e.location;
+				if (circlingLoc == null) {
+					circlingLoc = e.location;
 				}
 				if (!isLocationInTurretArray(e.location)) {
 					enemyTurrets[turretSize] = e;
@@ -225,12 +226,13 @@ public class BotScout extends Bot {
 	}
 
 	private static void updateCrunchTime() throws GameActionException {
-		if (circlingLoc != null && 3*turretSize < rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared, us).length) {
+		if (circlingLoc != null
+				&& 3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
 			rc.setIndicatorString(2, "crunch");
-			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {1});
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] { 1 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
-		//rc.setIndicatorString(2, "...");
+		// rc.setIndicatorString(2, "...");
 
 	}
 

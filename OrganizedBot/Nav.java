@@ -261,12 +261,10 @@ public class Nav extends Bot {
 		// }
 	}
 
-
 	private static boolean tryMoveDirectScout(Direction toDest) throws GameActionException {
-		//Direction toDest = here.directionTo(dest);
+		// Direction toDest = here.directionTo(dest);
 
-		if (canMove(toDest)	&& rc.onTheMap(here.add(toDest, toDest.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-				: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
+		if (canMove(toDest) && rc.onTheMap(here.add(toDest, (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
 			move(toDest);
 			return true;
 		}
@@ -274,16 +272,12 @@ public class Nav extends Bot {
 		Direction[] dirs = new Direction[2];
 		Direction dirLeft = toDest.rotateLeft();
 		Direction dirRight = toDest.rotateRight();
-		if (here.add(dirLeft).distanceSquaredTo(dest) < here.add(dirRight).distanceSquaredTo(dest)) {
-			dirs[0] = dirLeft;
-			dirs[1] = dirRight;
-		} else {
-			dirs[0] = dirRight;
-			dirs[1] = dirLeft;
-		}
+		dirs[0] = dirLeft;
+		dirs[1] = dirRight;
 		for (Direction dir : dirs) {
-			if (canMove(dir)	&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-					: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
+			if (canMove(dir)
+					&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+							: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 				move(dir);
 				return true;
 			}
@@ -380,11 +374,8 @@ public class Nav extends Bot {
 																						// INTO
 																						// HARASS
 		// explore
-		safety = new SafetyPolicyAvoidAllUnits(
-				Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-		if (rc.isCoreReady()) {
-			if (hostileRobots.length > 0) {
-				flee(hostileRobots);
+		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+
 			if (directionIAmMoving == null) {
 				directionIAmMoving = center.directionTo(here);
 			}
@@ -395,9 +386,11 @@ public class Nav extends Bot {
 								.nextInt(3)];
 				moved = tryMoveDirectScout(directionIAmMoving);
 			}
-			
-				// Combat.retreat(Util.closest(hostileRobots, here).location);
+			if (!moved) {
+			flee(hostileRobots);
 			}
-		}
+			// Combat.retreat(Util.closest(hostileRobots, here).location);
+		
+
 	}
 }
