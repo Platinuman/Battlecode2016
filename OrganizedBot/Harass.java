@@ -150,20 +150,10 @@ public class Harass extends Bot {
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
 			boolean archonUpdated) throws GameActionException {
 		if (enemies.length == 0) {
-			/*
-			 * RobotInfo[] moreEnemies =
-			 * rc.senseNearbyRobots(rc.getType().attackRadiusSquared, them); if
-			 * (moreEnemies.length == 0) { // Debug.indicate("micro", 0,
-			 * "no enemies, no micro"); return false; } else { RobotInfo
-			 * closestEnemy = Util.closest(moreEnemies, here); if (closestEnemy
-			 * != null && isHarasser(closestEnemy.type) &&
-			 * rc.getType().attackRadiusSquared >=
-			 * closestEnemy.type.attackRadiusSquared) { //
-			 * Debug.indicate("micro", 0,
-			 * "no nearby enemies, shadowing an enemy at long range"); if
-			 * (rc.isCoreReady()) { shadowHarasser(closestEnemy, enemies); }
-			 * return true; } }
-			 */
+			if(0>rc.getHealth() - (40-(rc.getRoundNum()-rc.getViperInfectedTurns())*2)&& rc.isCoreReady()){
+				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(friends);
+				Nav.goTo(Util.closest(friends,here).location, theSafety);
+			}
 			return false;
 		}
 		/*
@@ -277,6 +267,10 @@ public class Harass extends Bot {
 							bestTarget = enemy;
 						}
 					}
+				if(enemy.type == RobotType.ARCHON){
+					bestTarget = enemy;
+				break;
+				}
 				}
 
 				// multiple enemies are attacking us. stay in the fight iff
@@ -661,19 +655,19 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateMoveIn(Signal[] signals) {
-		//if(type == RobotType.VIPER)
-			//return false;
-		if(turretLoc!=null && here.distanceSquaredTo(turretLoc)<rc.getType().sensorRadiusSquared && enemies.length == 0)
-			{
+		// if(type == RobotType.VIPER)
+		// return false;
+		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < rc.getType().sensorRadiusSquared
+				&& enemies.length == 0) {
 			crunching = false;
 			return false;
-			}
+		}
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.CRUNCH_TIME && purpose.decode(signal.getLocation(),message)[0] == 1) {
+					if (purpose == MessageEncode.CRUNCH_TIME && purpose.decode(signal.getLocation(), message)[0] == 1) {
 						rc.setIndicatorString(0, "checking for stuff");
 						return true;
 					}
@@ -729,7 +723,7 @@ public class Harass extends Bot {
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
-	//	rc.setIndicatorString(0, "" + signals.length);
+		// rc.setIndicatorString(0, "" + signals.length);
 		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
