@@ -43,6 +43,8 @@ public class Harass extends Bot {
 	}
 
 	public static boolean canWin1v1AfterMovingTo(MapLocation loc, RobotInfo enemy) {
+		if (enemy.type == RobotType.ARCHON)
+			return true;
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / rc.getType().attackPower);
 		int turnsTillWeCanAttack;
 		int effectiveAttackDelay;
@@ -335,7 +337,7 @@ public class Harass extends Bot {
 			RobotInfo bestTarget = null;
 			double minHealth = 1e99;
 			for (RobotInfo enemy : enemies) {
-				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+				if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 					if (enemy.health < minHealth) {
 						minHealth = enemy.health;
 						bestTarget = enemy;
@@ -361,7 +363,7 @@ public class Harass extends Bot {
 				RobotInfo closestEnemy = Util.closest(enemies, here);
 				// we can only think about engage enemies with equal or shorter
 				// range
-				if (closestEnemy != null && rc.getType().attackRadiusSquared >= closestEnemy.type.attackRadiusSquared) {
+				if (closestEnemy != null && (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared||closestEnemy.type==RobotType.ARCHON)) {
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location);
 					if (numAlliesFightingEnemy > 0) {
 						// see if we can assist our ally(s)
