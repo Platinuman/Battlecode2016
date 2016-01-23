@@ -244,7 +244,8 @@ public class BotArchon extends Bot {
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
-			Nav.explore();
+			return;
+		//Nav.explore();
 	}
 	/*
 	 * private static void updateAndMoveTowardTargetDen() { // TODO makes sure
