@@ -149,16 +149,14 @@ public class Harass extends Bot {
 	// should avoid initiating 1v1s if there are enemies nearby that can
 	// support.
 
-	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
-			boolean archonUpdated) throws GameActionException {
-		// boolean willDieFromViper = (rc.isInfected()&& 0 > rc.getHealth() -
-		// (40 - (rc.getViperInfectedTurns()) * 2));
-		// RobotInfo[] blank = new RobotInfo[]{};
-		// NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(blank);
-		// if (enemies.length!=0&&willDieFromViper && rc.isCoreReady()) {
-		// //System.out.println(Util.closest(enemies, here).location);
-		// Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
-		// }
+	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot) throws GameActionException {
+		boolean willDieFromViper = (rc.isInfected() && 0 > rc.getHealth() - (40 - (rc.getViperInfectedTurns()) * 2));
+		RobotInfo[] blank = new RobotInfo[] {};
+		NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(blank);
+		if (enemies.length != 0 && willDieFromViper && rc.isCoreReady()) {
+			// System.out.println(Util.closest(enemies, here).location);
+			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
+		}
 		if (enemies.length == 0) {
 			return false;
 		}
@@ -512,14 +510,16 @@ public class Harass extends Bot {
 		if (type == RobotType.VIPER) {
 			return updateViperTargetLoc(signals);
 		}
-		RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
-		for (RobotInfo zombie : zombies) {
-			if (zombie.type == RobotType.ZOMBIEDEN) {
-				if (targetLoc == null || zombie.location != targetLoc) {
-					targetLoc = zombie.location;
-					return true;
+		if(targetLoc == null || !rc.canSenseLocation(targetLoc)){
+			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
+			for (RobotInfo zombie : zombies) {
+				if (zombie.type == RobotType.ZOMBIEDEN) {
+					if (targetLoc == null || zombie.location != targetLoc) {
+						targetLoc = zombie.location;
+						return true;
+					}
+					return false;
 				}
-				return false;
 			}
 		}
 		for (Signal signal : signals) {
@@ -554,8 +554,8 @@ public class Harass extends Bot {
 					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-								* (here.distanceSquaredTo(targetLoc)))) {
+						if (!huntingDen && targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
+								* (here.distanceSquaredTo(targetLoc))) {
 							targetLoc = enemyLoc;
 						}
 					}
@@ -582,6 +582,14 @@ public class Harass extends Bot {
 							numDensToHunt--;
 						}
 					}
+				}
+			}
+			else{
+				MapLocation enemyLoc = signal.getLocation();
+				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+						* (here.distanceSquaredTo(targetLoc))) {
+					targetLoc = enemyLoc;
+					huntingDen = false;
 				}
 			}
 		}
@@ -645,6 +653,14 @@ public class Harass extends Bot {
 							updated = true;
 						}
 					}
+				}
+			}
+			else{
+				MapLocation enemyLoc = signal.getLocation();
+				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+						* (here.distanceSquaredTo(targetLoc))) {
+					targetLoc = enemyLoc;
+					updated = true;
 				}
 			}
 		}
@@ -798,10 +814,10 @@ public class Harass extends Bot {
 		// it
 		// starts here
 
-		if ((shouldMoveIn || crunching) && here.distanceSquaredTo(turretLoc) < 150) {
+		if ((shouldMoveIn || crunching) && turretLoc != null && here.distanceSquaredTo(turretLoc) < 150) {
 			crunch();
 		} else if (enemies.length > 0) {
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+			doMicro(enemies, enemiesICanShoot);
 
 		}
 		if (!crunching && turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
@@ -809,6 +825,7 @@ public class Harass extends Bot {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 		} else if (!crunching) {
 			if (rc.isCoreReady() && targetLoc != null) {
+<<<<<<< HEAD
 				// rc.setIndicatorString(1, "I am moving to the target " +
 				// targetLoc);
 				Nav.goTo(targetLoc, theSafety);
@@ -819,6 +836,14 @@ public class Harass extends Bot {
 				Util.checkRubbleAndClear(here.directionTo(center), true);
 				if(rc.isCoreReady())
 					Nav.explore(enemies, friends);
+=======
+					Nav.goTo(targetLoc, theSafety);
+			}
+			if (rc.isCoreReady()) {
+			    Util.checkRubbleAndClear(here.directionTo(center), true);
+			    if(rc.isCoreReady())
+			    	Nav.explore(enemies, friends);
+>>>>>>> 85567aa4110d8a7ca15a2b0bfe43f9f9638db322
 			}
 		}
 		// ends here

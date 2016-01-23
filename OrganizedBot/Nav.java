@@ -382,11 +382,11 @@ public class Nav extends Bot {
 			directionIAmMoving = Util.centroidOfUnits(scouts).directionTo(here);
 		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
 		//			directionIAmMoving = directionIAmMoving.rotateRight();
-		if(!tryMoveDirectScout(directionIAmMoving))
+		if(tryMoveDirectScout(directionIAmMoving))return;
+		else
 			directionIAmMoving = (new Direction[] {
 					directionIAmMoving.opposite().rotateLeft(),
 					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
-		else return;
 		if( tryMoveDirectScout(directionIAmMoving)) return;
 		flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
