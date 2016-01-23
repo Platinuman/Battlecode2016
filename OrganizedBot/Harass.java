@@ -511,14 +511,16 @@ public class Harass extends Bot {
 		if (type == RobotType.VIPER) {
 			return updateViperTargetLoc(signals);
 		}
-		RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
-		for (RobotInfo zombie : zombies) {
-			if (zombie.type == RobotType.ZOMBIEDEN) {
-				if (targetLoc == null || zombie.location != targetLoc) {
-					targetLoc = zombie.location;
-					return true;
+		if(targetLoc == null || !rc.canSenseLocation(targetLoc)){
+			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
+			for (RobotInfo zombie : zombies) {
+				if (zombie.type == RobotType.ZOMBIEDEN) {
+					if (targetLoc == null || zombie.location != targetLoc) {
+						targetLoc = zombie.location;
+						return true;
+					}
+					return false;
 				}
-				return false;
 			}
 		}
 		for (Signal signal : signals) {
@@ -797,7 +799,7 @@ public class Harass extends Bot {
 		// it
 		// starts here
 
-		if ((shouldMoveIn || crunching) && here.distanceSquaredTo(turretLoc) < 150) {
+		if ((shouldMoveIn || crunching) && turretLoc != null && here.distanceSquaredTo(turretLoc) < 150) {
 			crunch();
 		} else if (enemies.length > 0) {
 			doMicro(enemies, enemiesICanShoot);
@@ -813,8 +815,8 @@ public class Harass extends Bot {
 			}
 			if (rc.isCoreReady()) {
 			    Util.checkRubbleAndClear(here.directionTo(center), true);
-				Nav.explore(enemies, friends);
-
+			    if(rc.isCoreReady())
+			    	Nav.explore(enemies, friends);
 			}
 
 		}

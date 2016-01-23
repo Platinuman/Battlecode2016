@@ -226,7 +226,7 @@ public class BotArchon extends Bot {
 		if(numScoutsCreated * 10 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
 		else if((numVipersCreated + 1) * 5 < numSoldiersCreated && numVipersCreated < 2)
-			typeToBuild = RobotType.SOLDIER;
+			typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
@@ -422,8 +422,16 @@ public class BotArchon extends Bot {
 																							// ENCODE
 		/*if (!haveEnoughFighters(allies))
 			return;*/
-		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { targetDen.x, targetDen.y });
-		rc.broadcastMessageSignal(msg[0], msg[1], (int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+		int count = 0;
+		for(MapLocation den: targetDens){
+			if(den == null)
+				continue;
+			if(rc.getMessageSignalCount() == 19)
+				break;
+			count++;
+			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { den.x, den.y });
+			rc.broadcastMessageSignal(msg[0], msg[1], (int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+		}
 	}
 
 	// private static MapLocation chooseNextTarget(RobotInfo[] allies,
