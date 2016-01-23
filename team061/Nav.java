@@ -20,7 +20,8 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			case ARCHON:
 				break;
 			default:
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
+				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
+						- ((type == RobotType.ARCHON) ? 10 : 0))// hardcoded 10
 					return false;
 				break;
 			}
@@ -51,16 +52,19 @@ public class Nav extends Bot {
 	private static int bugMovesSinceSeenObstacle = 0;
 
 	private static boolean move(Direction dir) throws GameActionException {
-		rc.move(dir);
-		return true;
+		if (rc.canMove(dir)) {
+			rc.move(dir);
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean checkRubble(Direction dir) {
-		if (rc.getType() == RobotType.TTM){
+		if (rc.getType() == RobotType.TTM) {
 			return false;
 		}
 		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 2000; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -258,25 +262,36 @@ public class Nav extends Bot {
 	}
 
 	public static boolean moveInDir(Direction dir, NavSafetyPolicy theSafety) throws GameActionException {
-		safety = theSafety;
-		dest = here.add(dir);
-		return tryMoveDirect();
+		if (rc.canMove(dir)
+				&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
+			rc.move(dir);
+			return true;
+
+		}
+		return false;
 	}
 
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction away = center.directionTo(here);
-		if (rc.canMove(away) && rc.onTheMap(here.add(away, 4))) {
+		if (rc.canMove(away)
+				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 			rc.move(away);
 		} else {
 			Direction dirLeft = away.rotateLeft();
 			Direction dirRight = away.rotateRight();
 			for (int i = 0; i < 3; i++) {
 
-				if (rc.canMove(dirLeft) && rc.onTheMap(here.add(dirLeft, 4))) {
+				if (rc.canMove(dirLeft) && rc.onTheMap(
+						here.add(dirLeft, dirLeft.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 					rc.move(dirLeft);
 					break;
-				} else if (rc.canMove(dirRight) && rc.onTheMap(here.add(dirRight, 4))) {
+				} else if (rc.canMove(dirRight) && rc.onTheMap(
+						here.add(dirRight, dirRight.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 					rc.move(dirRight);
 					break;
 				}
@@ -308,50 +323,56 @@ public class Nav extends Bot {
 		// time to die... gg
 	}
 
-	public static void explore() throws GameActionException { // NEW INTO HARASS
+	// public static void explore() throws GameActionException { // NEW INTO
+	// HARASS
+	// // explore
+	// RobotInfo[] hostileRobots = rc.senseHostileRobots(here,
+	// type.sensorRadiusSquared);
+	// RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared,
+	// us);
+	// NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
+	// Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+	// if (rc.isCoreReady()) {
+	// if (type != RobotType.SCOUT && allies.length > 1) {
+	// directionIAmMoving = here.directionTo(Util.centroidOfUnits(allies));
+	// }
+	// if (directionIAmMoving == null) {
+	// int fate = rand.nextInt(1000);
+	// directionIAmMoving = Direction.values()[fate % 8];
+	// }
+	// boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
+	// if (!moved) {
+	// for (int i = 0; i < 8; i++) {
+	// directionIAmMoving = directionIAmMoving.rotateRight();
+	// moved = Nav.moveInDir(directionIAmMoving, theSafety);
+	// if (moved) {
+	// break;
+	// }
+	// }
+	// }
+	// if (!moved && hostileRobots.length > 0) {
+	// flee(hostileRobots);
+	// // Combat.retreat(Util.closest(hostileRobots, here).location);
+	// }
+	// }
+	// }
+
+	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW
+																						// INTO
+																						// HARASS
 		// explore
-		RobotInfo[] hostileRobots = rc.senseHostileRobots(here, type.sensorRadiusSquared);
-		RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-		if (rc.isCoreReady()){
-			if(type != RobotType.SCOUT && allies.length > 1){
-				directionIAmMoving = here.directionTo(Util.centroidOfUnits(allies));
-			}
-			if (directionIAmMoving == null) {
-				int fate = rand.nextInt(1000);
-				directionIAmMoving = Direction.values()[fate % 8];
-			}
-			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
-			if (!moved) {
-				for (int i = 0; i < 8; i++) {
-					directionIAmMoving = directionIAmMoving.rotateRight();
-					moved = Nav.moveInDir(directionIAmMoving, theSafety);
-					if (moved) {
-						break;
-					}
-				}
-			}
-			if (!moved && hostileRobots.length > 0) {
-				flee(hostileRobots);
-				// Combat.retreat(Util.closest(hostileRobots, here).location);
-			}
-		}
-	}
-	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW INTO HARASS
-		// explore
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
+				Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
 		if (rc.isCoreReady()) {
 			if (directionIAmMoving == null) {
-				int fate = rand.nextInt(1000);
-				directionIAmMoving = Direction.values()[fate % 8];
+				directionIAmMoving = center.directionTo(here);
 			}
 			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
 			if (!moved) {
-				for (int i = 0; i < 8; i++) {
-					directionIAmMoving = directionIAmMoving.rotateRight();
-					moved = Nav.moveInDir(directionIAmMoving, theSafety);
-					if (moved) break;
-				}
+				directionIAmMoving = (new Direction[] { directionIAmMoving.opposite(),
+						directionIAmMoving.opposite().rotateLeft(), directionIAmMoving.opposite().rotateRight() })[rand
+								.nextInt(3)];
+				moved = Nav.moveInDir(directionIAmMoving, theSafety);
 			}
 			if (!moved && hostileRobots.length > 0) {
 				flee(hostileRobots);
