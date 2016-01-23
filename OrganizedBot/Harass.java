@@ -151,9 +151,9 @@ public class Harass extends Bot {
 			boolean archonUpdated) throws GameActionException {
 		boolean willDieFromViper = (rc.isInfected()
 				&& 0 > rc.getHealth() - (40 - rc.getViperInfectedTurns() * 2));
-		NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(friends);
 		if (willDieFromViper) {
-			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
+			NavSafetyPolicy theSafety = new NavSafetyPolicyAvoidAllUnits(enemiesInSight);
+			Nav.goTo(Util.closest(enemies, here).location, theSafety);
 		}
 		if (enemies.length == 0) {
 			return false;
@@ -182,9 +182,11 @@ public class Harass extends Bot {
 					if (canWin1v1(loneAttacker) || loneAttacker.type == type.ARCHON) {
 						// we can beat the other guy 1v1. fire away!
 						// Debug.indicate("micro", 0, "winning 1v1");
+						rc.setIndicatorString(0, "getTheArchon");
 						attackIfReady(loneAttacker.location);
 						if (loneAttacker.type == type.ARCHON && rc.isCoreReady())
 							shadowHarasser(loneAttacker, enemies);
+						rc.setIndicatorString(1, "followTheArchon");
 						return true;
 					} else {
 						// check if we actually have some allied support. if so
@@ -452,7 +454,7 @@ public class Harass extends Bot {
 			boolean locIsSafe = true;
 
 			for (RobotInfo enemy : enemies) {
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
+				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location) && enemy.type !=RobotType.ARCHON) {
 					locIsSafe = false;
 					break;
 				}
@@ -463,6 +465,7 @@ public class Harass extends Bot {
 				break;
 			}
 		}
+		Util.checkRubbleAndClear(toEnemy,true);
 	}
 
 	private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] enemies) {
@@ -793,7 +796,6 @@ public class Harass extends Bot {
 				if(rc.isCoreReady())
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-				rc.setIndicatorString(1, "I am exploring.");
 				Util.checkRubbleAndClear(here.directionTo(center), true);
 				Nav.explore(enemies);
 
