@@ -743,7 +743,7 @@ public class Harass extends Bot {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			// doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		} else {
-			if (turretLoc != null)
+			if (turretLoc == null)
 				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
 				// rc.setIndicatorString(1, "I am moving to the target " +
