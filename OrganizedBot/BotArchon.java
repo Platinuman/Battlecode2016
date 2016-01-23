@@ -8,6 +8,8 @@ public class BotArchon extends Bot {
 	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
+	static int numVipersCreated = 0;
+	static int numSoldiersCreated = 0;
 	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
@@ -39,12 +41,14 @@ public class BotArchon extends Bot {
 
 	private static void init() throws GameActionException {
 		//test messageencode stuff
+		/*
 		int b = Clock.getBytecodeNum();
 		MessageEncode.TURRET_TARGET.decode(here, 
 				MessageEncode.TURRET_TARGET.encode(new int[]{149, 6, here.x+5, here.y+5}));
 		MessageEncode.WARN_ABOUT_TURRETS.decode(here, 
 				MessageEncode.WARN_ABOUT_TURRETS.encode(new int[]{here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,}));
 		System.out.println(Clock.getBytecodeNum()-b);
+		*/
 
 		
 		// maxRange = 2;

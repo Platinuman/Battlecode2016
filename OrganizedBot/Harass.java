@@ -725,9 +725,9 @@ public class Harass extends Bot {
 	 * Nav.goTo(turretLoc, theSafety); } }
 	 */
 	public static void doHarass() throws GameActionException {
-		friends = rc.senseNearbyRobots(here, RobotType.SOLDIER.sensorRadiusSquared, us);
-		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
-		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
+		friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
+		enemies = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+		enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 	//	rc.setIndicatorString(0, "" + signals.length);
 		updateTurretList(signals);
@@ -736,10 +736,8 @@ public class Harass extends Bot {
 		boolean shouldMoveIn = updateMoveIn(signals);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
-
 		if (shouldMoveIn || crunching) {
 			crunch();
-
 		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
 				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
