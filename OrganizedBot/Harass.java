@@ -154,8 +154,8 @@ public class Harass extends Bot {
 		boolean willDieFromViper = (rc.isInfected()
 				&& 0 > rc.getHealth() - (40 - rc.getViperInfectedTurns() * 2));
 		if (willDieFromViper) {
-			NavSafetyPolicy theSafety = new NavSafetyPolicyAvoidAllUnits(enemiesInSight);
-			Nav.goTo(Util.closest(enemies, here).location, theSafety);
+			NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(friends);
+			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
 		}
 		if (enemies.length == 0) {
 			return false;
@@ -643,10 +643,17 @@ public class Harass extends Bot {
 		}
 		if(targetLoc == null){
 			MapLocation[] enemyArchonLocations = rc.getInitialArchonLocations(them);
+			do{
 			int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
+			if(locIndex == -1)
+				break;
 			targetLoc = enemyArchonLocations[locIndex];
-			updated = true;
+			enemyArchonLocations[locIndex] = null;
+			}while(here.distanceSquaredTo(targetLoc) < 5);
+			if(targetLoc != null)
+				updated = true;
 		}
+		rc.setIndicatorString(2, "targetLoc = " + targetLoc);
 		return updated;
 	}
 
