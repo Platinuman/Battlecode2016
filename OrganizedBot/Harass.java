@@ -783,6 +783,8 @@ public class Harass extends Bot {
 			if (rc.isCoreReady() && targetLoc != null) {
 				// rc.setIndicatorString(1, "I am moving to the target " +
 				// targetLoc);
+				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+				if(rc.isCoreReady())
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
 
