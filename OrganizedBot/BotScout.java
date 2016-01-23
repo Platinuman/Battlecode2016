@@ -99,26 +99,26 @@ public class BotScout extends Bot {
 								// should they be in harass they're literally
 								// only for scouts
 		case 0:// exploring
-			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), hostileRobots);
+			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
 			if (circlingLoc != null) {
 				if (rc.isCoreReady())
-					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostileRobots));
+					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(rc.senseHostileRobots(here, type.sensorRadiusSquared)));
 				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
 				// us).length);
 			} else
 				Nav.explore();
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
-			notifySoldiersOfZombieDen(hostileRobots);
+			notifySoldiersOfZombieDen(zombies);
 			// if (rc.getRoundNum() % 30 == 0) {
 			updateCrunchTime();
 			// }
 			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
 			}
-			if (rc.getRoundNum() % 30 == 0) {
+			if ((rc.getRoundNum()+15) % 30 == 0) {
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -189,7 +189,9 @@ public class BotScout extends Bot {
 		for (RobotInfo e : enemies)
 
 			if (e.type == RobotType.TURRET) {
+				if(circlingLoc == null){
 				circlingLoc = e.location;
+				}
 				if (!isLocationInTurretArray(e.location)) {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
