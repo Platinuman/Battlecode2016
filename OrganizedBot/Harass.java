@@ -661,7 +661,9 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateMoveIn(Signal[] signals) {
-		if(here.distanceSquaredTo(turretLoc)<rc.getType().sensorRadiusSquared && enemies.length == 0)
+		//if(type == RobotType.VIPER)
+			//return false;
+		if(turretLoc!=null && here.distanceSquaredTo(turretLoc)<rc.getType().sensorRadiusSquared && enemies.length == 0)
 			{
 			crunching = false;
 			return false;

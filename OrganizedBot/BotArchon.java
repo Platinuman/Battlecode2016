@@ -220,7 +220,7 @@ public class BotArchon extends Bot {
 	private static void determineTypeToBuild() {
 		int fate = rand.nextInt(1000);
 		if(fate % 10 == 0)
-			typeToBuild = RobotType.VIPER;
+			typeToBuild = RobotType.SOLDIER;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
