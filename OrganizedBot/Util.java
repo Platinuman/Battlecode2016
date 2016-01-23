@@ -151,7 +151,18 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
 	}
-
+public boolean isDangerous(RobotType theType){
+	switch(type){
+    case ARCHON:
+    	return false;
+    case ZOMBIEDEN:
+    	return false;
+    case SCOUT:
+    	return false;
+    default:
+        return true;
+    }
+}
 
 	public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
 		for(int i = 0; i < size; i++){

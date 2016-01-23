@@ -261,13 +261,26 @@ public class Nav extends Bot {
 		// }
 	}
 
-	public static boolean moveInDir(Direction dir, NavSafetyPolicy theSafety) throws GameActionException {
-		if (rc.canMove(dir)
-				&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
-			rc.move(dir);
-			return true;
+	private static boolean tryMoveDirectScout(Direction toDest) throws GameActionException {
+		// Direction toDest = here.directionTo(dest);
 
+		if (canMove(toDest) && rc.onTheMap(here.add(toDest, (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
+			move(toDest);
+			return true;
+		}
+
+		Direction[] dirs = new Direction[2];
+		Direction dirLeft = toDest.rotateLeft();
+		Direction dirRight = toDest.rotateRight();
+		dirs[0] = dirLeft;
+		dirs[1] = dirRight;
+		for (Direction dir : dirs) {
+			if (canMove(dir)
+					&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
+							: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
+				move(dir);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -361,23 +374,23 @@ public class Nav extends Bot {
 																						// INTO
 																						// HARASS
 		// explore
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-				Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-		if (rc.isCoreReady()) {
+		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+
 			if (directionIAmMoving == null) {
 				directionIAmMoving = center.directionTo(here);
 			}
-			boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
+			boolean moved = tryMoveDirectScout(directionIAmMoving);
 			if (!moved) {
 				directionIAmMoving = (new Direction[] { directionIAmMoving.opposite(),
 						directionIAmMoving.opposite().rotateLeft(), directionIAmMoving.opposite().rotateRight() })[rand
 								.nextInt(3)];
-				moved = Nav.moveInDir(directionIAmMoving, theSafety);
+				moved = tryMoveDirectScout(directionIAmMoving);
 			}
-			if (!moved && hostileRobots.length > 0) {
-				flee(hostileRobots);
-				// Combat.retreat(Util.closest(hostileRobots, here).location);
+			if (!moved) {
+			flee(hostileRobots);
 			}
-		}
+			// Combat.retreat(Util.closest(hostileRobots, here).location);
+		
+
 	}
 }

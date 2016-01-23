@@ -88,26 +88,26 @@ public class Combat extends Bot { //NEW up to you guys what to do here, but plea
 		return true;
 	}
 
-	public static void retreat(MapLocation enemyLoc) throws GameActionException {
-		Direction[] retreatDirs = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST,
-				Direction.NORTH_EAST, Direction.SOUTH_EAST, Direction.SOUTH_WEST, Direction.NORTH_WEST };
-
-		for (Direction dir : retreatDirs) {
-			if (rc.canMove(dir) && isSafe(here.add(dir)) && rc.isCoreReady()) {
-				rc.move(dir);
-				return;
-			}
-		}
-		Direction retreatDir = enemyLoc.directionTo(here);
-		Direction[] dirs = new Direction[3];
-		dirs[0] = retreatDir;
-		dirs[1] = retreatDir.rotateLeft();
-		dirs[2] = retreatDir.rotateRight();
-		for (Direction dir : dirs) {
-			if (rc.canMove(dir)) {
-				rc.move(dir);
-				return;
-			}
-		}
-	}
+//	public static void retreat(MapLocation enemyLoc) throws GameActionException {
+//		Direction[] retreatDirs = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST,
+//				Direction.NORTH_EAST, Direction.SOUTH_EAST, Direction.SOUTH_WEST, Direction.NORTH_WEST };
+//
+//		for (Direction dir : retreatDirs) {
+//			if (rc.canMove(dir) && isSafe(here.add(dir)) && rc.isCoreReady()) {
+//				rc.move(dir);
+//				return;
+//			}
+//		}
+//		Direction retreatDir = enemyLoc.directionTo(here);
+//		Direction[] dirs = new Direction[3];
+//		dirs[0] = retreatDir;
+//		dirs[1] = retreatDir.rotateLeft();
+//		dirs[2] = retreatDir.rotateRight();
+//		for (Direction dir : dirs) {
+//			if (rc.canMove(dir)) {
+//				rc.move(dir);
+//				return;
+//			}
+//		}
+//	}
 }
