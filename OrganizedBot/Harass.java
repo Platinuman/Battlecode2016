@@ -782,7 +782,7 @@ public class Harass extends Bot {
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
 	//TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		//starts here
-		if (shouldMoveIn || crunching) {
+		if ((shouldMoveIn || crunching)&& here.distanceSquaredTo(turretLoc)<150) {
 			crunch();
 		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
 				&& rc.isCoreReady()) {
