@@ -149,8 +149,7 @@ public class Harass extends Bot {
 	// should avoid initiating 1v1s if there are enemies nearby that can
 	// support.
 
-	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
-			boolean archonUpdated) throws GameActionException {
+	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot) throws GameActionException {
 		// boolean willDieFromViper = (rc.isInfected()&& 0 > rc.getHealth() -
 		// (40 - (rc.getViperInfectedTurns()) * 2));
 		// RobotInfo[] blank = new RobotInfo[]{};
@@ -801,7 +800,7 @@ public class Harass extends Bot {
 		if ((shouldMoveIn || crunching) && here.distanceSquaredTo(turretLoc) < 150) {
 			crunch();
 		} else if (enemies.length > 0) {
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+			doMicro(enemies, enemiesICanShoot);
 
 		}
 		if (!crunching && turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
