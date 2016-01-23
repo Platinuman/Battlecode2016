@@ -149,11 +149,13 @@ public class Harass extends Bot {
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
 			boolean archonUpdated) throws GameActionException {
+		boolean willDieFromViper = (rc.isInfected()
+				&& 0 > rc.getHealth() - (40 - (rc.getRoundNum() - rc.getViperInfectedTurns()) * 2));
+		NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(friends);
+		if (willDieFromViper) {
+			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
+		}
 		if (enemies.length == 0) {
-//			if (0 > rc.getHealth() - (40 - (rc.getRoundNum() - rc.getViperInfectedTurns()) * 2) && rc.isCoreReady()) {
-//				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(friends);
-//				Nav.goTo(Util.closest(friends, here).location, theSafety);
-//			}
 			return false;
 		}
 		/*
@@ -175,7 +177,7 @@ public class Harass extends Bot {
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
-				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
+				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
 					if (canWin1v1(loneAttacker) || loneAttacker.type == type.ARCHON) {
 						// we can beat the other guy 1v1. fire away!
@@ -187,6 +189,7 @@ public class Harass extends Bot {
 					} else {
 						// check if we actually have some allied support. if so
 						// we can keep fighting
+
 						boolean haveSupport = false;
 						for (int i = 0; i < numEnemiesAttackingUs; i++) {
 							if (numOtherAlliesInAttackRange(enemiesAttackingUs[i].location) > 0) {
@@ -244,6 +247,7 @@ public class Harass extends Bot {
 						}
 					}
 				} else {
+
 					// we are getting shot by someone who outranges us. run
 					// away!
 					// Debug.indicate("micro", 0, "trying to retreat from a 1v1
@@ -262,15 +266,16 @@ public class Harass extends Bot {
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health + enemy.attackPower;
+//						if (enemy.type == RobotType.ARCHON) {
+//							bestTarget = enemy;
+//							break;
+//						}
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
 							bestTarget = enemy;
 						}
 					}
-					if (enemy.type == RobotType.ARCHON) {
-						bestTarget = enemy;
-						break;
-					}
+					
 				}
 
 				// multiple enemies are attacking us. stay in the fight iff
@@ -323,14 +328,19 @@ public class Harass extends Bot {
 				}
 			}
 		} else {
+
 			// no one is shooting at us. if we can shoot at someone, do so
 			RobotInfo bestTarget = null;
 			double minHealth = 1e99;
 			for (RobotInfo enemy : enemies) {
 				if (rc.getType().attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-					if (enemy.health < minHealth || enemy.type == type.ARCHON) {
+					if (enemy.health < minHealth) {
 						minHealth = enemy.health;
 						bestTarget = enemy;
+					}
+					if (enemy.type == type.ARCHON) {
+						bestTarget = enemy;
+						break;
 					}
 				}
 			}
