@@ -370,27 +370,21 @@ public class Nav extends Bot {
 	// }
 	// }
 
-	public static void explore(RobotInfo[] hostileRobots) throws GameActionException { // NEW
-																						// INTO
-																						// HARASS
+	public static void explore(RobotInfo[] hostileRobots, RobotInfo[] allies) throws GameActionException {
 		// explore
 		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-
-			if (directionIAmMoving == null) {
-				directionIAmMoving = center.directionTo(here);
-			}
-			boolean moved = tryMoveDirectScout(directionIAmMoving);
-			if (!moved) {
-				directionIAmMoving = (new Direction[] { directionIAmMoving.opposite(),
-						directionIAmMoving.opposite().rotateLeft(), directionIAmMoving.opposite().rotateRight() })[rand
-								.nextInt(3)];
-				moved = tryMoveDirectScout(directionIAmMoving);
-			}
-			if (!moved) {
+		if (directionIAmMoving == null) {
+			directionIAmMoving = center.directionTo(here);
+		}
+		boolean moved = tryMoveDirectScout(directionIAmMoving);
+		if (!moved) {
+			directionIAmMoving = (new Direction[] { directionIAmMoving.opposite(),
+					directionIAmMoving.opposite().rotateLeft(), directionIAmMoving.opposite().rotateRight() })[rand.nextInt(3)];
+			moved = tryMoveDirectScout(directionIAmMoving);
+		}
+		if (!moved) {
 			flee(hostileRobots);
-			}
-			// Combat.retreat(Util.closest(hostileRobots, here).location);
-		
-
+		}
+		// Combat.retreat(Util.closest(hostileRobots, here).location);
 	}
 }
