@@ -8,6 +8,9 @@ public class BotArchon extends Bot {
 	static boolean isMobileArchon;
 	static int maxRange;
 	static int numScoutsCreated = 0;
+	static int numVipersCreated = 0;
+	static int numSoldiersCreated = 0;
+	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
 	// mobile archon fields here:
@@ -37,10 +40,22 @@ public class BotArchon extends Bot {
 	}
 
 	private static void init() throws GameActionException {
+		//test messageencode stuff
+		/*
+		int b = Clock.getBytecodeNum();
+		MessageEncode.TURRET_TARGET.decode(here, 
+				MessageEncode.TURRET_TARGET.encode(new int[]{149, 6, here.x+5, here.y+5}));
+		MessageEncode.WARN_ABOUT_TURRETS.decode(here, 
+				MessageEncode.WARN_ABOUT_TURRETS.encode(new int[]{here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,here.x+5, here.y+5,}));
+		System.out.println(Clock.getBytecodeNum()-b);
+		*/
+
+		
 		// maxRange = 2;
 		// Signal[] signals = rc.emptySignalQueue();
 		isMobileArchon = true;
 		targetDen = null;
+		typeToBuild = null;
 		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
 		//// method
 		// analyzeMap();
@@ -94,9 +109,10 @@ public class BotArchon extends Bot {
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		// update target den
+		/*
 		if(rc.getRoundNum() % 500 == 0){
 			scoutCreated = false;
-		}
+		}*/
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
 		rc.setIndicatorString(1,"target loc is " + targetLocation);
@@ -113,21 +129,28 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// if i haven't created a scout create one
-			if (createScoutIfNecessary(allies)) // isn't running away more
+			/*
+			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
 				// important? meh can fix later
 				// if necessary
 				return;
-
+*/
 			// else if i can activate a neutral do it
 			if (activateNeutralIfPossible(allies)) {
 				return;
 			}
-			// else if has enough parts for a soldier
-			if (rc.hasBuildRequirements(RobotType.SOLDIER)) {
+			// else if has enough parts for a SOLDIER
+			if(typeToBuild == null)
+				determineTypeToBuild();
+			rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
+			rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
+			rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
+			if (rc.hasBuildRequirements(typeToBuild)) {
 				if (targetDen != null)
-					buildUnitInDir(here.directionTo(targetDen), RobotType.SOLDIER, allies);
+					buildUnitInDir(here.directionTo(targetDen), typeToBuild, allies);
 				else
-					buildUnitInDir(here.directionTo(center), RobotType.SOLDIER, allies);
+					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
+				typeToBuild = null;
 				return;
 			}
 			// else if targetDen is not null move towards it
@@ -164,7 +187,7 @@ public class BotArchon extends Bot {
 	 * rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2); myMsg =
 	 * MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[] { here.x, here.y
 	 * }); rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2); } else
-	 * notifyNewUnitOfCreator(allies); if (targetLocation != null &&
+	 * sendNewUnitImportantData(allies); if (targetLocation != null &&
 	 * neutrals[0].location.equals(targetLocation)) { targetLocation = null;
 	 * huntingDen = false; } } else if (rc.isCoreReady() && inDanger(allies,
 	 * enemies, zombies)){ flee(allies, enemies, zombies);
@@ -203,6 +226,15 @@ public class BotArchon extends Bot {
 	 * } else rc.setIndicatorString(2, "I did nothing this turn"); }
 	 */
 
+	private static void determineTypeToBuild() {
+		if(numScoutsCreated * 10 <= numSoldiersCreated)
+			typeToBuild = RobotType.SCOUT;
+		else if((numVipersCreated + 1) * 5 < numSoldiersCreated && numVipersCreated < 2)
+			typeToBuild = RobotType.VIPER;
+		else
+			typeToBuild = RobotType.SOLDIER;
+	}
+
 	private static void callForHelp() throws GameActionException {
 		rc.broadcastSignal((int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
@@ -222,7 +254,8 @@ public class BotArchon extends Bot {
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
-			Nav.explore();
+			return;
+		//Nav.explore();
 	}
 	/*
 	 * private static void updateAndMoveTowardTargetDen() { // TODO makes sure
@@ -235,7 +268,7 @@ public class BotArchon extends Bot {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		if (neutrals.length > 0) {
 			rc.activate(neutrals[0].location);
-			notifyNewUnitOfCreator(allies);
+			sendNewUnitImportantData(allies);
 			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
 				targetLocation = null;
 			}
@@ -271,44 +304,6 @@ public class BotArchon extends Bot {
 			}
 		}
 		return false;
-	}
-
-	private static void constructNeededUnits(RobotType neededUnit) throws GameActionException {
-		// Check for sufficient parts
-		if (rc.hasBuildRequirements(neededUnit)) {
-			// Choose a random direction to try to build in
-			Direction dirToBuild = directions[rand.nextInt(8)];
-			// Boolean built = false;
-			for (int i = 0; i < 8; i++) {
-				// If possible, build in this direction
-				if (rc.canBuild(dirToBuild, neededUnit)) {
-					rc.build(dirToBuild, neededUnit);
-					if (neededUnit == RobotType.SCOUT) {
-						numScoutsCreated++;
-					}
-					// else{
-					// numTurretsCreated++;
-					// }
-					// tell the unit you just created the location
-					int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
-					// built = true;
-					break;
-				} else if (!Util.checkRubbleAndClear(dirToBuild)) {
-					// Rotate the direction to try
-					dirToBuild = dirToBuild.rotateLeft();
-				} else {
-
-					break;
-				}
-			}
-
-			if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
-				maxRange++;
-				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
-				rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
-			}
-		}
 	}
 
 	private static boolean isSurrounded() throws GameActionException {// NEW
@@ -374,8 +369,7 @@ public class BotArchon extends Bot {
 							targetDenSize++;
 							numDensToHunt++;
 
-							if (targetDen == null
-									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetDen)) {
+							if (targetDen == null || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetDen)) {
 								targetDen = denLoc;
 								bestIndex = targetDenSize;
 							}
@@ -430,11 +424,10 @@ public class BotArchon extends Bot {
 																							// INTO
 																							// MESSAGE
 																							// ENCODE
-		if (!haveEnoughFighters(allies))
-			return;
+		/*if (!haveEnoughFighters(allies))
+			return;*/
 		int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { targetDen.x, targetDen.y });
-		rc.broadcastMessageSignal(msg[0], msg[1],
-				(int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
+		rc.broadcastMessageSignal(msg[0], msg[1], (int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 	}
 
 	// private static MapLocation chooseNextTarget(RobotInfo[] allies,
@@ -503,54 +496,108 @@ public class BotArchon extends Bot {
 	// || !(zombies.length == 1 && zombies[0].type == RobotType.ZOMBIEDEN) &&
 	// (zombies.length > 0
 	// && here.distanceSquaredTo(Util.closest(zombies, here).location) <
-	// cautionLevel))
+	// cautionLevel)) 
 	// return true;
 	// return false;
 	// }
 
-	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New
-																														// Util
-		dir = dir.rotateLeft();
-		for (int i = 0; i < 8; i++) {
-			if (rc.canBuild(dir, r) && rc.isCoreReady()) {
-				rc.build(dir, r);
-				notifyNewUnitOfCreator(allies);
-				if (targetDen != null)
-					broadcastTargetDen(allies);
+	private static void constructNeededUnits(RobotType neededUnit, RobotInfo[] allies) throws GameActionException {
+		// Check for sufficient parts
+		if (rc.hasBuildRequirements(neededUnit)) {
+			// Choose a random direction to try to build in
+			Direction dirToBuild = directions[rand.nextInt(8)];
+			buildUnitInDir(dirToBuild, neededUnit, allies);
+			if(rc.isCoreReady()){//failed... try to clear rubble
+					Util.checkRubbleAndClear(dirToBuild,true);
+			}
+		}
+//		if (isAlphaArchon && isSurrounded() && rc.getRoundNum() % 10 == 0) {
+//			maxRange++;
+//			int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
+//			rc.broadcastMessageSignal(message[0], message[1], (maxRange + 1) * (maxRange + 1));
+//		}
+	}
+
+	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New Util
+		for (int i : directionOrder) {
+			if (rc.canBuild(Direction.values()[(dir.ordinal()+i+8)%8], r) && rc.isCoreReady()) {
+				rc.build(Direction.values()[(dir.ordinal()+i+8)%8], r);
+				sendNewUnitImportantData(allies);
+				incrementTypeCount(r);
+				typeToBuild = null;
 				return true;
 			}
-			dir = dir.rotateRight();
 		}
 		return false;
 	}
 
-	private static void notifyNewUnitOfCreator(RobotInfo[] allies) throws GameActionException {// New																			// Util
-		if (isMobileArchon) {
-			if (targetDen != null)
-				broadcastTargetDen(allies);
+	private static void incrementTypeCount(RobotType r) {
+		switch (r){
+		case SCOUT:
+			numScoutsCreated++;
+			break;
+		case SOLDIER:
+			numSoldiersCreated++;
+			break;
+		case VIPER:
+			numVipersCreated++;
+			break;
+		default:
+			break;
 		}
 	}
 
-	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
-
-		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
-			rc.clearRubble(dir);
-			return true;
+	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
+		int[] myMsg;
+		
+		if(alpha != null){
+			myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 		}
-		return false;
+		
+		if (targetDen != null)
+			broadcastTargetDen(allies);
+		
+		// now notify them of turrets
+		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
+		MapLocation t;
+		for(int i = 0; i < turretSize; i++){
+			t = enemyTurrets[i].location;
+			turretLocs[(i%3)*2] = t.x;
+			turretLocs[(i%3)*2+1] = t.y;
+			if(i % 3 == 2){
+				//send
+				myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+				turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y};
+			}
+		}
+		//send
+		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
+		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
+
+//	private static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
+//
+//		if (rc.senseRubble(rc.getLocation().add(dir)) > 0) {
+//			rc.clearRubble(dir);
+//			return true;
+//		}
+//		return false;
+//	}
 
 	private static void aarons_shitty_strat() throws GameActionException {
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 		RobotType needed = RobotType.TURRET;
 		if (isScoutNeeded()) {
 			needed = RobotType.SCOUT;
 		}
-		constructNeededUnits(needed);
+		constructNeededUnits(needed, allies);
 
 		if (rc.isCoreReady()) {
 			Direction dir = Direction.NORTH;
 			for (int i = 0; i < 8; i++) {
-				if (checkRubbleAndClear(dir)) {
+				if (Util.checkRubbleAndClear(dir,true)) {
 					break;
 				}
 				dir = dir.rotateRight();

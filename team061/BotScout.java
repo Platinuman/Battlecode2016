@@ -4,8 +4,8 @@ import battlecode.common.*;
 
 public class BotScout extends Bot {
 	protected static int scoutType; // NEW 0 = turret helper;
-									//     1 = mobile helper;
-									//	   2 = explorer
+									// 1 = mobile helper;
+									// 2 = explorer
 	/*
 	 * NEW re add these if they are absolutely necessary (many will be) static
 	 * MapLocation alpha; static MapLocation mobileLoc; static int mobileID;
@@ -19,6 +19,7 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
+	static MapLocation circlingLoc;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -32,7 +33,7 @@ public class BotScout extends Bot {
 			Clock.yield();
 		}
 	}
-	
+
 	private static void init() throws GameActionException {
 		// MessageEncode.determineScoutType(); // NEW, based on strategy from
 		// archon in messages or something else
@@ -89,25 +90,36 @@ public class BotScout extends Bot {
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
-		//display wft the turret list is
 		String s = "";
-		for(int i = 0; i < turretSize; i++){
-			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
+		for (int i = 0; i < turretSize; i++) {
+			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
 		}
 		rc.setIndicatorString(0, s + " " + turretSize);
-		switch (scoutType) { // NEW should call methods in Harass why the hell should they be in harass they're literally only for scouts
-		case 0://exploring
-			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
+		switch (scoutType) { // NEW should call methods in Harass why the hell
+								// should they be in harass they're literally
+								// only for scouts
+		case 0:// exploring
+			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			updateTurretList(rc.emptySignalQueue(), hostileRobots);
-			Nav.explore();
-			//notifySoldiersOfTurtle(hostileRobots);
-			//rc.setIndicatorString(2, "found T");
-			notifySoldiersOfZombieDen(hostileRobots);
-			if(rc.getRoundNum() % 15 == 0){
+			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
+			if (circlingLoc != null) {
+				if (rc.isCoreReady())
+					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
+				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
+				// us).length);
+			} else
+				Nav.explore(hostiles);
+			// notifySoldiersOfTurtle(hostileRobots);
+			// rc.setIndicatorString(2, "found T");
+			notifySoldiersOfZombieDen(zombies);
+			// if (rc.getRoundNum() % 30 == 0) {
+			updateCrunchTime();
+			// }
+			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
 			}
-			if(rc.getRoundNum() % 15 == 0){
+			if ((rc.getRoundNum()+15) % 30 == 0) {
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -166,34 +178,40 @@ public class BotScout extends Bot {
 		 * else{ dest = null; } }
 		 */
 	}
-	
+
 	/*
-	 * Overrides updateTurretList in Bot because scouts also have to send signals.
-	 * In addition to functions in Bot's version, scouts:
-	 * 		-check if they can see any turrets that haven't been seen before
-	 * 		-notify units of turrets that are no longer there
+	 * Overrides updateTurretList in Bot because scouts also have to send
+	 * signals. In addition to functions in Bot's version, scouts: -check if
+	 * they can see any turrets that haven't been seen before -notify units of
+	 * turrets that are no longer there
 	 */
-	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
+	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
 		for (RobotInfo e : enemies)
-			if (e.type == RobotType.TURRET){
-				if(!isLocationInTurretArray(e.location)){
-					enemyTurrets[turretSize]= e;
+
+			if (e.type == RobotType.TURRET) {
+				if(circlingLoc == null){
+				circlingLoc = e.location;
+				}
+				if (!isLocationInTurretArray(e.location)) {
+					enemyTurrets[turretSize] = e;
 					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] {e.location.x, e.location.y,here.x,here.y,here.x,here.y,here.x,here.y,here.x,here.y});
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
+							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
 					updated = true;
 				}
 			}
-		for(int i = 0 ; i < turretSize ; i++){
+		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
-			if(rc.canSenseLocation(t)){
-				rc.setIndicatorString(2,t.x + ", " + t.y + " and " + here.x + ", " + here.y);
+			if (rc.canSenseLocation(t)) {
+				rc.setIndicatorString(2, t.x + ", " + t.y + " and " + here.x + ", " + here.y);
 				RobotInfo bot = rc.senseRobotAtLocation(t);
-				if(bot == null || bot.type != RobotType.TURRET){
+				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
-					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(new int[] {t.x, t.y,here.x,here.y,here.x,here.y,here.x,here.y,here.x,here.y});
+					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
+							new int[] { t.x, t.y, here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					rc.setIndicatorString(2, "turret death at " + t.x + ", " + t.y);
 					i--;
@@ -201,36 +219,42 @@ public class BotScout extends Bot {
 				}
 			}
 		}
+		if (turretSize == 0)
+			circlingLoc = null;
 		return updated;
 	}
 
-	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException{
-		if(enemies.length > 2){
-			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
+	private static void updateCrunchTime() throws GameActionException {
+		if (circlingLoc != null && 3*turretSize < rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared, us).length) {
+			rc.setIndicatorString(2, "crunch");
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {1});
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+		}
+		//rc.setIndicatorString(2, "...");
+
+	}
+
+	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {
+		if (enemies.length > 1) {
+			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
+					.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
 		}
 	}
 
 	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
-		MapLocation[] possibleLocs = here.getAllMapLocationsWithinRadiusSq(here, RobotType.SCOUT.sensorRadiusSquared);
 		MapLocation partOrNeutralLoc = null;
-		for (MapLocation loc : possibleLocs) {
-			if (!rc.canSense(loc)) {
-				continue;
-			}
-			if (rc.senseParts(loc) > 0) {
-				partOrNeutralLoc = loc;
-				break;
-			} else {
-				RobotInfo ri = rc.senseRobotAtLocation(loc);
-				if (ri != null && ri.team == Team.NEUTRAL) {
-					partOrNeutralLoc = loc;
-					break;
-				}
-			}
+		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
+		if (neutrals.length > 0) {
+			partOrNeutralLoc = neutrals[0].location;
+		} else {
+			MapLocation[] parts = rc.sensePartLocations(-1);
+			if (parts.length > 0)
+				partOrNeutralLoc = parts[0];
 		}
-		if(partOrNeutralLoc != null){
-			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
+		if (partOrNeutralLoc != null) {
+			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
+					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
 		}
 	}
@@ -264,8 +288,8 @@ public class BotScout extends Bot {
 	 * rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
 	 * withinRange = false; for(RobotInfo ally : allies){ if(ally.ID ==
 	 * mobileID){ mobileLoc = ally.location; withinRange = true; break; } } } }
-	 * */
-	  /*
+	 */
+	/*
 	 * private static void addPartsAndNeutrals() throws GameActionException{
 	 * //add all seen parts and neutrals to arrays, in a corresponding array add
 	 * a 1 if it's a neutral (stay 0 if part) MapLocation[] possibleLocs =
@@ -297,7 +321,7 @@ public class BotScout extends Bot {
 	 * }
 	 */
 
-	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { 																								// first
+	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { // first
 		for (RobotInfo hostileUnit : hostileRobots) {
 			if (hostileUnit.type == RobotType.ZOMBIEDEN) {
 				if (!Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
@@ -312,7 +336,7 @@ public class BotScout extends Bot {
 		}
 		return false;
 	}
-	 /* 
+	/*
 	 * private static void moveToLocFartherThanAlphaIfPossible(MapLocation here)
 	 * throws GameActionException { Direction dir = Direction.NORTH; boolean
 	 * shouldMove = false; Direction bestDir = dir; int bestScore = 0; int
