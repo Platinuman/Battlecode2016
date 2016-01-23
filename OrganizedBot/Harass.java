@@ -775,6 +775,8 @@ public class Harass extends Bot {
 		boolean shouldMoveIn = updateMoveIn(signals);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
+	//TODO Nate, can you take a look at the macro micro please, I'm bad at it
+		//starts here
 		if (shouldMoveIn || crunching) {
 			crunch();
 		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
@@ -785,6 +787,10 @@ public class Harass extends Bot {
 			if (turretLoc == null)
 				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
+				// rc.setIndicatorString(1, "I am moving to the target " +
+				// targetLoc);
+				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+				if(rc.isCoreReady())
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
 				rc.setIndicatorString(1, "I am exploring.");
@@ -794,5 +800,7 @@ public class Harass extends Bot {
 			}
 
 		}
+	// ends here
 	}
+
 }
