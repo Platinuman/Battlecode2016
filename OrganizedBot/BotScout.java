@@ -227,7 +227,7 @@ public class BotScout extends Bot {
 
 	private static void updateCrunchTime() throws GameActionException {
 		if (circlingLoc != null
-				&& 3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
+				&& 3.3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
 			rc.setIndicatorString(2, "crunch");
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] { 1 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);

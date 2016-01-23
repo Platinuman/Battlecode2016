@@ -722,6 +722,7 @@ public class Harass extends Bot {
 		// if(type == RobotType.VIPER)
 		// return false;
 		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared && enemies.length == 0) {
+			rc.setIndicatorString(1, "we squished");
 			crunching = false;
 			return false;
 		}
@@ -802,11 +803,11 @@ public class Harass extends Bot {
 		} else if (enemies.length > 0) {
 			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 
-		} 
+		}
 		if (!crunching && turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
 				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-		} else if(!crunching) {
+		} else if (!crunching) {
 
 			if (rc.isCoreReady() && targetLoc != null) {
 				// rc.setIndicatorString(1, "I am moving to the target " +
