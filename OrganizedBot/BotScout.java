@@ -108,8 +108,10 @@ public class BotScout extends Bot {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
 					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
 					// us).length);
-				} else
-					Nav.explore(hostiles);
+				} else{
+					RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
+					Nav.explore(hostiles, allies);
+				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
@@ -239,7 +241,7 @@ public class BotScout extends Bot {
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {
 		if (enemies.length > 1) {
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
-					.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
+					.encode(new int[] { enemies[0].location.x, enemies[0].location.y, 0 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
 		}
 	}

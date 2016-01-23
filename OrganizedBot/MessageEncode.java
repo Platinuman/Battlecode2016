@@ -15,7 +15,7 @@ public enum MessageEncode {
 	WARN_ABOUT_TURRETS    (7, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations of enemy turrets -- (here.x,here.y) if fewer than 5
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	PART_OR_NEUTRAL_NOTIF (8, new int[]{1,2},0),// map location of parts/neutral thing
-	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2},0),// map location of centroid
+	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2,9},0),// map location of centroid or archon if there is one, boolean that says if there is an enemy archon
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
@@ -43,7 +43,7 @@ public enum MessageEncode {
 	 * 6 - give turrets more than one target
 	 * 7 - warn soldiers to avoid turrets they can't see -- (here.x,here.y) if fewer than 5
 	 * 8 - scouts to tell archons about parts or neutrals to be interested in
-	 * 9 - for when scouts see a lot of enemies that aren't turrets
+	 * 9 - for when scouts see a lot of enemies that aren't turrets, also enemy archons
 	 * 10- if it sees a loc where there used to be a turret
 	 * 11- when archons create/activate units they need to know where the turrets are
 	 * 12- coordinate crunching
@@ -62,12 +62,13 @@ public enum MessageEncode {
 	 * 6: robotType (max of 11, so 4 bits)
 	 * 7: special loc.x for multiple targets (restricted to 15 away from sender or less)
 	 * 8: special loc.x for multiple targets (restricted to 15 away from sender or less)
+	 * 9: boolean
 	 * 
 	 * (make sure to update the how much space data needs array)
 	 */
 	private final int[] whichDataToInclude;
 	private final int whereToSplitData; // index in whichDataToInclude that gets bumped to 2nd int
-	private static final int[] howMuchSpaceDataNeeds = {4, 7, 7, 11, 7, 10, 4, 5, 5};
+	private static final int[] howMuchSpaceDataNeeds = {4, 7, 7, 11, 7, 10, 4, 5, 5, 1};
 	//get 30 slots total per int
 
 	// TODO: make "yell" method to do the actual broadcast too

@@ -819,7 +819,7 @@ public class Harass extends Bot {
 				// doMicro(enemies, enemiesICanShoot, targetUpdated,
 				// archonUpdated);
 				Util.checkRubbleAndClear(here.directionTo(center), true);
-				Nav.explore(enemies);
+				Nav.explore(enemies, friends);
 
 			}
 
