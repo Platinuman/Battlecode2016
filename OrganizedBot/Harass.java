@@ -536,8 +536,8 @@ public class Harass extends Bot {
 					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-								* (here.distanceSquaredTo(targetLoc)))) {
+						if (!huntingDen && targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
+								* (here.distanceSquaredTo(targetLoc))) {
 							targetLoc = enemyLoc;
 						}
 					}
@@ -564,6 +564,14 @@ public class Harass extends Bot {
 							numDensToHunt--;
 						}
 					}
+				}
+			}
+			else{
+				MapLocation enemyLoc = signal.getLocation();
+				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+						* (here.distanceSquaredTo(targetLoc))) {
+					targetLoc = enemyLoc;
+					huntingDen = false;
 				}
 			}
 		}
@@ -627,6 +635,14 @@ public class Harass extends Bot {
 							updated = true;
 						}
 					}
+				}
+			}
+			else{
+				MapLocation enemyLoc = signal.getLocation();
+				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+						* (here.distanceSquaredTo(targetLoc))) {
+					targetLoc = enemyLoc;
+					updated = true;
 				}
 			}
 		}
@@ -790,7 +806,6 @@ public class Harass extends Bot {
 				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 		} else if (!crunching) {
-
 			if (rc.isCoreReady() && targetLoc != null) {
 					Nav.goTo(targetLoc, theSafety);
 			}
@@ -799,9 +814,7 @@ public class Harass extends Bot {
 			    if(rc.isCoreReady())
 			    	Nav.explore(enemies, friends);
 			}
-
 		}
-
 		// ends here
 	}
 

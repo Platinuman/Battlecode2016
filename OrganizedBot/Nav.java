@@ -269,11 +269,13 @@ public class Nav extends Bot {
 			return true;
 		}
 
-		Direction[] dirs = new Direction[2];
+		Direction[] dirs = new Direction[3];
 		Direction dirLeft = toDest.rotateLeft();
 		Direction dirRight = toDest.rotateRight();
 		dirs[0] = dirLeft;
 		dirs[1] = dirRight;
+		dirs[2] = dirLeft.rotateLeft();
+		//dirs[3] = dirRight.rotateRight();
 		for (Direction dir : dirs) {
 			if (canMove(dir)
 					&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
@@ -373,18 +375,20 @@ public class Nav extends Bot {
 	public static void explore(RobotInfo[] hostileRobots, RobotInfo[] allies) throws GameActionException {
 		// explore
 		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
-		}
-		boolean moved = tryMoveDirectScout(directionIAmMoving);
-		if (!moved) {
-			directionIAmMoving = (new Direction[] { directionIAmMoving.opposite(),
-					directionIAmMoving.opposite().rotateLeft(), directionIAmMoving.opposite().rotateRight() })[rand.nextInt(3)];
-			moved = tryMoveDirectScout(directionIAmMoving);
-		}
-		if (!moved) {
-			flee(hostileRobots);
-		}
+		} else if(scouts.length > 0)
+			directionIAmMoving = Util.centroidOfUnits(scouts).directionTo(here);
+		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
+		//			directionIAmMoving = directionIAmMoving.rotateRight();
+		if(tryMoveDirectScout(directionIAmMoving))return;
+		else
+			directionIAmMoving = (new Direction[] {
+					directionIAmMoving.opposite().rotateLeft(),
+					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
+		if( tryMoveDirectScout(directionIAmMoving)) return;
+		flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
 	}
 }

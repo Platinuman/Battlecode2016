@@ -210,4 +210,33 @@ public boolean isDangerous(RobotType theType){
 			array[i] = array[i+1];
 		}
 	}
+
+	public static RobotInfo[] getUnitsOfType(RobotInfo[] array, RobotType t) {
+		int[] inds = new int[array.length];
+		int s = 0;
+		for(int i = array.length; i --> 0; ){
+			if(array[i].type == t){
+				inds[s++] = i;
+			}
+		}
+		RobotInfo[] units = new RobotInfo[s];
+		for(int i = s ; i --> 0 ; ){
+			units[i] = array[inds[i]]; 
+		}
+		return units;
+	}
+
+    public static RobotInfo[] combineThreeRIArrays( RobotInfo[] array1, int a1size, RobotInfo[] array2, RobotInfo[] array3){
+    	RobotInfo[] combo = new RobotInfo[a1size + array2.length + array3.length];
+    	for (int i = 0; i < a1size; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < array2.length; i++){
+			combo[i + a1size] = array2[i];
+		}
+    	for (int i = 0; i < array3.length; i++){
+			combo[i + a1size + array2.length] = array3[i];
+		}
+    	return combo;
+    }
 }
