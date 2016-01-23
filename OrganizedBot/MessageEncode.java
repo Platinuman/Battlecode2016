@@ -19,7 +19,9 @@ public enum MessageEncode {
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
-	CRUNCH_TIME			  (12,new int[]{3},0);	// scouts tell soldiers when to crunch
+	CRUNCH_TIME			  (12,new int[]{3},0),	// whether to crunch or not (not the health)
+	NEUTRAL_ARCHON		  (13,new int[]{1,2},0);// xloc, yloc
+	//ZOMBIE_HORDE_NOTIF
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -45,6 +47,7 @@ public enum MessageEncode {
 	 * 10- if it sees a loc where there used to be a turret
 	 * 11- when archons create/activate units they need to know where the turrets are
 	 * 12- coordinate crunching
+	 * 13- scouts yell when they find a neutral archon
 	 * 
 	 * (if you increase the max number (15), make sure the space below matches)
 	 */
@@ -203,6 +206,7 @@ public enum MessageEncode {
 		case 10:return ENEMY_TURRET_DEATH;
 		case 11:return RELAY_TURRET_INFO;
 		case 12:return CRUNCH_TIME;
+		case 13:return NEUTRAL_ARCHON;
 
 		default: return null;
 		}
@@ -222,6 +226,7 @@ public enum MessageEncode {
 		case 10:return "ENEMY_TURRET_DEATH";
 		case 11:return "RELAY_TURRET_INFO";
 		case 12:return "CRUNCH_TIME";
+		case 13:return "NEUTRAL_ARCHON";
 
 		default: return "@Nate update the toString you idiot";
 		}
