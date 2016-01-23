@@ -13,7 +13,7 @@ public class BotArchon extends Bot {
 	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
-	// mobile archon fields here:
+	// -----mobile archon fields here-----
 	// NEW darn this is a ton of static initializers, are you sure there isnt a
 	// more efficient way to do this?
 	static MapLocation targetLocation;// partsLoc, denLoc, neutralLoc;

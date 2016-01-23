@@ -151,14 +151,14 @@ public class Harass extends Bot {
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, boolean targetUpdated,
 			boolean archonUpdated) throws GameActionException {
-		boolean willDieFromViper = (rc.isInfected()&& 0 > rc.getHealth() - (40 - (rc.getViperInfectedTurns()) * 2));
-		RobotInfo[] blank  = new RobotInfo[]{};
-		NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(blank);
-		if (enemies.length!=0&&willDieFromViper && rc.isCoreReady()) {
-			//System.out.println(Util.closest(enemies, here).location);
-
-			Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
-		}
+		// boolean willDieFromViper = (rc.isInfected()&& 0 > rc.getHealth() -
+		// (40 - (rc.getViperInfectedTurns()) * 2));
+		// RobotInfo[] blank = new RobotInfo[]{};
+		// NavSafetyPolicy theSafetyF = new SafetyPolicyAvoidAllUnits(blank);
+		// if (enemies.length!=0&&willDieFromViper && rc.isCoreReady()) {
+		// //System.out.println(Util.closest(enemies, here).location);
+		// Nav.goTo(Util.closest(enemies, here).location, theSafetyF);
+		// }
 		if (enemies.length == 0) {
 			return false;
 		}
@@ -186,11 +186,9 @@ public class Harass extends Bot {
 					if (canWin1v1(loneAttacker) || loneAttacker.type == type.ARCHON) {
 						// we can beat the other guy 1v1. fire away!
 						// Debug.indicate("micro", 0, "winning 1v1");
-						rc.setIndicatorString(0, "getTheArchon");
 						attackIfReady(loneAttacker.location);
 						if (loneAttacker.type == type.ARCHON && rc.isCoreReady())
 							shadowHarasser(loneAttacker, enemies);
-						rc.setIndicatorString(1, "followTheArchon");
 						return true;
 					} else {
 						// check if we actually have some allied support. if so
@@ -365,7 +363,8 @@ public class Harass extends Bot {
 				RobotInfo closestEnemy = Util.closest(enemies, here);
 				// we can only think about engage enemies with equal or shorter
 				// range
-				if (closestEnemy != null && (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared||closestEnemy.type==RobotType.ARCHON)) {
+				if (closestEnemy != null && (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
+						|| closestEnemy.type == RobotType.ARCHON)) {
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location);
 					if (numAlliesFightingEnemy > 0) {
 						// see if we can assist our ally(s)
@@ -470,6 +469,7 @@ public class Harass extends Bot {
 				break;
 			}
 		}
+
 		if (rc.isCoreReady()) {
 			Util.checkRubbleAndClear(toEnemy, true);
 		}
@@ -650,14 +650,14 @@ public class Harass extends Bot {
 		}
 		if (targetLoc == null) {
 			MapLocation[] enemyArchonLocations = rc.getInitialArchonLocations(them);
-			do{
-			int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
-			if(locIndex == -1)
-				break;
-			targetLoc = enemyArchonLocations[locIndex];
-			enemyArchonLocations[locIndex] = null;
-			}while(here.distanceSquaredTo(targetLoc) < 5);
-			if(targetLoc != null)
+			do {
+				int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
+				if (locIndex == -1)
+					break;
+				targetLoc = enemyArchonLocations[locIndex];
+				enemyArchonLocations[locIndex] = null;
+			} while (here.distanceSquaredTo(targetLoc) < 5);
+			if (targetLoc != null)
 				updated = true;
 		}
 		rc.setIndicatorString(2, "targetLoc = " + targetLoc);
@@ -721,8 +721,7 @@ public class Harass extends Bot {
 	public static boolean updateMoveIn(Signal[] signals) {
 		// if(type == RobotType.VIPER)
 		// return false;
-		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared
-				&& enemies.length == 0) {
+		if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared && enemies.length == 0) {
 			crunching = false;
 			return false;
 		}
@@ -794,30 +793,37 @@ public class Harass extends Bot {
 		boolean targetUpdated = updateTargetLoc(signals);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
-	//TODO Nate, can you take a look at the macro micro please, I'm bad at it
-		//starts here
-		if ((shouldMoveIn || crunching)&& here.distanceSquaredTo(turretLoc)<150) {
+		// TODO Nate, can you take a look at the macro micro please, I'm bad at
+		// it
+		// starts here
+
+		if ((shouldMoveIn || crunching) && here.distanceSquaredTo(turretLoc) < 150) {
 			crunch();
-		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
+		} else if (enemies.length > 0) {
+			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+
+		} 
+		if (!crunching && turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
 				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
-		} else {
-			if (turretLoc == null)
-				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+		} else if(!crunching) {
+
 			if (rc.isCoreReady() && targetLoc != null) {
 				// rc.setIndicatorString(1, "I am moving to the target " +
 				// targetLoc);
-				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 				if (rc.isCoreReady())
 					Nav.goTo(targetLoc, theSafety);
-			} else if (rc.isCoreReady()) {
+			}
+			if (rc.isCoreReady()) {
+				// doMicro(enemies, enemiesICanShoot, targetUpdated,
+				// archonUpdated);
 				Util.checkRubbleAndClear(here.directionTo(center), true);
-				//Nav.explore(enemies);
+				Nav.explore(enemies);
 
 			}
 
 		}
+
 		// ends here
 	}
 
