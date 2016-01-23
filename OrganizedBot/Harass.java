@@ -825,25 +825,12 @@ public class Harass extends Bot {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 		} else if (!crunching) {
 			if (rc.isCoreReady() && targetLoc != null) {
-<<<<<<< HEAD
-				// rc.setIndicatorString(1, "I am moving to the target " +
-				// targetLoc);
-				Nav.goTo(targetLoc, theSafety);
-			}
-			if (rc.isCoreReady()) {
-				// doMicro(enemies, enemiesICanShoot, targetUpdated,
-				// archonUpdated);
-				Util.checkRubbleAndClear(here.directionTo(center), true);
-				if(rc.isCoreReady())
-					Nav.explore(enemies, friends);
-=======
 					Nav.goTo(targetLoc, theSafety);
 			}
 			if (rc.isCoreReady()) {
 			    Util.checkRubbleAndClear(here.directionTo(center), true);
 			    if(rc.isCoreReady())
 			    	Nav.explore(enemies, friends);
->>>>>>> 85567aa4110d8a7ca15a2b0bfe43f9f9638db322
 			}
 		}
 		// ends here
