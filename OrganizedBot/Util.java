@@ -4,9 +4,9 @@ import battlecode.common.*;
 
 public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
-	public static boolean checkRubbleAndClear(Direction dir) throws GameActionException { // NEW Now checks all directions
-
-		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+	public static boolean checkRubbleAndClear(Direction dir,boolean clearToughRubble) throws GameActionException { // NEW Now checks all directions
+		int toughRubble = (int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH*2);
+		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
 			rc.clearRubble(dir);
 			return true;
 		}
@@ -14,10 +14,10 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		Direction dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
 
-			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
 				rc.clearRubble(dirLeft);
 				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
 				rc.clearRubble(dirRight);
 				return true;
 			}
@@ -31,10 +31,10 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		dirLeft = dir.rotateLeft();
 		dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
-			if (rc.senseRubble(here.add(dirLeft)) > 0) {
+			if (rc.senseRubble(here.add(dirLeft)) > 0 && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
 				rc.clearRubble(dirLeft);
 				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) > 0) {
+			} else if (rc.senseRubble(here.add(dirRight)) > 0 && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
 				rc.clearRubble(dirRight);
 				return true;
 			}

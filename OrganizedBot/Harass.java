@@ -750,7 +750,9 @@ public class Harass extends Bot {
 				// targetLoc);
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-				// rc.setIndicatorString(1, "I am exploring.");
+
+				rc.setIndicatorString(1, "I am exploring.");
+				Util.checkRubbleAndClear(here.directionTo(center), true);
 				Nav.explore(enemies);
 
 			}
