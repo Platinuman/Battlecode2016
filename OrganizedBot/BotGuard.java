@@ -29,7 +29,6 @@ public class BotGuard extends Bot {
 			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
 		}
 		rc.setIndicatorString(1, s + " " + turretSize);
-		Harass.isPreparingForCrunch = false;
 		//MessageEncode.readMessagesAndUpdateInfo();
 		//TODO make new data types in encode and use the to notify us when a bot is turtling
 		Harass.doHarass();

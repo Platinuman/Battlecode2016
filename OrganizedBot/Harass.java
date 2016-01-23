@@ -16,6 +16,7 @@ public class Harass extends Bot {
 	static boolean targetUpdated;
 	static boolean archonUpdated;
 	static boolean huntingDen;
+	static boolean crunching;
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
@@ -660,26 +661,29 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateMoveIn(Signal[] signals) {
-		boolean updated = false;
+		if(here.distanceSquaredTo(turretLoc)<rc.getType().sensorRadiusSquared && enemies.length == 0)
+			{
+			crunching = false;
+			return false;
+			}
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					MapLocation senderloc = signal.getLocation();
-					if (purpose == MessageEncode.CRUNCH_TIME) {
-						int[] data = purpose.decode(senderloc, message);
-						if(data[0] ==1)
-						updated = true;
+					if (purpose == MessageEncode.CRUNCH_TIME && purpose.decode(signal.getLocation(),message)[0] == 1) {
+						rc.setIndicatorString(0, "checking for stuff");
+						return true;
 					}
 				}
 			}
 		}
-		return updated;		
+		return false;
 	}
 
 	public static void crunch() throws GameActionException {
 		// if (friends.length > 20)
+		crunching = true;
 		if (turretLoc != null && rc.isCoreReady()) {
 			RobotInfo[] blank = new RobotInfo[0];
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(blank);
@@ -723,31 +727,30 @@ public class Harass extends Bot {
 		enemies = rc.senseHostileRobots(here, RobotType.SOLDIER.sensorRadiusSquared);
 		enemiesICanShoot = rc.senseHostileRobots(here, RobotType.SOLDIER.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
-		rc.setIndicatorString(0, "" + signals.length);
+	//	rc.setIndicatorString(0, "" + signals.length);
 		updateTurretList(signals);
 		boolean turretUpdated = updateTurretLoc();
 		boolean targetUpdated = updateTargetLoc(signals);
 		boolean shouldMoveIn = updateMoveIn(signals);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
-		rc.setIndicatorString(2, ""+friends.length);
 
-		if (shouldMoveIn) {
+		if (shouldMoveIn || crunching) {
 			crunch();
-			rc.setIndicatorString(2, "charge");
 
-		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared+1 && rc.isCoreReady()) {
+		} else if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4
+				&& rc.isCoreReady()) {
 			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			// doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 		} else {
 			if (turretLoc != null)
-				rc.setIndicatorString(2, "" + turretLoc);
-			doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
+				doMicro(enemies, enemiesICanShoot, targetUpdated, archonUpdated);
 			if (rc.isCoreReady() && targetLoc != null) {
-				rc.setIndicatorString(1, "I am moving to the target " + targetLoc);
+				// rc.setIndicatorString(1, "I am moving to the target " +
+				// targetLoc);
 				Nav.goTo(targetLoc, theSafety);
 			} else if (rc.isCoreReady()) {
-				rc.setIndicatorString(1, "I am exploring.");
+				// rc.setIndicatorString(1, "I am exploring.");
 				Nav.explore(enemies);
 
 			}

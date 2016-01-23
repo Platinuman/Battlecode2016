@@ -19,7 +19,7 @@ public enum MessageEncode {
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
-	CRUNCH_TIME			  (12,new int[]{},0);	// scouts tell soldiers when to crunch
+	CRUNCH_TIME			  (12,new int[]{3},0);	// scouts tell soldiers when to crunch
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
 	//FOUND_DEN(5, new int[]{1,2},0),				// xloc, ylo
@@ -116,7 +116,7 @@ public enum MessageEncode {
 			mess[1] += data[i]*powerOfTwo;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
-		Bot.rc.setIndicatorString(2,"just encoded " + toString());
+		//Bot.rc.setIndicatorString(2,"just encoded " + toString());
 		return mess;
 	}
 	/**
@@ -154,7 +154,7 @@ public enum MessageEncode {
 				data[i] = data[i] + senderloc.y - 15;
 			powerOfTwo = multiplyByTwo(powerOfTwo, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 		}
-		Bot.rc.setIndicatorString(2,"just decoded " + toString());
+	//	Bot.rc.setIndicatorString(2,"just decoded " + toString());
 		return data;
 	}
 	/**

@@ -19,6 +19,7 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
+	static MapLocation circlingLoc;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -89,7 +90,6 @@ public class BotScout extends Bot {
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
-		// display wft the turret list is
 		String s = "";
 		for (int i = 0; i < turretSize; i++) {
 			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
@@ -101,12 +101,20 @@ public class BotScout extends Bot {
 		case 0:// exploring
 			RobotInfo[] hostileRobots = rc.senseHostileRobots(here, RobotType.SCOUT.sensorRadiusSquared);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			updateTurretList(rc.emptySignalQueue(), hostileRobots);
-			updateCrunchTime();
-			Nav.explore();
+			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), hostileRobots);
+			if (circlingLoc != null) {
+				if (rc.isCoreReady())
+					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostileRobots));
+				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
+				// us).length);
+			} else
+				Nav.explore();
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(hostileRobots);
+			// if (rc.getRoundNum() % 30 == 0) {
+			updateCrunchTime();
+			// }
 			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
 			}
@@ -179,7 +187,9 @@ public class BotScout extends Bot {
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
 		for (RobotInfo e : enemies)
+
 			if (e.type == RobotType.TURRET) {
+				circlingLoc = e.location;
 				if (!isLocationInTurretArray(e.location)) {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
@@ -206,16 +216,19 @@ public class BotScout extends Bot {
 				}
 			}
 		}
+		if (turretSize == 0)
+			circlingLoc = null;
 		return updated;
 	}
 
-	private static void updateCrunchTime() {
-		int shouldCrunch = 0;
-			if (circlingLoc!=null&&numTurretsInRangeSquared(type.SCOUT.sensorRadiusSquared) < 2*rc.senseNearbyRobots(here,
-					RobotType.SCOUT.sensorRadiusSquared, us).length)
-				shouldCrunch = 1;
-		int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] { shouldCrunch });
-		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+	private static void updateCrunchTime() throws GameActionException {
+		if (circlingLoc != null && 4*turretSize < rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared, us).length) {
+			rc.setIndicatorString(2, "crunch");
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {1});
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+		}
+		//rc.setIndicatorString(2, "...");
+
 	}
 
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {

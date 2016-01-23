@@ -115,7 +115,7 @@ public class BotArchon extends Bot {
 				return;
 			}
 			// if i haven't created a scout create one
-			if (createScoutIfNecessary(allies)) // isn't running away more
+			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
 				// important? meh can fix later
 				// if necessary
 				return;
@@ -127,7 +127,7 @@ public class BotArchon extends Bot {
 			// else if has enough parts for a SOLDIER
 			if(typeToBuild == null)
 				determineTypeToBuild();
-			if (rc.hasBuildRequirements(typeToBuild)) {
+			if (rc.hasBuildRequirements(typeToBuild) && scoutCreated) {
 				if (targetDen != null)
 					buildUnitInDir(here.directionTo(targetDen), typeToBuild, allies);
 				else
