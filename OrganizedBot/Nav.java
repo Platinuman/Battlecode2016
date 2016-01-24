@@ -21,7 +21,7 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 				break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
-						- ((type == RobotType.ARCHON) ? 10 : 0))// hardcoded 10
+						- ((type == RobotType.ARCHON) ? 20 : 0))// hardcoded 
 					return false;
 				break;
 			}
@@ -59,7 +59,7 @@ public class Nav extends Bot {
 		return false;
 	}
 
-	private static boolean checkRubble(Direction dir) {
+	private static boolean checkRubble() {
 		if (rc.getType() == RobotType.TTM) {
 			return false;
 		}
@@ -214,7 +214,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && checkRubble(here.directionTo(dest))) {
+				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble()) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -224,7 +224,9 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-
+		if(here.distanceSquaredTo(dest)<type.attackRadiusSquared){
+			return;
+		}
 		// If that failed, or if bugging, bug
 		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
@@ -295,7 +297,8 @@ public class Nav extends Bot {
 		if(away == Direction.OMNI){
 			 away = Direction.NORTH;
 		}
-		if (rc.canMove(away)
+		dest = here.add(away,10);
+		if (rc.canMove(away) && checkRubble()
 				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 			rc.move(away);
@@ -303,13 +306,15 @@ public class Nav extends Bot {
 			Direction dirLeft = away.rotateLeft();
 			Direction dirRight = away.rotateRight();
 			for (int i = 0; i < 3; i++) {
-
-				if (rc.canMove(dirLeft) && rc.onTheMap(
+				dest = here.add(dirLeft,10);
+				if (rc.canMove(dirLeft) && checkRubble()&& rc.onTheMap(
 						here.add(dirLeft, dirLeft.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 					rc.move(dirLeft);
 					break;
-				} else if (rc.canMove(dirRight) && rc.onTheMap(
+				} 
+				dest = here.add(dirRight,10);
+				if (rc.canMove(dirRight) && checkRubble() && rc.onTheMap(
 						here.add(dirRight, dirRight.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 					rc.move(dirRight);
@@ -336,7 +341,7 @@ public class Nav extends Bot {
 			}
 		}
 		if (rc.isCoreReady()) {// last hope
-			if (checkRubble(away) && rc.onTheMap(here.add(away))) {
+			if (checkRubble() && rc.onTheMap(here.add(away))) {
 				rc.clearRubble(away);
 			}
 		}

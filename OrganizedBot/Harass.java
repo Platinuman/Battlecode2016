@@ -95,11 +95,7 @@ public class Harass extends Bot {
 		RobotInfo currentClosestEnemy = Util.closest(enemies, here);
 
 		boolean mustMoveOrthogonally = false;
-		// if (type == RobotType.DRONE && rc.getCoreDelay() >= 0.6 &&
-		// currentClosestEnemy.type == RobotType.MISSILE) mustMoveOrthogonally =
-		// true;
-
-		int bestDistSq = here.distanceSquaredTo(currentClosestEnemy.location);
+		double bestDistSq = here.distanceSquaredTo(currentClosestEnemy.location);
 		for (Direction dir : Direction.values()) {
 			if (!rc.canMove(dir))
 				continue;
@@ -110,8 +106,10 @@ public class Harass extends Bot {
 
 			RobotInfo closestEnemy = Util.closest(enemies, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
-			if (distSq > bestDistSq) {
-				bestDistSq = distSq;
+			double rubble = rc.senseRubble(retreatLoc);
+			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			if (distSq-rubbleMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod;
 				bestRetreatDir = dir;
 			}
 		}
@@ -231,7 +229,7 @@ public class Harass extends Bot {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
 								+ enemy.attackPower / 2.0 // TODO: optimize
 								+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
-								- (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
+								+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
 								+ (enemy.type == RobotType.FASTZOMBIE?5:0)
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
@@ -282,7 +280,7 @@ public class Harass extends Bot {
 					double targetingMetric = numAlliesAttackingEnemy / enemy.health
 							+ enemy.attackPower // TODO: optimize
 							+ (enemy.type == RobotType.FASTZOMBIE?10:0)
-							- (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
+							+ (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
 							+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
 					if (targetingMetric > bestTargetingMetric) {
 						bestTargetingMetric = targetingMetric;
@@ -690,8 +688,10 @@ public class Harass extends Bot {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.CRUNCH_TIME && purpose.decode(signal.getLocation(), message)[0] == 1) {
-						crunching = true;
+					if (purpose == MessageEncode.CRUNCH_TIME){
+						int[] mess = purpose.decode(signal.getLocation(), message);
+						if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
+							crunching = true;
 					}
 				}
 			}

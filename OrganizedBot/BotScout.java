@@ -233,7 +233,7 @@ public class BotScout extends Bot {
 			circlingTime+=1;
 		if (circlingTime>100&&circlingLoc != null
 				&& 3.3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
-			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] { 1 });
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
 		// rc.setIndicatorString(2, "...");
