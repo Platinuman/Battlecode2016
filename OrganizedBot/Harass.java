@@ -479,7 +479,7 @@ public class Harass extends Bot {
 //						archonLoc = new MapLocation(data[0], data[1]);
 //						return true;
 //					}
-					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
+					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF && numDensToHunt == 0) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
 						if (!huntingDen && targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5

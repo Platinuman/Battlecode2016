@@ -112,6 +112,7 @@ public class BotArchon extends Bot {
 		}*/
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
+		rc.setIndicatorString(1, "numDensToHunt = " + numDensToHunt);
 		hostiles = Util.removeHarmlessUnits(hostiles);
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
@@ -357,13 +358,11 @@ public class BotArchon extends Bot {
 																							// ENCODE
 		/*if (!haveEnoughFighters(allies))
 			return;*/
-		int count = 0;
 		for(MapLocation den: targetDens){
 			if(den == null)
 				continue;
 			if(rc.getMessageSignalCount() == 19)
 				break;
-			count++;
 			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { den.x, den.y });
 			rc.broadcastMessageSignal(msg[0], msg[1], (int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 		}
