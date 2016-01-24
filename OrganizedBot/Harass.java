@@ -731,11 +731,7 @@ public class Harass extends Bot {
 		//boolean targetUpdated = updateTargetLoc(signals);
 		if(!crunching){
 			updateTargetLocWithoutSignals();
-			//int startB = Clock.getBytecodeNum();
 			updateInfoFromSignals(signals, enemies);
-			//int signalBytecodesUsed = Clock.getBytecodeNum() - startB;
-			//if(signalBytecodesUsed < 0 || signalBytecodesUsed > 1000)
-			//	System.out.println(signalBytecodesUsed);
 		}
 		
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
@@ -743,21 +739,20 @@ public class Harass extends Bot {
 		if (crunching) {
 			crunch();
 		} else {
+			int startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
+			int signalBytecodesUsed = Clock.getBytecodeNum() - startB;
+			if(signalBytecodesUsed > 4000)
+				System.out.println(signalBytecodesUsed);
 		}
 		if(rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
-				//int startB = Clock.getBytecodeNum();
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
-				//int navBytecodesUsed = Clock.getBytecodeNum() - startB;
-				//if(navBytecodesUsed < 0 || navBytecodesUsed > 1000)
-				//	System.out.println(navBytecodesUsed);
 			}
-			else if(!
-					Util.checkRubbleAndClear(here.directionTo(center), true))
+			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
 		// ends here
