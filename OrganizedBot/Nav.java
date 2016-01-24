@@ -63,8 +63,8 @@ public class Nav extends Bot {
 		if (rc.getType() == RobotType.TTM) {
 			return false;
 		}
-		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 2000; // hard-coded
+		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1500; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -214,7 +214,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (checkRubble(here.directionTo(dest))) {
+				if (type != RobotType.SCOUT && checkRubble(here.directionTo(dest))) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -269,17 +269,16 @@ public class Nav extends Bot {
 			return true;
 		}
 
-		Direction[] dirs = new Direction[3];
+		Direction[] dirs = new Direction[2];
 		Direction dirLeft = toDest.rotateLeft();
 		Direction dirRight = toDest.rotateRight();
 		dirs[0] = dirLeft;
 		dirs[1] = dirRight;
-		dirs[2] = dirLeft.rotateLeft();
+		//dirs[2] = dirLeft.rotateLeft();
 		//dirs[3] = dirRight.rotateRight();
 		for (Direction dir : dirs) {
 			if (canMove(dir)
-					&& rc.onTheMap(here.add(dir, dir.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-							: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
+					&& rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
 				move(dir);
 				return true;
 			}
@@ -290,6 +289,12 @@ public class Nav extends Bot {
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction away = center.directionTo(here);
+		if(away == Direction.OMNI){
+			 away = here.directionTo(rc.getInitialArchonLocations(us)[0]);
+		}
+		if(away == Direction.OMNI){
+			 away = Direction.NORTH;
+		}
 		if (rc.canMove(away)
 				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
@@ -331,7 +336,7 @@ public class Nav extends Bot {
 			}
 		}
 		if (rc.isCoreReady()) {// last hope
-			if (checkRubble(away)) {
+			if (checkRubble(away) && rc.onTheMap(here.add(away))) {
 				rc.clearRubble(away);
 			}
 		}
@@ -378,8 +383,13 @@ public class Nav extends Bot {
 		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
-		} else if(scouts.length > 0)
-			directionIAmMoving = Util.centroidOfUnits(scouts).directionTo(here);
+		} else if(scouts.length > 0){
+			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
+			directionIAmMoving = (new Direction[] {
+					tempDirection.rotateLeft(),
+					tempDirection,
+					tempDirection.rotateRight() })[rand.nextInt(3)];
+		}
 		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
 		//			directionIAmMoving = directionIAmMoving.rotateRight();
 		if(tryMoveDirectScout(directionIAmMoving))return;
@@ -388,7 +398,8 @@ public class Nav extends Bot {
 					directionIAmMoving.opposite().rotateLeft(),
 					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
 		if( tryMoveDirectScout(directionIAmMoving)) return;
-		flee(hostileRobots);
+		if(hostileRobots.length > 0)
+			flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
 	}
 }

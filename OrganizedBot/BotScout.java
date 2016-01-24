@@ -20,6 +20,7 @@ public class BotScout extends Bot {
 	static MapLocation[] dens;
 	static int denSize;
 	static MapLocation circlingLoc;
+	static int circlingTime;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -69,6 +70,7 @@ public class BotScout extends Bot {
 		 * alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2,
 		 * -4) };
 		 */
+		circlingTime = 0;
 		scoutType = 0;
 		denSize = 0;
 		dens = new MapLocation[10000];
@@ -110,7 +112,7 @@ public class BotScout extends Bot {
 					// us).length);
 				} else{
 					RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
-					Nav.explore(hostiles, allies);
+					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
 				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
@@ -190,22 +192,6 @@ public class BotScout extends Bot {
 	 */
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
-		for (RobotInfo e : enemies)
-
-			if (e.type == RobotType.TURRET) {
-				if (circlingLoc == null) {
-					circlingLoc = e.location;
-				}
-				if (!isLocationInTurretArray(e.location)) {
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
-							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
-					updated = true;
-				}
-			}
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
@@ -222,15 +208,31 @@ public class BotScout extends Bot {
 				}
 			}
 		}
+		for (RobotInfo e : enemies)
+			if (e.type == RobotType.TURRET) {
+				if (circlingLoc == null) {
+					circlingLoc = e.location;
+				}
+				if (!isLocationInTurretArray(e.location)) {
+					enemyTurrets[turretSize] = e;
+					turretSize++;
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
+							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
+					updated = true;
+				}
+			}
 		if (turretSize == 0)
 			circlingLoc = null;
 		return updated;
 	}
 
 	private static void updateCrunchTime() throws GameActionException {
-		if (circlingLoc != null
+		if(circlingLoc!=null)
+			circlingTime+=1;
+		if (circlingTime>100&&circlingLoc != null
 				&& 3.3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
-			rc.setIndicatorString(2, "crunch");
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] { 1 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
