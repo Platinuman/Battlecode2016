@@ -59,8 +59,10 @@ public class Bot {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation loc;
 						for(int i = 0; i< data.length; i +=2){
-							if(data[i] == senderloc.x) break;
 							loc = new MapLocation(data[i], data[i+1]);
+							if(loc.equals(senderloc)){
+								break;
+							}
 							if(!isLocationInTurretArray(loc)){
 								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
 								turretSize++;

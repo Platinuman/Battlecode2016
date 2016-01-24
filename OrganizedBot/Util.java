@@ -239,4 +239,14 @@ public boolean isDangerous(RobotType theType){
 		}
     	return combo;
     }
+
+	public static double rubbleBetweenHereAndThere(MapLocation start, MapLocation end) {
+		MapLocation current = start;
+		double totalRubble = 0;
+		while(!current.equals(end)){
+			current = current.add(current.directionTo(end));
+			totalRubble += rc.senseRubble(current);
+		}
+		return totalRubble;
+	}
 }
