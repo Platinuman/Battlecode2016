@@ -270,21 +270,26 @@ public class Harass extends Bot {
 		} else {
 			// no one is shooting at us. if we can shoot at someone, do so
 			RobotInfo bestTarget = null;
-			double bestTargetingMetric = 0;
-			int maxAlliesAttackingAnEnemy = 0;
-			for (RobotInfo enemy : enemiesInSight) {
-				int numAlliesAttackingEnemy = 1 + numOtherAlliesInAttackRange(enemy.location, allies);
-				if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
-					maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
-				if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-					double targetingMetric = numAlliesAttackingEnemy / enemy.health
-							+ enemy.attackPower // TODO: optimize
-							+ (enemy.type == RobotType.FASTZOMBIE?10:0)
-							+ (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
-							+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
-					if (targetingMetric > bestTargetingMetric) {
-						bestTargetingMetric = targetingMetric;
-						bestTarget = enemy;
+			if(enemiesICanShoot.length == 1)
+				bestTarget = enemiesICanShoot[0];
+			else{
+
+				double bestTargetingMetric = 0;
+				int maxAlliesAttackingAnEnemy = 0;
+				for (RobotInfo enemy : enemiesInSight) {
+					int numAlliesAttackingEnemy = 1 + numOtherAlliesInAttackRange(enemy.location, allies);
+					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
+						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
+					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+						double targetingMetric = numAlliesAttackingEnemy / enemy.health
+								+ enemy.attackPower // TODO: optimize
+								+ (enemy.type == RobotType.FASTZOMBIE?10:0)
+								+ (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
+								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+						if (targetingMetric > bestTargetingMetric) {
+							bestTargetingMetric = targetingMetric;
+							bestTarget = enemy;
+						}
 					}
 				}
 			}
