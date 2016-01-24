@@ -336,7 +336,7 @@ public class Nav extends Bot {
 			}
 		}
 		if (rc.isCoreReady()) {// last hope
-			if (checkRubble(away)) {
+			if (checkRubble(away) && rc.onTheMap(here.add(away))) {
 				rc.clearRubble(away);
 			}
 		}

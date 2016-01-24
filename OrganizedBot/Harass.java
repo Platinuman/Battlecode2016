@@ -465,7 +465,7 @@ public class Harass extends Bot {
 							targetDens[targetDenSize] = denLoc;
 							targetDenSize++;
 							numDensToHunt++;
-							if (numDensToHunt == 1//test this
+							if (!huntingDen//test this
 									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
 								targetLoc = denLoc;
 								bestIndex = targetDenSize;
