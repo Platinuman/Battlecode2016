@@ -116,7 +116,7 @@ public class Harass extends Bot {
 			}
 		}
 
-		if (bestRetreatDir != null && rc.isCoreReady()) {
+		if (bestRetreatDir != null && rc.isCoreReady()&&rc.canMove(bestRetreatDir)) {
 			rc.move(bestRetreatDir);
 			return true;
 		}
@@ -364,7 +364,7 @@ public class Harass extends Bot {
 			MapLocation moveLoc = here.add(dir);
 
 			int enemyExposure = numEnemiesAttackingLocation(moveLoc, enemies);
-			if (enemyExposure <= maxEnemyExposure) {
+			if (enemyExposure <= maxEnemyExposure&&rc.canMove(dir)) {
 				rc.move(dir);
 				return true;
 			}
