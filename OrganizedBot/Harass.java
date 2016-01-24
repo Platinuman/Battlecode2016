@@ -18,7 +18,7 @@ public class Harass extends Bot {
 
 	private static boolean canWin1v1(RobotInfo enemy) {
 
-		if (enemy.type == RobotType.ARCHON)
+		if (enemy.type == RobotType.ARCHON||enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
@@ -41,7 +41,7 @@ public class Harass extends Bot {
 
 	public static boolean canWin1v1AfterMovingTo(MapLocation loc, RobotInfo enemy) {
 		// TODO:!!! take range difference into account! soldiers can kite basically everything
-		if (enemy.type == RobotType.ARCHON)
+		if (enemy.type == RobotType.ARCHON ||enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
 		int turnsTillWeCanAttack;
@@ -142,7 +142,7 @@ public class Harass extends Bot {
 	// support.
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, RobotInfo[] allies) throws GameActionException {
-		if (enemiesInSight.length == 0) {
+		if (enemiesInSight.length == 0 || !(rc.isCoreReady() && rc.isWeaponReady())) {
 			return false;
 		}
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
@@ -273,7 +273,6 @@ public class Harass extends Bot {
 			if(enemiesICanShoot.length == 1)
 				bestTarget = enemiesICanShoot[0];
 			else{
-
 				double bestTargetingMetric = 0;
 				int maxAlliesAttackingAnEnemy = 0;
 				for (RobotInfo enemy : enemiesInSight) {
