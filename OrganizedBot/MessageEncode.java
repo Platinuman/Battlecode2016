@@ -8,7 +8,7 @@ public enum MessageEncode {
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
 	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
-	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),
+	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),//den locations
 	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
 	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations (as ints) **x and y offset from sender must be <16
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)

@@ -112,7 +112,7 @@ public class BotScout extends Bot {
 					// us).length);
 				} else{
 					RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
-					Nav.explore(hostiles, allies);
+					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
 				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
@@ -192,22 +192,6 @@ public class BotScout extends Bot {
 	 */
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
-		for (RobotInfo e : enemies)
-
-			if (e.type == RobotType.TURRET) {
-				if (circlingLoc == null) {
-					circlingLoc = e.location;
-				}
-				if (!isLocationInTurretArray(e.location)) {
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
-							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
-					updated = true;
-				}
-			}
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
@@ -224,6 +208,21 @@ public class BotScout extends Bot {
 				}
 			}
 		}
+		for (RobotInfo e : enemies)
+			if (e.type == RobotType.TURRET) {
+				if (circlingLoc == null) {
+					circlingLoc = e.location;
+				}
+				if (!isLocationInTurretArray(e.location)) {
+					enemyTurrets[turretSize] = e;
+					turretSize++;
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
+							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
+					updated = true;
+				}
+			}
 		if (turretSize == 0)
 			circlingLoc = null;
 		return updated;
