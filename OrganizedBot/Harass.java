@@ -123,13 +123,10 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	// currently our micro looks like this:
 	// if we are getting owned, and we have core delay, try to retreat
-	// if we can hit an enemy, attack if our weapon delay is up. otherwise sit
-	// still
+	// if we can hit an enemy, attack if our weapon delay is up. otherwise sit still
 	// try to stick to enemy harassers, engaging them if we can win the 1v1
-	// try to move toward undefended workers, engaging them if we can win the
-	// 1v1
+	// try to move toward undefended workers, engaging them if we can win the 1v1
 
 	// here's a better micro:
 	// if we are getting hit:
@@ -139,8 +136,7 @@ public class Harass extends Bot {
 	// - if we can assist an ally who is engaged, do so
 	// - if we can move to engage a worker, do so
 	// - if there is an enemy harasser nearby, stick to them
-	// - - optionally, engage if we can win the 1v1 or if there is a lot of
-	// allied support
+	// - - optionally, engage if we can win the 1v1 or if there is a lot of allied support
 
 	// it's definitely good to take 1v1s if there are no nearby enemies. however
 	// we maybe
@@ -218,7 +214,8 @@ public class Harass extends Bot {
 					}
 				} else {
 					// we are getting shot by someone who outranges us, CRUNCH!
-					Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
+					if(rc.isCoreReady())
+						Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 					return true;
 				}
 			} else { // more than one enemy
@@ -468,8 +465,7 @@ public class Harass extends Bot {
 							targetDens[targetDenSize] = denLoc;
 							targetDenSize++;
 							numDensToHunt++;
-
-							if (targetLoc == null
+							if (numDensToHunt == 1//test this
 									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
 								targetLoc = denLoc;
 								bestIndex = targetDenSize;
@@ -478,11 +474,11 @@ public class Harass extends Bot {
 						}
 						return true;
 					}
-					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
-						int[] data = purpose.decode(senderloc, message);
-						archonLoc = new MapLocation(data[0], data[1]);
-						return true;
-					}
+//					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
+//						int[] data = purpose.decode(senderloc, message);
+//						archonLoc = new MapLocation(data[0], data[1]);
+//						return true;
+//					}
 					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
@@ -494,25 +490,29 @@ public class Harass extends Bot {
 				} else {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);
-					if (type.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
-							&& (targetLoc == null || distToSignal < here.distanceSquaredTo(targetLoc))) {// call
-																											// for
-																											// help
-						targetLoc = signalLoc;
+					// if (type.sensorRadiusSquared *
+					// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
+					// && (targetLoc == null || distToSignal <
+					// here.distanceSquaredTo(targetLoc))) {// call
+					// // for
+					// // help
+					// targetLoc = signalLoc;
+					// huntingDen = false;
+					// return true;
+					// } else {// if a den has been killed don't go for it
+					// anymore
+					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+					if (closestIndex != -1
+							&& targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
+						// rc.setIndicatorString(1, "not going for den at
+						// loc " + targetDens[closestIndex]+ " on round " +
+						// rc.getRoundNum());
+						killedDens[killedDenSize] = targetDens[closestIndex];
+						killedDenSize++;
+						targetDens[closestIndex] = null;
+						numDensToHunt--;
 						huntingDen = false;
-						return true;
-					} else {// if a den has been killed don't go for it anymore
-						int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-						if (closestIndex != -1 && targetDens[closestIndex]
-								.distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
-							// rc.setIndicatorString(1, "not going for den at
-							// loc " + targetDens[closestIndex]+ " on round " +
-							// rc.getRoundNum());
-							killedDens[killedDenSize] = targetDens[closestIndex];
-							killedDenSize++;
-							targetDens[closestIndex] = null;
-							numDensToHunt--;
-						}
+						// }
 					}
 				}
 			}
@@ -526,11 +526,10 @@ public class Harass extends Bot {
 			}
 		}
 
-		if (huntingDen && (targetLoc == null
-				|| rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null)) {
+		if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
 			// tell people a den has been killed
 			if (targetLoc != null) {
-				rc.broadcastSignal(10000);
+				rc.broadcastSignal(12800);
 				killedDens[killedDenSize] = targetDens[bestIndex];
 				targetDens[bestIndex] = null;
 				killedDenSize++;
@@ -600,15 +599,17 @@ public class Harass extends Bot {
 			MapLocation[] enemyArchonLocations = rc.getInitialArchonLocations(them);
 			do {
 				int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
-				if (locIndex == -1)
+				if (locIndex == -1){
+					targetLoc = null;
 					break;
+				}
 				targetLoc = enemyArchonLocations[locIndex];
 				enemyArchonLocations[locIndex] = null;
 			} while (here.distanceSquaredTo(targetLoc) < 5);
 			if (targetLoc != null)
 				updated = true;
 		}
-		rc.setIndicatorString(2, "targetLoc = " + targetLoc);
+		//rc.setIndicatorString(2, "targetLoc = " + targetLoc);
 		return updated;
 	}
 
