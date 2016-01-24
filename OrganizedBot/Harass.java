@@ -436,18 +436,18 @@ public class Harass extends Bot {
 	}
 
 	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
+		boolean updated = false;
+		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
 		if (type == RobotType.VIPER) {
 			return updateViperTargetLoc(signals);
 		}
-		if(targetLoc == null || !rc.canSenseLocation(targetLoc)){
+		//int startB = Clock.getBytecodeNum();
+		if(targetLoc == null){
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
 			for (RobotInfo zombie : zombies) {
 				if (zombie.type == RobotType.ZOMBIEDEN) {
-					if (targetLoc == null || zombie.location != targetLoc) {
-						targetLoc = zombie.location;
-						return true;
-					}
-					return false;
+					targetLoc = zombie.location;
+					updated = true;
 				}
 			}
 		}
@@ -472,7 +472,7 @@ public class Harass extends Bot {
 								huntingDen = true;
 							}
 						}
-						return true;
+						updated = true;
 					}
 //					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
 //						int[] data = purpose.decode(senderloc, message);
@@ -502,30 +502,40 @@ public class Harass extends Bot {
 					// } else {// if a den has been killed don't go for it
 					// anymore
 					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-					if (closestIndex != -1
-							&& targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
-						// rc.setIndicatorString(1, "not going for den at
-						// loc " + targetDens[closestIndex]+ " on round " +
-						// rc.getRoundNum());
-						killedDens[killedDenSize] = targetDens[closestIndex];
-						killedDenSize++;
+					if (closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared){
+						//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+						MapLocation killedDen = targetDens[closestIndex];
 						targetDens[closestIndex] = null;
+						killedDens[killedDenSize] = killedDen;
+						killedDenSize++;
 						numDensToHunt--;
-						huntingDen = false;
+						if(huntingDen && targetLoc.equals(killedDen)){
+							//rc.setIndicatorString(0, "here");
+							huntingDen = false;
+							targetLoc = null;
+							if (numDensToHunt > 0) {
+								huntingDen = true;
+								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+								targetLoc = targetDens[bestIndex];
+							}
+							updated = true;
+						}
 						// }
 					}
 				}
 			}
 			else{
+				if(canSeeHostiles)
+					continue;
 				MapLocation enemyLoc = signal.getLocation();
-				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+				if (targetLoc == null || !huntingDen && (double) here.distanceSquaredTo(enemyLoc) < 0.5
 						* (here.distanceSquaredTo(targetLoc))) {
 					targetLoc = enemyLoc;
+					updated = true;
 					huntingDen = false;
 				}
 			}
 		}
-
 		if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
 			// tell people a den has been killed
 			if (targetLoc != null) {
@@ -542,8 +552,9 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
-			return true;
-		} else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+			updated = true;
+		}
+		else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
 				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
 			targetLoc = null;
 			if (numDensToHunt > 0) {
@@ -551,7 +562,7 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
-			return true;
+			updated = true;
 		}
 		/*
 		 * RobotInfo[] allies =
@@ -559,7 +570,8 @@ public class Harass extends Bot {
 		 * for(RobotInfo ally : allies){ if(ally.ID == archonID){ targetLoc =
 		 * ally.location; return true; } }
 		 */
-		return false;
+		//System.out.println(Clock.getBytecodeNum() - startB);
+		return updated;
 	}
 
 	private static boolean updateViperTargetLoc(Signal[] signals) {
