@@ -111,10 +111,11 @@ public class BotArchon extends Bot {
 		}*/
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
+		hostiles = Util.removeHarmlessUnits(hostiles);
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
 			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
-			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
+			//RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			// if i can see enemies run away
 			// if(inDanger(allies, enemies, zombies)){
 			if (hostiles.length > 0) {
@@ -122,7 +123,8 @@ public class BotArchon extends Bot {
 			//	if (rc.getRoundNum() % 5 == 0)// && allies.length <
 					// hostiles.length){
 				//	callForHelp();
-				return;
+				if(!rc.isCoreReady())
+					return;
 			}
 			// if i haven't created a scout create one
 			/*

@@ -388,7 +388,8 @@ public class Nav extends Bot {
 					directionIAmMoving.opposite().rotateLeft(),
 					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
 		if( tryMoveDirectScout(directionIAmMoving)) return;
-		flee(hostileRobots);
+		if(hostileRobots.length > 0)
+			flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
 	}
 }

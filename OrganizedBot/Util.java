@@ -249,4 +249,24 @@ public boolean isDangerous(RobotType theType){
 		}
 		return totalRubble;
 	}
+
+	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
+		int newlength = 0;
+		for (int i = 0; i < hostiles.length; i++){
+			RobotType hostileType = hostiles[i].type;
+			if(!(hostileType == RobotType.ZOMBIEDEN || hostileType == RobotType.SCOUT || hostileType == RobotType.ARCHON)){
+				newlength++;
+			}
+			
+		}
+		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
+		int count = 0;
+		for (int j = 0; j < hostiles.length; j++){
+			RobotType hostileType = hostiles[j].type;
+			if(!(hostileType == RobotType.ZOMBIEDEN || hostileType == RobotType.SCOUT || hostileType == RobotType.ARCHON)){
+				harmfulUnits[count++] = hostiles[j];
+			}
+		}
+		return harmfulUnits;
+	}
 }
