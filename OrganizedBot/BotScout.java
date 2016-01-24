@@ -112,7 +112,7 @@ public class BotScout extends Bot {
 					// us).length);
 				} else{
 					RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
-					Nav.explore(hostiles, allies);
+					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
 				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
