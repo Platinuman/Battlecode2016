@@ -95,11 +95,7 @@ public class Harass extends Bot {
 		RobotInfo currentClosestEnemy = Util.closest(enemies, here);
 
 		boolean mustMoveOrthogonally = false;
-		// if (type == RobotType.DRONE && rc.getCoreDelay() >= 0.6 &&
-		// currentClosestEnemy.type == RobotType.MISSILE) mustMoveOrthogonally =
-		// true;
-
-		int bestDistSq = here.distanceSquaredTo(currentClosestEnemy.location);
+		double bestDistSq = here.distanceSquaredTo(currentClosestEnemy.location);
 		for (Direction dir : Direction.values()) {
 			if (!rc.canMove(dir))
 				continue;
@@ -110,8 +106,10 @@ public class Harass extends Bot {
 
 			RobotInfo closestEnemy = Util.closest(enemies, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
-			if (distSq > bestDistSq) {
-				bestDistSq = distSq;
+			double rubble = rc.senseRubble(retreatLoc);
+			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			if (distSq-rubbleMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod;
 				bestRetreatDir = dir;
 			}
 		}
