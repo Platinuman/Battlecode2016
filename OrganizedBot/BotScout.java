@@ -103,6 +103,7 @@ public class BotScout extends Bot {
 		case 0:// exploring
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
 			if (rc.isCoreReady()) {
@@ -111,7 +112,6 @@ public class BotScout extends Bot {
 					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
 					// us).length);
 				} else{
-					RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
 				}
 			}
@@ -119,7 +119,7 @@ public class BotScout extends Bot {
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(zombies);
 			// if (rc.getRoundNum() % 30 == 0) {
-			updateCrunchTime();
+			updateCrunchTime(enemies,allies);
 			// }
 			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
@@ -228,18 +228,35 @@ public class BotScout extends Bot {
 		return updated;
 	}
 
-	private static void updateCrunchTime() throws GameActionException {
+	private static void updateCrunchTime(RobotInfo[] enemiesInSight,RobotInfo[] allies) throws GameActionException {
 		if(circlingLoc!=null)
 			circlingTime+=1;
 		if (circlingTime>100&&circlingLoc != null
-				&& 3.3 * turretSize < rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us).length) {
+				&& canWeBeatTheTurrets(allies)
+		        &&areEnoughAlliesEngaged(enemiesInSight,allies)){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
 		// rc.setIndicatorString(2, "...");
 
 	}
-
+private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
+	int numVipers = 0;
+	int numSoldiers =0;
+	for(RobotInfo bot: allies){
+		if(bot.type == RobotType.SOLDIER)
+			numSoldiers+=1;
+		else if(bot.type == RobotType.VIPER)
+			numVipers+=1;
+	}
+	int viperPower = numVipers*(rc.getRoundNum()/300)/2;
+	return turretSize < numSoldiers/3+viperPower;
+}
+	private static boolean areEnoughAlliesEngaged(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
+		int numEnemiesInTurtle = enemiesInSight.length;
+		int numAlliesAttackingCrunch = allies.length;
+		return numAlliesAttackingCrunch >= numEnemiesInTurtle;
+	}
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {
 		if (enemies.length > 1) {
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
