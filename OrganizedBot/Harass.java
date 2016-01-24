@@ -305,9 +305,11 @@ public class Harass extends Bot {
 				if (closestEnemy != null
 						&& (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
 							|| closestEnemy.type == RobotType.ARCHON)) {
+				//	System.out.println("No core delay, we can see but not shoot");
 					//we outrange them
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
+						System.out.println("we have allies");
 						// see if we can assist our ally(s)
 						int maxEnemyExposure = numAlliesFightingEnemy;
 						if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemiesInSight)) {
@@ -315,6 +317,8 @@ public class Harass extends Bot {
 						}
 						// TODO: what if that didn't work?
 					} else {
+						System.out.println("no allies");
+
 						// no one is fighting this enemy, but we can try to engage them if we can win the 1v1
 						if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
 							int maxEnemyExposure = 1;
