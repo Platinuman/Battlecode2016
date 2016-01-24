@@ -18,6 +18,7 @@ public class Bot {
 	public static MapLocation targetLoc;
 	public static int bestIndex;
 	public static int numDensToHunt;
+	public static int turnCreated;
 	public static Direction directionIAmMoving;
 	public static MapLocation[] initialEnemyArchonLocs;
 	// TODO: get rid of this stupid directions thing and use direction order and dir.ordinal()
@@ -29,7 +30,7 @@ public class Bot {
 	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
-
+		turnCreated = rc.getRoundNum();
 		us = rc.getTeam();
 		them = us.opponent();
 		initialEnemyArchonLocs = rc.getInitialArchonLocations(them);

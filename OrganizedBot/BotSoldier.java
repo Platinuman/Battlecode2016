@@ -4,8 +4,7 @@ import battlecode.common.*;
 
 public class BotSoldier extends Bot {
 	protected static MapLocation targetLoc;
-	protected static int soldierType; // 0 = turret helper; 1 = mobile helper
-
+	
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
 		init();
@@ -41,7 +40,6 @@ public class BotSoldier extends Bot {
 	}
 	
 	private static void init() throws GameActionException {
-		Harass.crunching = false;
 		return;
 	}
 }

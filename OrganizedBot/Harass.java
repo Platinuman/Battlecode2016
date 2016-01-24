@@ -18,7 +18,7 @@ public class Harass extends Bot {
 
 	private static boolean canWin1v1(RobotInfo enemy) {
 
-		if (enemy.type == RobotType.ARCHON)
+		if (enemy.type == RobotType.ARCHON||enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
@@ -41,7 +41,7 @@ public class Harass extends Bot {
 
 	public static boolean canWin1v1AfterMovingTo(MapLocation loc, RobotInfo enemy) {
 		// TODO:!!! take range difference into account! soldiers can kite basically everything
-		if (enemy.type == RobotType.ARCHON)
+		if (enemy.type == RobotType.ARCHON ||enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
 		int turnsTillWeCanAttack;
@@ -142,7 +142,7 @@ public class Harass extends Bot {
 	// support.
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, RobotInfo[] allies) throws GameActionException {
-		if (enemiesInSight.length == 0) {
+		if (enemiesInSight.length == 0 || !(rc.isCoreReady() && rc.isWeaponReady())) {
 			return false;
 		}
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
@@ -270,21 +270,25 @@ public class Harass extends Bot {
 		} else {
 			// no one is shooting at us. if we can shoot at someone, do so
 			RobotInfo bestTarget = null;
-			double bestTargetingMetric = 0;
-			int maxAlliesAttackingAnEnemy = 0;
-			for (RobotInfo enemy : enemiesInSight) {
-				int numAlliesAttackingEnemy = 1 + numOtherAlliesInAttackRange(enemy.location, allies);
-				if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
-					maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
-				if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-					double targetingMetric = numAlliesAttackingEnemy / enemy.health
-							+ enemy.attackPower // TODO: optimize
-							+ (enemy.type == RobotType.FASTZOMBIE?10:0)
-							+ (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
-							+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
-					if (targetingMetric > bestTargetingMetric) {
-						bestTargetingMetric = targetingMetric;
-						bestTarget = enemy;
+			if(enemiesICanShoot.length == 1)
+				bestTarget = enemiesICanShoot[0];
+			else{
+				double bestTargetingMetric = 0;
+				int maxAlliesAttackingAnEnemy = 0;
+				for (RobotInfo enemy : enemiesInSight) {
+					int numAlliesAttackingEnemy = 1 + numOtherAlliesInAttackRange(enemy.location, allies);
+					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
+						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
+					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+						double targetingMetric = numAlliesAttackingEnemy / enemy.health
+								+ enemy.attackPower // TODO: optimize
+								+ (enemy.type == RobotType.FASTZOMBIE?10:0)
+								+ (enemy.team == Team.ZOMBIE?0:100) // shoot zombies last
+								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+						if (targetingMetric > bestTargetingMetric) {
+							bestTargetingMetric = targetingMetric;
+							bestTarget = enemy;
+						}
 					}
 				}
 			}
@@ -301,9 +305,11 @@ public class Harass extends Bot {
 				if (closestEnemy != null
 						&& (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
 							|| closestEnemy.type == RobotType.ARCHON)) {
+				//	System.out.println("No core delay, we can see but not shoot");
 					//we outrange them
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
+						System.out.println("we have allies");
 						// see if we can assist our ally(s)
 						int maxEnemyExposure = numAlliesFightingEnemy;
 						if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemiesInSight)) {
@@ -311,6 +317,8 @@ public class Harass extends Bot {
 						}
 						// TODO: what if that didn't work?
 					} else {
+						System.out.println("no allies");
+
 						// no one is fighting this enemy, but we can try to engage them if we can win the 1v1
 						if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
 							int maxEnemyExposure = 1;
@@ -412,7 +420,7 @@ public class Harass extends Bot {
 		return ret;
 	}
 
-	private static int numOtherAlliesInAttackRange(MapLocation loc, RobotInfo[] allies) {
+	public static int numOtherAlliesInAttackRange(MapLocation loc, RobotInfo[] allies) {
 		int ret = 0;
 		for (RobotInfo ally : allies) {
 			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location))
@@ -453,7 +461,7 @@ public class Harass extends Bot {
 						if (!huntingDen//test this
 								|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
 							targetLoc = denLoc;
-							bestIndex = targetDenSize;
+							bestIndex = targetDenSize - 1;
 							huntingDen = true;
 						}
 					}
@@ -548,16 +556,6 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 		}
-		else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
-			targetLoc = null;
-			huntingDen = false;
-			if (numDensToHunt > 0) {
-				huntingDen = true;
-				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-				targetLoc = targetDens[bestIndex];
-			}
-		}
 	}
 
 	private static void updateViperTargetLoc(Signal signal){
@@ -586,10 +584,6 @@ public class Harass extends Bot {
 	}
 	
 	private static void updateViperTargetLocWithoutSignals() {
-		if (targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
-			targetLoc = null;
-		}
 		if (targetLoc == null) {
 			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
 			do {
@@ -729,8 +723,10 @@ public class Harass extends Bot {
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
-		updateTargetLocWithoutSignals();
-		updateInfoFromSignals(signals, enemies);
+		if(!crunching){
+			updateInfoFromSignals(signals, enemies);
+			updateTargetLocWithoutSignals();
+		}
 		
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
@@ -744,14 +740,9 @@ public class Harass extends Bot {
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
-				//int startB = Clock.getBytecodeNum();
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
-				//int navBytecodesUsed = Clock.getBytecodeNum() - startB;
-				//if(navBytecodesUsed < 0 || navBytecodesUsed > 1000)
-				//	System.out.println(navBytecodesUsed);
 			}
-			else if(!
-					Util.checkRubbleAndClear(here.directionTo(center), true))
+			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
 		// ends here
@@ -759,6 +750,7 @@ public class Harass extends Bot {
 
 	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
 		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+		prepTargetLoc(canSeeHostiles);
 		for(Signal s: signals){
 			updateTargetLoc(s, canSeeHostiles);
 			if(s.getTeam() == them)
@@ -767,5 +759,18 @@ public class Harass extends Bot {
 			updateMoveIn(s);
 		}
 		updateTurretList(enemies);
+	}
+
+	public static void prepTargetLoc(boolean canSeeHostiles) {
+		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+				&& !canSeeHostiles) {
+			targetLoc = null;
+			huntingDen = false;
+			if (numDensToHunt > 0 && type != RobotType.VIPER) {
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+		}
 	}
 }
