@@ -722,22 +722,6 @@ public class Harass extends Bot {
 		}
 	}
 
-	/*
-	 * public static RobotInfo[] addRobotInfo(RobotInfo[] series, RobotInfo
-	 * newInt) { // create a new array with extra index RobotInfo[] newSeries =
-	 * new RobotInfo[series.length + 1]; // copy the integers from series to
-	 * newSeries for (int i = 0; i < series.length; i++) { newSeries[i] =
-	 * series[i]; } // add the new integer to the last index
-	 * newSeries[newSeries.length - 1] = newInt; return newSeries; }
-	 * 
-	 * public static void stayOutOfRange(RobotInfo[] enemies) throws
-	 * GameActionException { rc.setIndicatorString(2, "staying out of range");
-	 * NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-	 * Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]),
-	 * enemies)); if (here.distanceSquaredTo(turretLoc) < 64) {
-	 * Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety); } else {
-	 * Nav.goTo(turretLoc, theSafety); } }
-	 */
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
 		boolean updated = updateTurretList(signals);
 		for (int i = 0; i < turretSize; i++) {
