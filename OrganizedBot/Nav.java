@@ -63,8 +63,8 @@ public class Nav extends Bot {
 		if (rc.getType() == RobotType.TTM) {
 			return false;
 		}
-		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 2000; // hard-coded
+		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1500; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -214,7 +214,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (checkRubble(here.directionTo(dest))) {
+				if (type != RobotType.SCOUT && checkRubble(here.directionTo(dest))) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -289,6 +289,12 @@ public class Nav extends Bot {
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction away = center.directionTo(here);
+		if(away == Direction.OMNI){
+			 away = here.directionTo(rc.getInitialArchonLocations(us)[0]);
+		}
+		if(away == Direction.OMNI){
+			 away = Direction.NORTH;
+		}
 		if (rc.canMove(away)
 				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {

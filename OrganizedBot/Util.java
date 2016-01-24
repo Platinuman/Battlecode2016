@@ -245,7 +245,10 @@ public boolean isDangerous(RobotType theType){
 		double totalRubble = 0;
 		while(!current.equals(end)){
 			current = current.add(current.directionTo(end));
-			totalRubble += rc.senseRubble(current);
+			if(rc.canSenseLocation(current))
+				totalRubble += rc.senseRubble(current);
+			else
+				break;
 		}
 		return totalRubble;
 	}
