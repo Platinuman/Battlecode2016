@@ -734,8 +734,14 @@ public class Harass extends Bot {
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
-		updateTargetLocWithoutSignals();
-		updateInfoFromSignals(signals, enemies);
+		if(!crunching){
+			updateTargetLocWithoutSignals();
+			//int startB = Clock.getBytecodeNum();
+			updateInfoFromSignals(signals, enemies);
+			//int signalBytecodesUsed = Clock.getBytecodeNum() - startB;
+			//if(signalBytecodesUsed < 0 || signalBytecodesUsed > 1000)
+			//	System.out.println(signalBytecodesUsed);
+		}
 		
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
