@@ -480,8 +480,8 @@ public class Harass extends Bot {
 					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF && numDensToHunt == 0) {
 						int[] data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (!huntingDen && targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-								* (here.distanceSquaredTo(targetLoc))) {
+						if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
+								* (here.distanceSquaredTo(targetLoc)))) {
 							targetLoc = enemyLoc;
 						}
 					}
@@ -555,6 +555,7 @@ public class Harass extends Bot {
 		else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
 				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
 			targetLoc = null;
+			huntingDen = false;
 			if (numDensToHunt > 0) {
 				huntingDen = true;
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
