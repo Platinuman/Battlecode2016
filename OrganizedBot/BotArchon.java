@@ -79,6 +79,7 @@ public class BotArchon extends Bot {
 		 * denArraySize = 0; numDensToHunt = 0; bestIndex = 0; huntingDen =
 		 * false; } }
 		 */
+		//System.out.println(type.attackPower);
 	}
 
 	private static void turn() throws GameActionException {
