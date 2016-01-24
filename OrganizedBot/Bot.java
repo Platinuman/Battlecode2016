@@ -19,6 +19,7 @@ public class Bot {
 	public static int bestIndex;
 	public static int numDensToHunt;
 	public static Direction directionIAmMoving;
+	public static MapLocation[] initialEnemyArchonLocs;
 	// TODO: get rid of this stupid directions thing and use direction order and dir.ordinal()
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
@@ -31,7 +32,7 @@ public class Bot {
 
 		us = rc.getTeam();
 		them = us.opponent();
-
+		initialEnemyArchonLocs = rc.getInitialArchonLocations(them);
 		here = rc.getLocation();
 		rand = new Random(rc.getID());
 		type = rc.getType();
@@ -80,6 +81,7 @@ public class Bot {
 		}
 		return updated;
 	}
+	
 	public static void removeLocFromTurretArray(MapLocation loc) {
 		for(int i = 0 ; i < turretSize; i++){
 			if( enemyTurrets[i].location.equals(loc)){

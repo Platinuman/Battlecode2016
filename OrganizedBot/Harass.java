@@ -433,108 +433,105 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static boolean updateTargetLoc(Signal[] signals) throws GameActionException {
-		boolean updated = false;
-		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+	public static void updateTargetLoc(Signal signal, boolean canSeeHostiles){
 		if (type == RobotType.VIPER) {
-			return updateViperTargetLoc(signals);
+			updateViperTargetLoc(signal);
 		}
-		//int startB = Clock.getBytecodeNum();
+		if (signal.getTeam() == us) {
+			int[] message = signal.getMessage();
+			if (message != null) {
+				MapLocation senderloc = signal.getLocation();
+				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+				if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
+					int[] data = purpose.decode(senderloc, message);
+					MapLocation denLoc = new MapLocation(data[0], data[1]);
+					if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+							&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+						targetDens[targetDenSize] = denLoc;
+						targetDenSize++;
+						numDensToHunt++;
+						if (!huntingDen//test this
+								|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
+							targetLoc = denLoc;
+							bestIndex = targetDenSize;
+							huntingDen = true;
+						}
+					}
+				}
+//				if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
+//					int[] data = purpose.decode(senderloc, message);
+//					archonLoc = new MapLocation(data[0], data[1]);
+//					return true;
+//				}
+				if (purpose == MessageEncode.ENEMY_ARMY_NOTIF && numDensToHunt == 0) {
+					int[] data = purpose.decode(senderloc, message);
+					MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+					if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
+							* (here.distanceSquaredTo(targetLoc)))) {
+						targetLoc = enemyLoc;
+					}
+				}
+			} else {
+				MapLocation signalLoc = signal.getLocation();
+				int distToSignal = here.distanceSquaredTo(signalLoc);
+				// if (type.sensorRadiusSquared *
+				// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
+				// && (targetLoc == null || distToSignal <
+				// here.distanceSquaredTo(targetLoc))) {// call
+				// // for
+				// // help
+				// targetLoc = signalLoc;
+				// huntingDen = false;
+				// return true;
+				// } else {// if a den has been killed don't go for it
+				// anymore
+				int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+				if (closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared){
+					//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+					MapLocation killedDen = targetDens[closestIndex];
+					targetDens[closestIndex] = null;
+					killedDens[killedDenSize] = killedDen;
+					killedDenSize++;
+					numDensToHunt--;
+					if(huntingDen && targetLoc.equals(killedDen)){
+						//rc.setIndicatorString(0, "here");
+						huntingDen = false;
+						targetLoc = null;
+						if (numDensToHunt > 0) {
+							huntingDen = true;
+							bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+							targetLoc = targetDens[bestIndex];
+						}
+					}
+					// }
+				}
+			}
+		}
+		else{
+			if(canSeeHostiles)
+				return;
+			MapLocation enemyLoc = signal.getLocation();
+			if (targetLoc == null || !huntingDen && (double) here.distanceSquaredTo(enemyLoc) < 0.5
+					* (here.distanceSquaredTo(targetLoc))) {
+				targetLoc = enemyLoc;
+				huntingDen = false;
+			}
+		}
+	}
+	
+	public static void updateTargetLocWithoutSignals() throws GameActionException {
+		if (type == RobotType.VIPER) {
+			updateViperTargetLocWithoutSignals();
+		}
 		if(targetLoc == null){
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
 			for (RobotInfo zombie : zombies) {
 				if (zombie.type == RobotType.ZOMBIEDEN) {
 					targetLoc = zombie.location;
-					updated = true;
 				}
 			}
 		}
-		for (Signal signal : signals) {
-			if (signal.getTeam() == us) {
-				int[] message = signal.getMessage();
-				if (message != null) {
-					MapLocation senderloc = signal.getLocation();
-					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
-						int[] data = purpose.decode(senderloc, message);
-						MapLocation denLoc = new MapLocation(data[0], data[1]);
-						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-								&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-							targetDens[targetDenSize] = denLoc;
-							targetDenSize++;
-							numDensToHunt++;
-							if (!huntingDen//test this
-									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
-								targetLoc = denLoc;
-								bestIndex = targetDenSize;
-								huntingDen = true;
-							}
-						}
-						updated = true;
-					}
-//					if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
-//						int[] data = purpose.decode(senderloc, message);
-//						archonLoc = new MapLocation(data[0], data[1]);
-//						return true;
-//					}
-					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF && numDensToHunt == 0) {
-						int[] data = purpose.decode(senderloc, message);
-						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-								* (here.distanceSquaredTo(targetLoc)))) {
-							targetLoc = enemyLoc;
-						}
-					}
-				} else {
-					MapLocation signalLoc = signal.getLocation();
-					int distToSignal = here.distanceSquaredTo(signalLoc);
-					// if (type.sensorRadiusSquared *
-					// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
-					// && (targetLoc == null || distToSignal <
-					// here.distanceSquaredTo(targetLoc))) {// call
-					// // for
-					// // help
-					// targetLoc = signalLoc;
-					// huntingDen = false;
-					// return true;
-					// } else {// if a den has been killed don't go for it
-					// anymore
-					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-					if (closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared){
-						//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
-						MapLocation killedDen = targetDens[closestIndex];
-						targetDens[closestIndex] = null;
-						killedDens[killedDenSize] = killedDen;
-						killedDenSize++;
-						numDensToHunt--;
-						if(huntingDen && targetLoc.equals(killedDen)){
-							//rc.setIndicatorString(0, "here");
-							huntingDen = false;
-							targetLoc = null;
-							if (numDensToHunt > 0) {
-								huntingDen = true;
-								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-								targetLoc = targetDens[bestIndex];
-							}
-							updated = true;
-						}
-						// }
-					}
-				}
-			}
-			else{
-				if(canSeeHostiles)
-					continue;
-				MapLocation enemyLoc = signal.getLocation();
-				if (targetLoc == null || !huntingDen && (double) here.distanceSquaredTo(enemyLoc) < 0.5
-						* (here.distanceSquaredTo(targetLoc))) {
-					targetLoc = enemyLoc;
-					updated = true;
-					huntingDen = false;
-				}
-			}
-		}
-		if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
+		else if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
 			// tell people a den has been killed
 			if (targetLoc != null) {
 				rc.broadcastSignal(12800);
@@ -550,7 +547,6 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
-			updated = true;
 		}
 		else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
 				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
@@ -561,53 +557,41 @@ public class Harass extends Bot {
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
 			}
-			updated = true;
 		}
-		/*
-		 * RobotInfo[] allies =
-		 * rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
-		 * for(RobotInfo ally : allies){ if(ally.ID == archonID){ targetLoc =
-		 * ally.location; return true; } }
-		 */
-		//System.out.println(Clock.getBytecodeNum() - startB);
-		return updated;
 	}
 
-	private static boolean updateViperTargetLoc(Signal[] signals) {
-		boolean updated = false;
-		if (targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
-			targetLoc = null;
-			updated = true;
-		}
-		for (Signal signal : signals) {
-			if (signal.getTeam() == us) {
-				int[] message = signal.getMessage();
-				if (message != null) {
-					MapLocation senderLoc = signal.getLocation();
-					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
-						int[] data = purpose.decode(senderLoc, message);
-						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-								* (here.distanceSquaredTo(targetLoc))) {
-							targetLoc = enemyLoc;
-							updated = true;
-						}
+	private static void updateViperTargetLoc(Signal signal){
+		if (signal.getTeam() == us) {
+			int[] message = signal.getMessage();
+			if (message != null) {
+				MapLocation senderLoc = signal.getLocation();
+				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+				if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
+					int[] data = purpose.decode(senderLoc, message);
+					MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+					if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
+							* (here.distanceSquaredTo(targetLoc))) {
+						targetLoc = enemyLoc;
 					}
 				}
 			}
-			else{
-				MapLocation enemyLoc = signal.getLocation();
-				if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
-						* (here.distanceSquaredTo(targetLoc))) {
-					targetLoc = enemyLoc;
-					updated = true;
-				}
+		}
+		else{
+			MapLocation enemyLoc = signal.getLocation();
+			if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
+					* (here.distanceSquaredTo(targetLoc))) {
+				targetLoc = enemyLoc;
 			}
 		}
+	}
+	
+	private static void updateViperTargetLocWithoutSignals() {
+		if (targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
+			targetLoc = null;
+		}
 		if (targetLoc == null) {
-			MapLocation[] enemyArchonLocations = rc.getInitialArchonLocations(them);
+			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
 			do {
 				int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
 				if (locIndex == -1){
@@ -617,11 +601,7 @@ public class Harass extends Bot {
 				targetLoc = enemyArchonLocations[locIndex];
 				enemyArchonLocations[locIndex] = null;
 			} while (here.distanceSquaredTo(targetLoc) < 5);
-			if (targetLoc != null)
-				updated = true;
 		}
-		//rc.setIndicatorString(2, "targetLoc = " + targetLoc);
-		return updated;
 	}
 
 	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
@@ -678,22 +658,17 @@ public class Harass extends Bot {
 
 	}
 
-	public static void updateMoveIn(Signal[] signals, RobotInfo[] enemies) {
+	public static void updateMoveIn(Signal signal) {
 		// if(type == RobotType.VIPER)
 		// return false;
-		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
-			crunching = false;
-		}
-		for (Signal signal : signals) {
-			if (signal.getTeam() == us) {
-				int[] message = signal.getMessage();
-				if (message != null) {
-					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.CRUNCH_TIME){
-						int[] mess = purpose.decode(signal.getLocation(), message);
-						if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
-							crunching = true;
-					}
+		if (signal.getTeam() == us) {
+			int[] message = signal.getMessage();
+			if (message != null) {
+				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+				if (purpose == MessageEncode.CRUNCH_TIME){
+					int[] mess = purpose.decode(signal.getLocation(), message);
+					if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
+						crunching = true;
 				}
 			}
 		}
@@ -722,24 +697,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	/*
-	 * public static RobotInfo[] addRobotInfo(RobotInfo[] series, RobotInfo
-	 * newInt) { // create a new array with extra index RobotInfo[] newSeries =
-	 * new RobotInfo[series.length + 1]; // copy the integers from series to
-	 * newSeries for (int i = 0; i < series.length; i++) { newSeries[i] =
-	 * series[i]; } // add the new integer to the last index
-	 * newSeries[newSeries.length - 1] = newInt; return newSeries; }
-	 * 
-	 * public static void stayOutOfRange(RobotInfo[] enemies) throws
-	 * GameActionException { rc.setIndicatorString(2, "staying out of range");
-	 * NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-	 * Util.combineTwoRIArrays(enemyTurrets.toArray(new RobotInfo[0]),
-	 * enemies)); if (here.distanceSquaredTo(turretLoc) < 64) {
-	 * Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety); } else {
-	 * Nav.goTo(turretLoc, theSafety); } }
-	 */
-	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
-		boolean updated = updateTurretList(signals);
+	public static void updateTurretList(RobotInfo[] enemies) throws GameActionException{
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
@@ -747,7 +705,6 @@ public class Harass extends Bot {
 				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
 					i--;
-					updated = true;
 				}
 			}
 		}
@@ -756,9 +713,7 @@ public class Harass extends Bot {
 				if(!isLocationInTurretArray(e.location)){
 					enemyTurrets[turretSize] = e;
 					turretSize++;
-					updated = true;
 				}
-		return updated;
 	}
 	
 	public static void doHarass() throws GameActionException {
@@ -767,10 +722,16 @@ public class Harass extends Bot {
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		// rc.setIndicatorString(0, "" + signals.length);
-		updateTurretList(signals, enemies);
+		//updateTurretList(signals, enemies);
 		boolean turretUpdated = updateTurretLoc();
-		updateMoveIn(signals, enemies);
-		boolean targetUpdated = updateTargetLoc(signals);
+		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
+			crunching = false;
+		}
+		//updateMoveIn(signals, enemies);
+		//boolean targetUpdated = updateTargetLoc(signals);
+		updateTargetLocWithoutSignals();
+		updateInfoFromSignals(signals, enemies);
+		
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
 		if (crunching) {
@@ -783,12 +744,28 @@ public class Harass extends Bot {
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
+				//int startB = Clock.getBytecodeNum();
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
+				//int navBytecodesUsed = Clock.getBytecodeNum() - startB;
+				//if(navBytecodesUsed < 0 || navBytecodesUsed > 1000)
+				//	System.out.println(navBytecodesUsed);
 			}
 			else if(!
 					Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
 		// ends here
+	}
+
+	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
+		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+		for(Signal s: signals){
+			updateTargetLoc(s, canSeeHostiles);
+			if(s.getTeam() == them)
+				continue;
+			updateTurretList(new Signal[] {s});
+			updateMoveIn(s);
+		}
+		updateTurretList(enemies);
 	}
 }
