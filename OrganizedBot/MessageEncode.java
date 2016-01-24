@@ -68,7 +68,7 @@ public enum MessageEncode {
 	 */
 	private final int[] whichDataToInclude;
 	private final int whereToSplitData; // index in whichDataToInclude that gets bumped to 2nd int
-	private static final int[] howMuchSpaceDataNeeds = {4, 7, 7, 11, 7, 10, 4, 5, 5, 1};
+	private static final int[] howMuchSpaceDataNeeds = {4, 8, 8, 11, 7, 10, 4, 5, 5, 1};
 	//get 30 slots total per int
 
 	// TODO: make "yell" method to do the actual broadcast too
@@ -98,10 +98,10 @@ public enum MessageEncode {
 		for ( int i = 0; i < whereToSplitData; i++){
 			switch (whichDataToInclude[i]) {
 			case 1:
-				data[i] = data[i] - Bot.center.x + 40;
+				data[i] = data[i] - Bot.center.x + 80;
 				break;
 			case 2:
-				data[i] = data[i] - Bot.center.y + 40;
+				data[i] = data[i] - Bot.center.y + 80;
 				break;
 			case 7:
 				data[i] = data[i] - myloc.x + 15;
@@ -116,10 +116,10 @@ public enum MessageEncode {
 		for ( int i = whereToSplitData ; i < whichDataToInclude.length ; i++){
 			switch (whichDataToInclude[i]) {
 			case 1:
-				data[i] = data[i] - Bot.center.x + 40;
+				data[i] = data[i] - Bot.center.x + 80;
 				break;
 			case 2:
-				data[i] = data[i] - Bot.center.y + 40;
+				data[i] = data[i] - Bot.center.y + 80;
 				break;
 			case 7:
 				data[i] = data[i] - myloc.x + 15;
@@ -147,10 +147,10 @@ public enum MessageEncode {
 			data[i] = mess[0]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			switch (whichDataToInclude[i]) {
 			case 1:
-				data[i] = data[i] + Bot.center.x - 40;
+				data[i] = data[i] + Bot.center.x - 80;
 				break;
 			case 2:
-				data[i] = data[i] + Bot.center.y - 40;
+				data[i] = data[i] + Bot.center.y - 80;
 				break;
 			case 7:
 				data[i] = data[i] + senderloc.x - 15;
@@ -165,10 +165,10 @@ public enum MessageEncode {
 			data[i] = mess[1]/powerOfTwo % multiplyByTwo(1, howMuchSpaceDataNeeds[whichDataToInclude[i]]);
 			switch (whichDataToInclude[i]) {
 			case 1:
-				data[i] = data[i] + Bot.center.x - 40;
+				data[i] = data[i] + Bot.center.x - 80;
 				break;
 			case 2:
-				data[i] = data[i] + Bot.center.y - 40;
+				data[i] = data[i] + Bot.center.y - 80;
 				break;
 			case 7:
 				data[i] = data[i] + senderloc.x - 15;
