@@ -676,8 +676,10 @@ public class Harass extends Bot {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.CRUNCH_TIME && purpose.decode(signal.getLocation(), message)[0] == 1) {
-						crunching = true;
+					if (purpose == MessageEncode.CRUNCH_TIME){
+						int[] mess = purpose.decode(signal.getLocation(), message);
+						if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
+							crunching = true;
 					}
 				}
 			}

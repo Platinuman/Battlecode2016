@@ -19,7 +19,7 @@ public enum MessageEncode {
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
-	CRUNCH_TIME			  (12,new int[]{3},0),	// whether to crunch or not (not the health)
+	CRUNCH_TIME			  (12,new int[]{1,2},0),// approximate center of turret 
 	NEUTRAL_ARCHON		  (13,new int[]{1,2},0);// xloc, yloc
 	//ZOMBIE_HORDE_NOTIF
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
