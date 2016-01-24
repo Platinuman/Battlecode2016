@@ -457,7 +457,7 @@ public class Harass extends Bot {
 						if (!huntingDen//test this
 								|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
 							targetLoc = denLoc;
-							bestIndex = targetDenSize;
+							bestIndex = targetDenSize - 1;
 							huntingDen = true;
 						}
 					}
@@ -552,16 +552,6 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 		}
-		else if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
-			targetLoc = null;
-			huntingDen = false;
-			if (numDensToHunt > 0) {
-				huntingDen = true;
-				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-				targetLoc = targetDens[bestIndex];
-			}
-		}
 	}
 
 	private static void updateViperTargetLoc(Signal signal){
@@ -590,10 +580,6 @@ public class Harass extends Bot {
 	}
 	
 	private static void updateViperTargetLocWithoutSignals() {
-		if (targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& rc.senseHostileRobots(here, type.sensorRadiusSquared).length == 0) {
-			targetLoc = null;
-		}
 		if (targetLoc == null) {
 			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
 			do {
@@ -734,8 +720,8 @@ public class Harass extends Bot {
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
 		if(!crunching){
-			updateTargetLocWithoutSignals();
 			updateInfoFromSignals(signals, enemies);
+			updateTargetLocWithoutSignals();
 		}
 		
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
@@ -743,11 +729,7 @@ public class Harass extends Bot {
 		if (crunching) {
 			crunch();
 		} else {
-			int startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
-			int signalBytecodesUsed = Clock.getBytecodeNum() - startB;
-			if(signalBytecodesUsed > 4000)
-				System.out.println(signalBytecodesUsed);
 		}
 		if(rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
@@ -764,6 +746,7 @@ public class Harass extends Bot {
 
 	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
 		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+		prepTargetLoc(canSeeHostiles);
 		for(Signal s: signals){
 			updateTargetLoc(s, canSeeHostiles);
 			if(s.getTeam() == them)
@@ -772,5 +755,18 @@ public class Harass extends Bot {
 			updateMoveIn(s);
 		}
 		updateTurretList(enemies);
+	}
+
+	public static void prepTargetLoc(boolean canSeeHostiles) {
+		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+				&& !canSeeHostiles) {
+			targetLoc = null;
+			huntingDen = false;
+			if (numDensToHunt > 0 && type != RobotType.VIPER) {
+				huntingDen = true;
+				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+				targetLoc = targetDens[bestIndex];
+			}
+		}
 	}
 }
