@@ -105,22 +105,22 @@ public class BotArchon extends Bot {
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
-		rc.setIndicatorString(1, "numDensToHunt = " + numDensToHunt);
 		hostiles = Util.removeHarmlessUnits(hostiles);
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
+			if (hostiles.length > 0){
+				rc.setIndicatorDot(here, 255, 0, 0);
+				Nav.flee(hostiles);
+			}
 			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 			//RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			// if i can see enemies run away
 			// if(inDanger(allies, enemies, zombies)){
-			if (hostiles.length > 0) {
-				Nav.flee(hostiles);
 			//	if (rc.getRoundNum() % 5 == 0)// && allies.length <
-					// hostiles.length){
-				//	callForHelp();
-				if(!rc.isCoreReady())
-					return;
-			}
+			// hostiles.length){
+			//	callForHelp();
+			if(!rc.isCoreReady())
+				return;
 			// if i haven't created a scout create one
 			/*
 			if (rc.hasBuildRequirements(RobotType.SCOUT) && createScoutIfNecessary(allies)) // isn't running away more
@@ -295,12 +295,11 @@ public class BotArchon extends Bot {
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
-				rc.setIndicatorString(2, t.x + ", " + t.y + " and " + here.x + ", " + here.y);
 				RobotInfo bot = rc.senseRobotAtLocation(t);
 				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
-							new int[] { t.x, t.y, here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+							new int[] { t.x, t.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], (int)(type.sensorRadiusSquared*GameConstants.BROADCAST_RANGE_MULTIPLIER));
 					i--;
 					updated = true;
@@ -312,8 +311,7 @@ public class BotArchon extends Bot {
 				if (!isLocationInTurretArray(e.location)) {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
-							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], (int)(type.sensorRadiusSquared*GameConstants.BROADCAST_RANGE_MULTIPLIER));
 					updated = true;
 				}
@@ -377,9 +375,6 @@ public class BotArchon extends Bot {
 		}
 		if (closestLoc != null) {
 			targetLocation = closestLoc;
-			/*
-			 * broadcastTargetLocation(allies); huntingDen = false;
-			 */
 			return true;
 		}
 		return false;

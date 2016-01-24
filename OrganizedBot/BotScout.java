@@ -195,14 +195,12 @@ public class BotScout extends Bot {
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
-				rc.setIndicatorString(2, t.x + ", " + t.y + " and " + here.x + ", " + here.y);
 				RobotInfo bot = rc.senseRobotAtLocation(t);
 				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
-							new int[] { t.x, t.y, here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+							new int[] { t.x, t.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(2, "turret death at " + t.x + ", " + t.y);
 					i--;
 					updated = true;
 				}
@@ -216,10 +214,8 @@ public class BotScout extends Bot {
 				if (!isLocationInTurretArray(e.location)) {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
-							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
 					updated = true;
 				}
 			}

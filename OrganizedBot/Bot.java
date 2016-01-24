@@ -55,10 +55,27 @@ public class Bot {
 				int[] message = signal.getMessage();
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.WARN_ABOUT_TURRETS || purpose == MessageEncode.RELAY_TURRET_INFO) {
-						MapLocation senderloc = signal.getLocation();
-						int[] data = purpose.decode(senderloc, message);
-						MapLocation loc;
+					int[] data;
+					MapLocation senderloc, loc;
+					switch(purpose){
+					case ENEMY_TURRET_DEATH:
+						data = purpose.decode(signal.getLocation(), message);
+						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
+						updated = true;
+						break;
+					case WARN_ABOUT_TURRETS:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						loc = new MapLocation(data[0], data[1]);
+						if(!isLocationInTurretArray(loc)){
+							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+							turretSize++;
+						}
+						updated = true;
+						break;
+					case RELAY_TURRET_INFO:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
 						for(int i = 0; i< data.length; i +=2){
 							loc = new MapLocation(data[i], data[i+1]);
 							if(loc.equals(senderloc)){
@@ -67,14 +84,10 @@ public class Bot {
 							if(!isLocationInTurretArray(loc)){
 								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
 								turretSize++;
-								//System.out.println("added turret @ " + data[i] + ", " + data[i+1]);
 							}
 						}
 						updated = true;
-					} else if(purpose == MessageEncode.ENEMY_TURRET_DEATH){
-						int[] data = purpose.decode(signal.getLocation(), message);
-						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
-						updated = true;
+					default:
 					}
 				}
 			}

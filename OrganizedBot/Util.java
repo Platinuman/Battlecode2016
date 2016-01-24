@@ -150,22 +150,36 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 			yavg += loc.y;
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
-	}
-public boolean isDangerous(RobotType theType){
-	switch(type){
-    case ARCHON:
-    	return false;
-    case ZOMBIEDEN:
-    	return false;
-    case SCOUT:
-    	return false;
-    default:
-        return true;
     }
-}
+    
+    public static boolean isDangerous(RobotType theType){
+    	switch(theType){
+    	case ARCHON:
+    		return false;
+    	case ZOMBIEDEN:
+    		if(getRoundsUntilNextZombieSpawn() < 20) break;
+    		return false;
+    	case SCOUT:
+    		return false;
+    	default:
+    	}
+    	return true;
+    }
 
-	public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
-		for(int i = 0; i < size; i++){
+    private static int getRoundsUntilNextZombieSpawn() {
+    	// TODO Auto-generated method stub
+    	int[] schedule = rc.getZombieSpawnSchedule().getRounds();
+    	int nextRound = 9999;
+    	for(int i = 0; i < schedule.length; i++)
+    		if(rc.getRoundNum() < schedule[i]){
+    			nextRound = schedule[i];
+    		break;
+    	}
+    	return nextRound - rc.getRoundNum();
+    }
+
+    public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
+    	for(int i = 0; i < size; i++){
 			MapLocation loc = locs[i];
 			if(locs[i] == null){
 				continue;
@@ -256,17 +270,14 @@ public boolean isDangerous(RobotType theType){
 	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
 		int newlength = 0;
 		for (int i = 0; i < hostiles.length; i++){
-			RobotType hostileType = hostiles[i].type;
-			if(!(hostileType == RobotType.ZOMBIEDEN || hostileType == RobotType.SCOUT || hostileType == RobotType.ARCHON)){
+			if(isDangerous(hostiles[i].type)){
 				newlength++;
 			}
-			
 		}
 		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
 		int count = 0;
 		for (int j = 0; j < hostiles.length; j++){
-			RobotType hostileType = hostiles[j].type;
-			if(!(hostileType == RobotType.ZOMBIEDEN || hostileType == RobotType.SCOUT || hostileType == RobotType.ARCHON)){
+			if(isDangerous(hostiles[j].type)){
 				harmfulUnits[count++] = hostiles[j];
 			}
 		}
