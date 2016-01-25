@@ -121,4 +121,12 @@ public class Bot {
 		}
 		return count;
 	}
+	public static boolean isInRangeOfTurrets(MapLocation loc){
+		for(int i = 0 ; i < turretSize; i++){
+			if(enemyTurrets[i].location.distanceSquaredTo(loc) <= RobotType.TURRET.attackRadiusSquared){
+				return true;
+			}
+		}
+		return false;
+	}
 }

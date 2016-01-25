@@ -315,6 +315,8 @@ public class Nav extends Bot {
 			if (!rc.canMove(dir))
 				continue;
 			MapLocation retreatLoc = here.add(dir);
+			if(isInRangeOfTurrets(retreatLoc))
+				continue;
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
