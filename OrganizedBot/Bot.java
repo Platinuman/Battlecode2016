@@ -99,8 +99,7 @@ public class Bot {
 	public static void removeLocFromTurretArray(MapLocation loc) {
 		for(int i = 0 ; i < turretSize; i++){
 			if( enemyTurrets[i].location.equals(loc)){
-				Util.removeIndexFromArray(enemyTurrets, i, turretSize);
-				turretSize--;
+				Util.removeIndexFromArray(enemyTurrets, i, turretSize--);
 				return;
 			}
 		}

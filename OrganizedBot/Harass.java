@@ -99,7 +99,7 @@ public class Harass extends Bot {
 
 			MapLocation retreatLoc = here.add(dir);
 
-			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc);
+			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc); TODO: put this back in, maybe only if there aren't tons of enemies?
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
@@ -550,7 +550,7 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static boolean updateTurretLoc(RobotInfo[] enemies) {
+	public static boolean updateTurretStuff(RobotInfo[] enemies) throws GameActionException {
 		// then set turretTarget to closest one
 		turretLoc = null;
 		for(RobotInfo enemy:enemies){
@@ -559,15 +559,30 @@ public class Harass extends Bot {
 				return true;
 			}
 		}
+		for (RobotInfo e : enemies)
+			if (e.type == RobotType.TURRET)
+				if(!isLocationInTurretArray(e.location)){
+					enemyTurrets[turretSize] = e;
+					turretSize++;
+				}
 		if (turretSize > 0) {
 			int min = 999999;
 			int dist;
-			MapLocation turret;
+			MapLocation t;
 			for (int i = 0; i < turretSize; i++) {
-				turret = enemyTurrets[i].location;
-				dist = here.distanceSquaredTo(turret);
+				t = enemyTurrets[i].location;
+				if (rc.canSenseLocation(t)) {
+					RobotInfo bot = rc.senseRobotAtLocation(t);
+					if (bot == null || bot.type != RobotType.TURRET) {
+						removeLocFromTurretArray(t);
+						if(t.equals(targetLoc)) targetLoc = null;
+						i--;
+						continue;
+					}
+				}
+				dist = here.distanceSquaredTo(t);
 				if (dist < min) {
-					turretLoc = turret;
+					turretLoc = t;
 					min = dist;
 				}
 			}
@@ -618,26 +633,6 @@ public class Harass extends Bot {
 		} else {
 			Nav.goTo(turretLoc, theSafety);
 		}
-	}
-
-	public static void updateTurretList(RobotInfo[] enemies) throws GameActionException{
-		for (int i = 0; i < turretSize; i++) {
-			MapLocation t = enemyTurrets[i].location;
-			if (rc.canSenseLocation(t)) {
-				RobotInfo bot = rc.senseRobotAtLocation(t);
-				if (bot == null || bot.type != RobotType.TURRET) {
-					removeLocFromTurretArray(t);
-					if(t.equals(targetLoc)) targetLoc = null;
-					i--;
-				}
-			}
-		}
-		for (RobotInfo e : enemies)
-			if (e.type == RobotType.TURRET)
-				if(!isLocationInTurretArray(e.location)){
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-				}
 	}
 
 	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
@@ -775,7 +770,6 @@ public class Harass extends Bot {
 				//				}
 			}
 		}
-		updateTurretList(enemies);
 	}
 
 	public static void prepTargetLoc(boolean canSeeHostiles) {
@@ -799,10 +793,8 @@ public class Harass extends Bot {
 		RobotInfo[] hostilesICanSee = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee);
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
-		Signal[] signals = rc.emptySignalQueue();
 		// rc.setIndicatorString(0, "" + signals.length);
-		//updateTurretList(signals, enemies);
-		boolean turretUpdated = updateTurretLoc(enemies);
+		boolean turretUpdated = updateTurretStuff(enemies);
 		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
 			crunching = false;
 		}
@@ -810,6 +802,7 @@ public class Harass extends Bot {
 		//boolean targetUpdated = updateTargetLoc(signals);
 		int startB = Clock.getBytecodeNum();
 		if(!crunching){
+			Signal[] signals = rc.emptySignalQueue();
 			updateInfoFromSignals(signals, enemies);
 			updateTargetLocWithoutSignals();
 		}
