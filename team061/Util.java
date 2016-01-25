@@ -76,17 +76,17 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
        return bestIndex;
    }
       
-    public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
-        RobotInfo ret = null;
-        double minHealth = 1e99;
-        for(int i = robots.length; i --> 0; ) {
-            if(robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
-                minHealth = robots[i].health;
-                ret = robots[i];
-            }
-        }
-        return ret;
-    }
+   public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
+		RobotInfo ret = null;
+		double minHealth = 1e99;
+		for (int i = 0; i < robots.length; i++) {
+			if ((int)robots[i].health != (int)robots[i].maxHealth &&  robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
+				minHealth = robots[i].health;
+				ret = robots[i];
+			}
+		}
+		return ret;
+	}
     
     public static Team getTeam(RobotType type){
         switch(type){
@@ -150,11 +150,36 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 			yavg += loc.y;
 		}
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
-	}
+    }
+    
+    public static boolean isDangerous(RobotType theType){
+    	switch(theType){
+    	case ARCHON:
+    		return false;
+    	case ZOMBIEDEN:
+    		if(getRoundsUntilNextZombieSpawn() < 20) break;
+    		return false;
+    	case SCOUT:
+    		return false;
+    	default:
+    	}
+    	return true;
+    }
 
+    private static int getRoundsUntilNextZombieSpawn() {
+    	// TODO Auto-generated method stub
+    	int[] schedule = rc.getZombieSpawnSchedule().getRounds();
+    	int nextRound = 9999;
+    	for(int i = 0; i < schedule.length; i++)
+    		if(rc.getRoundNum() < schedule[i]){
+    			nextRound = schedule[i];
+    		break;
+    	}
+    	return nextRound - rc.getRoundNum();
+    }
 
-	public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
-		for(int i = 0; i < size; i++){
+    public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
+    	for(int i = 0; i < size; i++){
 			MapLocation loc = locs[i];
 			if(locs[i] == null){
 				continue;
@@ -198,5 +223,64 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		for(int i = index; i < size - 1; i++){
 			array[i] = array[i+1];
 		}
+	}
+
+	public static RobotInfo[] getUnitsOfType(RobotInfo[] array, RobotType t) {
+		int[] inds = new int[array.length];
+		int s = 0;
+		for(int i = array.length; i --> 0; ){
+			if(array[i].type == t){
+				inds[s++] = i;
+			}
+		}
+		RobotInfo[] units = new RobotInfo[s];
+		for(int i = s ; i --> 0 ; ){
+			units[i] = array[inds[i]]; 
+		}
+		return units;
+	}
+
+    public static RobotInfo[] combineThreeRIArrays( RobotInfo[] array1, int a1size, RobotInfo[] array2, RobotInfo[] array3){
+    	RobotInfo[] combo = new RobotInfo[a1size + array2.length + array3.length];
+    	for (int i = 0; i < a1size; i++){
+			combo[i] = array1[i];
+		}
+    	for (int i = 0; i < array2.length; i++){
+			combo[i + a1size] = array2[i];
+		}
+    	for (int i = 0; i < array3.length; i++){
+			combo[i + a1size + array2.length] = array3[i];
+		}
+    	return combo;
+    }
+
+	public static double rubbleBetweenHereAndThere(MapLocation start, MapLocation end) {
+		MapLocation current = start;
+		double totalRubble = 0;
+		while(!current.equals(end)){
+			current = current.add(current.directionTo(end));
+			if(rc.canSenseLocation(current))
+				totalRubble += rc.senseRubble(current);
+			else
+				break;
+		}
+		return totalRubble;
+	}
+
+	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
+		int newlength = 0;
+		for (int i = 0; i < hostiles.length; i++){
+			if(isDangerous(hostiles[i].type)){
+				newlength++;
+			}
+		}
+		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
+		int count = 0;
+		for (int j = 0; j < hostiles.length; j++){
+			if(isDangerous(hostiles[j].type)){
+				harmfulUnits[count++] = hostiles[j];
+			}
+		}
+		return harmfulUnits;
 	}
 }

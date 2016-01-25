@@ -224,8 +224,12 @@ public class Nav extends Bot {
 		}
 	}
 
-	private static void runAway() throws GameActionException {
-		Direction away = here.directionTo(Util.centroidOfUnits(rc.senseHostileRobots(here, -1)));
+	public static void runAway() throws GameActionException {
+		RobotInfo[] hostiles = rc.senseHostileRobots(here, -1);
+		if (hostiles.length == 0){
+			return;
+		}
+		Direction away = Util.centroidOfUnits(hostiles).directionTo(here);
 		if (rc.canMove(away)) {
 			rc.move(away);
 		} else if (rc.canMove(away.rotateLeft())) {

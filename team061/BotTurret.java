@@ -53,7 +53,9 @@ public class BotTurret extends Bot {
 			// MessageEncode.readMessagesAndUpdateInfo();
 			targetLoc = center; // for now
 			Signal[] signals = rc.emptySignalQueue();
-			Harass.updateTargetLoc(signals);
+			boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+			Harass.updateTargetLocWithoutSignals();
+			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
 			// Harass.updateTargetLoc();
 			// this should set its target
 		}
@@ -64,7 +66,12 @@ public class BotTurret extends Bot {
 		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.TURRET.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		Signal[] signals = rc.emptySignalQueue();
-		Harass.updateTargetLoc(signals);
+		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+		Harass.updateTargetLocWithoutSignals();
+		// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
+//		for(Signal s: signals){
+//			Harass.updateTargetLoc(s, canSeeHostiles);
+//		}
 		rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
 
 		// MessageEncode.updateRange(); //NEW update the range and get list of
