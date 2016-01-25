@@ -312,6 +312,36 @@ public class Nav extends Bot {
 		return false;
 	}
 
+/*	public static void fleeNumerical(RobotInfo[]unfriendly){
+		Direction bestRetreatDir = chooseNumericalyRetreat(unfriendly);
+		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
+			rc.move(bestRetreatDir);
+		}
+		}
+	private static Direction chooseNumericalyRetreat(RobotInfo[] unfriendly) {
+		Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
+		int[] directionWeights = {0,0,0,0,0,0,0,0};
+		for(int i =0;i<directionWeights.length;i++){
+		directionWeights[i] =
+				+ // #enemies that can shoot this spot
+				+ // rubble level
+				+ // how soon you will run into wall
+				+ //
+				+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);
+		}
+		return bestWeight(directions,directionWeights);
+	}
+	private static Direction bestWeight(Direction[] directions,int[] directionWeights){
+		int bestIndex = Integer.MIN_VALUE;
+		for(int i = 0; i < directionWeights.length; i++) {
+			if(directionWeights[i] > directionWeights[bestIndex]) {
+				bestIndex = i;
+			}
+		}
+		return directions[bestIndex];
+	}
+	*/
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
 		Direction bestRetreatDir = null;
 		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
@@ -326,8 +356,10 @@ public class Nav extends Bot {
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
-			if (distSq-rubbleMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod;
+			double wallMod = wallModCalc(retreatLoc,dir);
+			rc.setIndicatorString(2, ""+rubbleMod);
+			if (distSq-rubbleMod+wallMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod+wallMod;
 				bestRetreatDir = dir;
 			}
 		}
@@ -336,6 +368,16 @@ public class Nav extends Bot {
 		}
 	}
 
+	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
+		double mod = 0;
+		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)){
+			retreatLoc = retreatLoc.add(dir);
+			mod+=1.0;
+
+		}
+		return mod;
+
+	}
 	// public static void explore() throws GameActionException { // NEW INTO
 	// HARASS
 	// // explore
