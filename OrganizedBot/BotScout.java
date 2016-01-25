@@ -246,7 +246,7 @@ private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
 			numVipers+=1;
 	}
 	int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 1000) / 1500);
-	return turretSize < numSoldiers/2.9 + viperPower;
+	return numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
 }
 	private static boolean areEnoughAlliesEngaged(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
 		int numEnemiesInTurtle = enemiesInSight.length;
