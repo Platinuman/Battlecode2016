@@ -10,6 +10,7 @@ public class BotArchon extends Bot {
 	static int numScoutsCreated = 0;
 	static int numVipersCreated = 0;
 	static int numSoldiersCreated = 0;
+	static boolean targetIsNeutral;//false if chasing neutral
 	static RobotType typeToBuild;
 	// static int numTurretsCreated = 0;
 
@@ -137,7 +138,7 @@ public class BotArchon extends Bot {
 			//rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
 			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
-			if (rc.hasBuildRequirements(typeToBuild)) {
+			if (rc.hasBuildRequirements(typeToBuild) && !targetIsNeutral) {
 					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
 				typeToBuild = null;
 				return;
@@ -167,8 +168,10 @@ public class BotArchon extends Bot {
 
 	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {
 		// TODO moves toward closest safe parts or neutral
-		if (targetLocation != null && targetLocation.equals(here))
+		if (targetLocation != null && targetLocation.equals(here)){
 			targetLocation = null;
+			targetIsNeutral = false;
+		}
 		/*
 		if (targetLocation == null || !Combat.isSafe(targetLocation)) {
 			updateTargetLocationMySelf(hostiles);
@@ -359,18 +362,22 @@ public class BotArchon extends Bot {
 																// sense
 		MapLocation closestLoc = null;
 		int smallestDistance = 1000000;
-		for (MapLocation loc : partLocations) {
-			int distanceToLoc = here.distanceSquaredTo(loc);
-			if (distanceToLoc < smallestDistance && Combat.isSafe(loc) && !rc.isLocationOccupied(loc) && Util.rubbleBetweenHereAndThere(here, loc)<rc.senseParts(loc)*10) {
-				closestLoc = loc;
-				smallestDistance = distanceToLoc;
-			}
-		}
 		for (RobotInfo ri : neutrals) {
 			int distanceToLoc = here.distanceSquaredTo(ri.location);
-			if (distanceToLoc < smallestDistance && Combat.isSafe(ri.location) && Util.rubbleBetweenHereAndThere(here, ri.location) < 500) {
+			if (distanceToLoc < smallestDistance && Combat.isSafe(ri.location) && Util.rubbleBetweenHereAndThere(here, ri.location) < 400) {
 				closestLoc = ri.location;
 				smallestDistance = distanceToLoc;
+				targetIsNeutral = true;
+			}
+		}
+		if(closestLoc == null){
+			for (MapLocation loc : partLocations) {
+				int distanceToLoc = here.distanceSquaredTo(loc);
+				if (distanceToLoc < smallestDistance && Combat.isSafe(loc) && !rc.isLocationOccupied(loc) && Util.rubbleBetweenHereAndThere(here, loc) < rc.senseParts(loc)*10) {
+					closestLoc = loc;
+					smallestDistance = distanceToLoc;
+					targetIsNeutral = false;
+				}
 			}
 		}
 		if (closestLoc != null) {
