@@ -657,8 +657,10 @@ public class Harass extends Bot {
 					case MOBILE_ARCHON_LOCATION:
 						data = purpose.decode(signal.getLocation(), message);
 						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
-						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc))
+						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc)){
 							archonLoc = newArchonLoc;
+							isGuard = true;
+						}
 					case ENEMY_TURRET_DEATH:
 						data = purpose.decode(signal.getLocation(), message);
 						loc = new MapLocation(data[0],data[1]);
@@ -828,16 +830,23 @@ public class Harass extends Bot {
 			// maybe uncomment this but only do it if we can't see a scout
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee));
 			if (targetLoc != null) {
-				startB = Clock.getBytecodeNum();
-				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
-				int navBytecode = Clock.getBytecodeNum() - startB;
-				bytecodeIndicator += " Nav: " + navBytecode;
+				if(targetLoc == archonLoc && Util.isSurrounded(archonLoc))
+					Nav.goAwayFrom(archonLoc, theSafety);
+				else{
+					startB = Clock.getBytecodeNum();
+					Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
+					int navBytecode = Clock.getBytecodeNum() - startB;
+					bytecodeIndicator += " Nav: " + navBytecode;
+				}
 				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
 		rc.setIndicatorString(0, bytecodeIndicator);
+		rc.setIndicatorString(1, "isGuard = " + isGuard);
+		rc.setIndicatorString(2, "archonLoc = " + archonLoc);
 	}
 }

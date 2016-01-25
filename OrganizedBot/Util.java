@@ -4,6 +4,20 @@ import battlecode.common.*;
 
 public class Util extends Bot {//NEW generic methods for use by many classes, optimization is key once again.
 
+	public static boolean isSurrounded(MapLocation loc) throws GameActionException {// NEW move to Util
+		Direction dir = Direction.NORTH;
+		Boolean surrounded = true;
+		for (int i = 0; i < 8; i++) {
+			MapLocation newLoc = loc.add(dir);
+			if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+				surrounded = false;
+				break;
+			}
+			dir = dir.rotateLeft();
+		}
+		return surrounded;
+	}
+	
 	public static boolean checkRubbleAndClear(Direction dir,boolean clearToughRubble) throws GameActionException { // NEW Now checks all directions
 		int toughRubble = (int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH*2);
 		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
