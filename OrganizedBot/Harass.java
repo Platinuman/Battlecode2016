@@ -666,7 +666,6 @@ public class Harass extends Bot {
 			return true;
 		}
 		return false;
-
 	}
 
 	public static void updateMoveIn(Signal signal) {
