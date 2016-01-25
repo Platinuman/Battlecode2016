@@ -655,8 +655,10 @@ public class Harass extends Bot {
 						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
 						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc) || archonUpdate != rc.getRoundNum()){
 							archonLoc = newArchonLoc;
+							/*
 							if(targetLoc == null)
 								isGuard = true;
+							*/
 						}
 						archonUpdate = rc.getRoundNum();
 						break;
