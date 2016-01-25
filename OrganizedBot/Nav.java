@@ -21,7 +21,7 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 				break;
 			default:
 				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
-						- ((type == RobotType.ARCHON) ? 20 : 0))// hardcoded 
+						- ((type == RobotType.ARCHON) ? 40 : 0))// hardcoded 
 					return false;
 				break;
 			}
@@ -295,7 +295,7 @@ public class Nav extends Bot {
 			 away = here.directionTo(rc.getInitialArchonLocations(us)[0]);
 		}
 		if(away == Direction.OMNI){
-			 away = Direction.NORTH;
+			 away = here.directionTo(rc.getInitialArchonLocations(them)[0]);
 		}
 		dest = here.add(away,10);
 		if (rc.canMove(away) && checkRubble()
