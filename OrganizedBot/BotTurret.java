@@ -55,9 +55,7 @@ public class BotTurret extends Bot {
 			Signal[] signals = rc.emptySignalQueue();
 			boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
 			Harass.updateTargetLocWithoutSignals();
-			for(Signal s: signals){
-				Harass.updateTargetLoc(s, canSeeHostiles);
-			}
+			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
 			// Harass.updateTargetLoc();
 			// this should set its target
 		}
@@ -70,9 +68,10 @@ public class BotTurret extends Bot {
 		Signal[] signals = rc.emptySignalQueue();
 		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
 		Harass.updateTargetLocWithoutSignals();
-		for(Signal s: signals){
-			Harass.updateTargetLoc(s, canSeeHostiles);
-		}
+		// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
+//		for(Signal s: signals){
+//			Harass.updateTargetLoc(s, canSeeHostiles);
+//		}
 		rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
 
 		// MessageEncode.updateRange(); //NEW update the range and get list of

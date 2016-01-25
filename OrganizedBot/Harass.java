@@ -452,92 +452,6 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static void updateTargetLoc(Signal signal, boolean canSeeHostiles){
-		if (type == RobotType.VIPER) {
-			updateViperTargetLoc(signal);
-		}
-		if (signal.getTeam() == us) {
-			int[] message = signal.getMessage();
-			if (message != null) {
-				MapLocation senderloc = signal.getLocation();
-				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-				if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
-					int[] data = purpose.decode(senderloc, message);
-					MapLocation denLoc = new MapLocation(data[0], data[1]);
-					if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-							&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-						targetDens[targetDenSize] = denLoc;
-						targetDenSize++;
-						numDensToHunt++;
-						if (!huntingDen//test this
-								|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
-							targetLoc = denLoc;
-							bestIndex = targetDenSize - 1;
-							huntingDen = true;
-						}
-					}
-				}
-//				if (purpose == MessageEncode.MOBILE_ARCHON_LOCATION) {
-//					int[] data = purpose.decode(senderloc, message);
-//					archonLoc = new MapLocation(data[0], data[1]);
-//					return true;
-//				}
-				if (purpose == MessageEncode.ENEMY_ARMY_NOTIF && numDensToHunt == 0) {
-					int[] data = purpose.decode(senderloc, message);
-					MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-					if (!huntingDen && (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-							* (here.distanceSquaredTo(targetLoc)))) {
-						targetLoc = enemyLoc;
-					}
-				}
-			} else {
-				MapLocation signalLoc = signal.getLocation();
-				int distToSignal = here.distanceSquaredTo(signalLoc);
-				// if (type.sensorRadiusSquared *
-				// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
-				// && (targetLoc == null || distToSignal <
-				// here.distanceSquaredTo(targetLoc))) {// call
-				// // for
-				// // help
-				// targetLoc = signalLoc;
-				// huntingDen = false;
-				// return true;
-				// } else {// if a den has been killed don't go for it
-				// anymore
-				int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-				if (closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared){
-					//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
-					MapLocation killedDen = targetDens[closestIndex];
-					targetDens[closestIndex] = null;
-					killedDens[killedDenSize] = killedDen;
-					killedDenSize++;
-					numDensToHunt--;
-					if(huntingDen && targetLoc.equals(killedDen)){
-						//rc.setIndicatorString(0, "here");
-						huntingDen = false;
-						targetLoc = null;
-						if (numDensToHunt > 0) {
-							huntingDen = true;
-							bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-							targetLoc = targetDens[bestIndex];
-						}
-					}
-					// }
-				}
-			}
-		}
-		else{
-			if(canSeeHostiles)
-				return;
-			MapLocation enemyLoc = signal.getLocation();
-			if (targetLoc == null || !huntingDen && (double) here.distanceSquaredTo(enemyLoc) < 0.5
-					* (here.distanceSquaredTo(targetLoc))) {
-				targetLoc = enemyLoc;
-				huntingDen = false;
-			}
-		}
-	}
-	
 	public static void updateTargetLocWithoutSignals() throws GameActionException {
 		if (type == RobotType.VIPER) {
 			updateViperTargetLocWithoutSignals();
@@ -565,31 +479,6 @@ public class Harass extends Bot {
 				huntingDen = true;
 				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 				targetLoc = targetDens[bestIndex];
-			}
-		}
-	}
-
-	private static void updateViperTargetLoc(Signal signal){
-		if (signal.getTeam() == us) {
-			int[] message = signal.getMessage();
-			if (message != null) {
-				MapLocation senderLoc = signal.getLocation();
-				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-				if (purpose == MessageEncode.ENEMY_ARMY_NOTIF) {
-					int[] data = purpose.decode(senderLoc, message);
-					MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-					if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 1.5
-							* (here.distanceSquaredTo(targetLoc))) {
-						targetLoc = enemyLoc;
-					}
-				}
-			}
-		}
-		else{
-			MapLocation enemyLoc = signal.getLocation();
-			if (targetLoc == null || (double) here.distanceSquaredTo(enemyLoc) < 0.5
-					* (here.distanceSquaredTo(targetLoc))) {
-				targetLoc = enemyLoc;
 			}
 		}
 	}
@@ -735,7 +624,6 @@ public class Harass extends Bot {
 		boolean canSeeHostiles = enemies.length > 0;
 		prepTargetLoc(canSeeHostiles);
 		for(Signal signal: signals){
-			updateTargetLoc(signal, canSeeHostiles);
 			if(signal.getTeam() == us){
 				int[] message = signal.getMessage();
 				if (message != null) {
@@ -772,12 +660,84 @@ public class Harass extends Bot {
 						}
 						break;
 					case CRUNCH_TIME:
-						int[] mess = purpose.decode(signal.getLocation(), message);
-						if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
+						data = purpose.decode(signal.getLocation(), message);
+						if(here.distanceSquaredTo(new MapLocation(data[0], data[1])) <= 400)
 							crunching = true;
+						break;
+					case DIRECT_MOBILE_ARCHON:
+						if(type == RobotType.VIPER) break;
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						MapLocation denLoc = new MapLocation(data[0], data[1]);
+						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+								&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+							targetDens[targetDenSize] = denLoc;
+							targetDenSize++;
+							numDensToHunt++;
+							if (!huntingDen //test this
+									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) {
+								targetLoc = denLoc;
+								bestIndex = targetDenSize - 1;
+								huntingDen = true;
+							}
+						}
+						break;
+					case ENEMY_ARMY_NOTIF:
+						if(type == RobotType.SOLDIER && numDensToHunt != 0) break;
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+						if (!huntingDen && (targetLoc == null
+								|| (double) here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc)))) {
+							targetLoc = enemyLoc;
+						}
+						break;
 					default:
 					}
+				} else if (type != RobotType.VIPER){ // our team, no message
+					MapLocation signalLoc = signal.getLocation();
+					int distToSignal = here.distanceSquaredTo(signalLoc);
+					// if (type.sensorRadiusSquared *
+					// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
+					// && (targetLoc == null || distToSignal <
+					// here.distanceSquaredTo(targetLoc))) {// call
+					// // for
+					// // help
+					// targetLoc = signalLoc;
+					// huntingDen = false;
+					// return true;
+					// } else {// if a den has been killed don't go for it
+					// anymore
+					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+					if (closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared){
+						//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+						MapLocation killedDen = targetDens[closestIndex];
+						targetDens[closestIndex] = null;
+						killedDens[killedDenSize] = killedDen;
+						killedDenSize++;
+						numDensToHunt--;
+						if(huntingDen && targetLoc.equals(killedDen)){
+							//rc.setIndicatorString(0, "here");
+							huntingDen = false;
+							targetLoc = null;
+							if (numDensToHunt > 0) {
+								huntingDen = true;
+								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+								targetLoc = targetDens[bestIndex];
+							}
+						}
+					}
 				}
+				//			} else { //we don't use this yet according to eli
+				//				// heard a message from the other team! quack
+				//				if(canSeeHostiles)
+				//					return;
+				//				MapLocation enemyLoc = signal.getLocation();
+				//				if (targetLoc == null || !huntingDen && (double) here.distanceSquaredTo(enemyLoc) < 0.5
+				//						* (here.distanceSquaredTo(targetLoc))) {
+				//					targetLoc = enemyLoc;
+				//					if(type != RobotType.VIPER) huntingDen = false;
+				//				}
 			}
 		}
 		updateTurretList(enemies);
@@ -795,7 +755,7 @@ public class Harass extends Bot {
 			}
 		}
 	}
-	
+
 	public static void doHarass() throws GameActionException {
 		wantToMove = true;
 		String bytecodeIndicator = "";
