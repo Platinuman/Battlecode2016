@@ -20,6 +20,7 @@ public class BotScout extends Bot {
 	static MapLocation[] dens;
 	static int denSize;
 	static MapLocation circlingLoc;
+	static int circlingTime;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -69,6 +70,7 @@ public class BotScout extends Bot {
 		 * alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2,
 		 * -4) };
 		 */
+		circlingTime = 0;
 		scoutType = 0;
 		denSize = 0;
 		dens = new MapLocation[10000];
@@ -101,25 +103,28 @@ public class BotScout extends Bot {
 		case 0:// exploring
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
+			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
-			if (circlingLoc != null) {
-				if (rc.isCoreReady())
+			if (rc.isCoreReady()) {
+				if (circlingLoc != null) {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
-				// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
-				// us).length);
-			} else
-				Nav.explore(hostiles);
+					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
+					// us).length);
+				} else{
+					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
+				}
+			}
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(zombies);
 			// if (rc.getRoundNum() % 30 == 0) {
-			updateCrunchTime();
+			updateCrunchTime(enemies,allies);
 			// }
 			if (rc.getRoundNum() % 30 == 0) {
 				notifySoldiersOfEnemyArmy(enemies);
 			}
-			if ((rc.getRoundNum()+15) % 30 == 0) {
+			if ((rc.getRoundNum() + 15) % 30 == 0) {
 				notifyArchonOfPartOrNeutral();
 			}
 			break;
@@ -187,57 +192,71 @@ public class BotScout extends Bot {
 	 */
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
-		for (RobotInfo e : enemies)
-
-			if (e.type == RobotType.TURRET) {
-				if(circlingLoc == null){
-				circlingLoc = e.location;
-				}
-				if (!isLocationInTurretArray(e.location)) {
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y,
-							here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(1, "found a new turret at " + e.location.x + ", " + e.location.y);
-					updated = true;
-				}
-			}
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
-				rc.setIndicatorString(2, t.x + ", " + t.y + " and " + here.x + ", " + here.y);
 				RobotInfo bot = rc.senseRobotAtLocation(t);
 				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
-							new int[] { t.x, t.y, here.x, here.y, here.x, here.y, here.x, here.y, here.x, here.y });
+							new int[] { t.x, t.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					rc.setIndicatorString(2, "turret death at " + t.x + ", " + t.y);
 					i--;
 					updated = true;
 				}
 			}
 		}
+		for (RobotInfo e : enemies)
+			if (e.type == RobotType.TURRET) {
+				if (circlingLoc == null) {
+					circlingLoc = e.location;
+				}
+				if (!isLocationInTurretArray(e.location)) {
+					enemyTurrets[turretSize] = e;
+					turretSize++;
+					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					updated = true;
+				}
+			}
 		if (turretSize == 0)
 			circlingLoc = null;
 		return updated;
 	}
 
-	private static void updateCrunchTime() throws GameActionException {
-		if (circlingLoc != null && 3*turretSize < rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared, us).length) {
-			rc.setIndicatorString(2, "crunch");
-			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {1});
+	private static void updateCrunchTime(RobotInfo[] enemiesInSight,RobotInfo[] allies) throws GameActionException {
+		if(circlingLoc!=null)
+			circlingTime+=1;
+		if (circlingTime>100&&circlingLoc != null
+				&& canWeBeatTheTurrets(allies)
+		        &&areEnoughAlliesEngaged(enemiesInSight,allies)){
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
-		//rc.setIndicatorString(2, "...");
+		// rc.setIndicatorString(2, "...");
 
 	}
-
+private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
+	int numVipers = 0;
+	int numSoldiers =0;
+	for(RobotInfo bot: allies){
+		if(bot.type == RobotType.SOLDIER)
+			numSoldiers+=1;
+		else if(bot.type == RobotType.VIPER)
+			numVipers+=1;
+	}
+	int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 1000) / 1500);
+	return numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
+}
+	private static boolean areEnoughAlliesEngaged(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
+		int numEnemiesInTurtle = enemiesInSight.length;
+		int numAlliesAttackingCrunch = allies.length;
+		return numAlliesAttackingCrunch >= numEnemiesInTurtle;
+	}
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {
 		if (enemies.length > 1) {
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
-					.encode(new int[] { enemies[0].location.x, enemies[0].location.y });
+					.encode(new int[] { enemies[0].location.x, enemies[0].location.y, 0 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
 		}
 	}
