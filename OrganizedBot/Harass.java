@@ -691,7 +691,7 @@ public class Harass extends Bot {
 			Nav.goTo(turretLoc, theSafety);
 		}
 		if (rc.isWeaponReady()) {
-			crunchShoot(enemies,allies);
+			crunchShoot(rc.senseNearbyRobots(type.sensorRadiusSquared,them),allies);
 			return;
 		}
 	}
