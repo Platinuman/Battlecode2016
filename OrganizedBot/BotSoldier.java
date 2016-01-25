@@ -20,6 +20,9 @@ public class BotSoldier extends Bot {
 	
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		rc.setIndicatorString(0, "");
+		rc.setIndicatorString(1, "");
+		rc.setIndicatorString(2, "");
 		//rc.setIndicatorString(0, "");
 //		String s = "";
 //		for(int i = 0; i < turretSize; i++){
@@ -35,8 +38,8 @@ public class BotSoldier extends Bot {
 				continue;
 			s += "[" + targetDens[i].x + ", " + targetDens[i].y + "], ";
 		}
-		rc.setIndicatorString(1, "numDensToHunt = " + numDensToHunt);
-		rc.setIndicatorString(2, "den array = " + s);
+		//rc.setIndicatorString(1, "numDensToHunt = " + numDensToHunt);
+		//rc.setIndicatorString(2, "den array = " + s);
 	}
 	
 	private static void init() throws GameActionException {

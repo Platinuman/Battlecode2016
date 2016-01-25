@@ -17,10 +17,9 @@ public class Harass extends Bot {
 	static int archonID;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
-
 		if (enemy.type == RobotType.ARCHON||enemy.type == RobotType.ZOMBIEDEN)
 			return true;
-
+		// TODO: check viper infection statuses, also if you are a viper
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
 		int turnsTillWeCanAttack;
 		int effectiveAttackDelay;
@@ -91,23 +90,21 @@ public class Harass extends Bot {
 	}
 
 	private static boolean tryToRetreat(RobotInfo[] enemies) throws GameActionException {
+		int bytecodechecker = Clock.getBytecodeNum();
 		Direction bestRetreatDir = null;
 		RobotInfo currentClosestEnemy = Util.closest(enemies, here);
 
-		boolean mustMoveOrthogonally = false;
 		double bestDistSq = here.distanceSquaredTo(currentClosestEnemy.location);
 		for (Direction dir : Direction.values()) {
 			if (!rc.canMove(dir))
 				continue;
-			if (mustMoveOrthogonally && dir.isDiagonal())
-				continue;
 
 			MapLocation retreatLoc = here.add(dir);
 
-			RobotInfo closestEnemy = Util.closest(enemies, retreatLoc);
+			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
-			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 			if (distSq-rubbleMod > bestDistSq) {
 				bestDistSq = distSq-rubbleMod;
 				bestRetreatDir = dir;
@@ -116,8 +113,11 @@ public class Harass extends Bot {
 
 		if (bestRetreatDir != null && rc.isCoreReady()&&rc.canMove(bestRetreatDir)) {
 			rc.move(bestRetreatDir);
+			rc.setIndicatorString(2, "retreating cost us " + (Clock.getBytecodeNum() - bytecodechecker));
 			return true;
 		}
+		rc.move(bestRetreatDir);
+		rc.setIndicatorString(2, "tryint to retreat and failing cost us " + (Clock.getBytecodeNum() - bytecodechecker));
 		return false;
 	}
 
@@ -166,8 +166,9 @@ public class Harass extends Bot {
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (canWin1v1(loneAttacker) || loneAttacker.type == RobotType.ARCHON) {
+					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
 						// we can beat the other guy 1v1. fire away!
+						rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
 						if (loneAttacker.type == RobotType.ARCHON && rc.isCoreReady())
 							shadowHarasser(loneAttacker, enemiesInSight);
@@ -177,20 +178,26 @@ public class Harass extends Bot {
 						// check if we actually have some allied support. if so, we can keep fighting
 						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0) {
 							// an ally is helping us, so keep fighting the lone enemy
+							rc.setIndicatorString(1, "can't win 1v1 but have allied support");
+							// TODO: archon test shooting zombies first instead (comment out two lines below)
 							if(rc.isCoreReady() && loneAttacker.team == Team.ZOMBIE)
 								tryToRetreat(enemiesInSight);
 							attackIfReady(loneAttacker.location);
+							if(rc.isCoreReady())
+								tryToRetreat(enemiesInSight);
 						} else {
 							// we can't win the 1v1.
 							if (type.cooldownDelay <= 1 && loneAttacker.weaponDelay >= 2
 									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1) {
 								// we can get a shot off and retreat before the enemy can fire at us again, so do that
+								rc.setIndicatorString(1, "can't win 1v1, but can shoot and run");
 								attackIfReady(loneAttacker.location);
 								if(rc.isCoreReady())
 									tryToRetreat(enemiesInSight);
 							} else {
 								// we can't get another shot off. run away!
 								if (rc.isCoreReady()) {
+									rc.setIndicatorString(1, "can't win 1v1, trying to retreat");
 									// we can move this turn
 									if (tryToRetreat(enemiesInSight)) {
 										// we moved away
@@ -203,6 +210,7 @@ public class Harass extends Bot {
 								} else {
 									// we can't move this turn. if it won't delay retreating, shoot instead
 									if (type.cooldownDelay <= 1) {
+										rc.setIndicatorString(1, "can't win 1v1 or move, trying to shoot");
 										attackIfReady(loneAttacker.location);
 									}
 									return true;
@@ -212,6 +220,7 @@ public class Harass extends Bot {
 					}
 				} else {
 					// we are getting shot by someone who outranges us, CRUNCH!
+					rc.setIndicatorString(1, "outranged!");
 					if(rc.isCoreReady())
 						Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 					return true;
@@ -242,25 +251,30 @@ public class Harass extends Bot {
 				// multiple enemies are attacking us. stay in the fight iff enough allies are also engaged
 				if (maxAlliesAttackingAnEnemy >= numEnemiesAttackingUs && bestTarget != null) {
 					// enough allies are in the fight.
+					rc.setIndicatorString(1, "more than one enemy, but have enough allies");
 					attackIfReady(bestTarget.location);
 					if(rc.isCoreReady())
 						tryToRetreat(enemiesInSight);
 					return true;
 				} else {
 					// not enough allies are in the fight. we need to retreat
+					rc.setIndicatorString(1, "more than one enemy, don't have enough allies");
 					if (rc.isCoreReady()) {
 						// we can move this turn
 						if (tryToRetreat(enemiesInSight)) {
 							// we moved away :)
+							rc.setIndicatorString(1, "more than one enemy, retreated!");
 							return true;
 						} else if (bestTarget != null) {
 							// we couldn't find anywhere to retreat to. fire a desperate shot if possible
+							rc.setIndicatorString(1, "more than one enemy, couldn't retreat, desprate shot");
 							attackIfReady(bestTarget.location);
 							return true;
 						}
 					} else {
 						// we can't move this turn. if it won't delay retreating, shoot instead
 						if (type.cooldownDelay <= 1 && bestTarget != null) {
+							rc.setIndicatorString(1, "more than one enemy, couldn't move, shot instead");
 							attackIfReady(bestTarget.location);
 						}
 						return true;
@@ -275,7 +289,7 @@ public class Harass extends Bot {
 			else{
 				double bestTargetingMetric = 0;
 				int maxAlliesAttackingAnEnemy = 0;
-				for (RobotInfo enemy : enemiesInSight) {
+				for (RobotInfo enemy : enemiesICanShoot) {
 					int numAlliesAttackingEnemy = 1 + numOtherAlliesInAttackRange(enemy.location, allies);
 					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
@@ -294,6 +308,7 @@ public class Harass extends Bot {
 			}
 			// shoot someone if there is someone to shoot
 			if (bestTarget != null) {
+				rc.setIndicatorString(1, "no enemies shooting me, shot someone else");
 				attackIfReady(bestTarget.location);
 				return true;
 			}
@@ -305,7 +320,7 @@ public class Harass extends Bot {
 				if (closestEnemy != null
 						&& (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
 							|| closestEnemy.type == RobotType.ARCHON)) {
-				//	System.out.println("No core delay, we can see but not shoot");
+					rc.setIndicatorString(2, "No core delay, we can see but not shoot");
 					//we outrange them
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
@@ -709,54 +724,6 @@ public class Harass extends Bot {
 					turretSize++;
 				}
 	}
-	
-	public static void doHarass() throws GameActionException {
-		String bytecodeIndicator = "";
-		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
-		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, rc.senseHostileRobots(here, type.sensorRadiusSquared));
-		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
-		Signal[] signals = rc.emptySignalQueue();
-		// rc.setIndicatorString(0, "" + signals.length);
-		//updateTurretList(signals, enemies);
-		boolean turretUpdated = updateTurretLoc();
-		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
-			crunching = false;
-		}
-		//updateMoveIn(signals, enemies);
-		//boolean targetUpdated = updateTargetLoc(signals);
-		int startB = Clock.getBytecodeNum();
-		if(!crunching){
-			updateInfoFromSignals(signals, enemies);
-			updateTargetLocWithoutSignals();
-		}
-		int signalBytecode = Clock.getBytecodeNum() - startB;
-		bytecodeIndicator += "Signal Reading: " + signalBytecode;
-		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
-		// starts here
-		if (crunching) {
-			crunch();
-		} else {
-			startB = Clock.getBytecodeNum();
-			doMicro(enemies, enemiesICanShoot, friends);
-			int microBytecode = Clock.getBytecodeNum() - startB;
-			bytecodeIndicator += " Micro: " + microBytecode;
-		}
-		if(rc.isCoreReady()){ // no enemies
-			// maybe uncomment this but only do it if we can't see a scout
-//			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
-//				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-			if (targetLoc != null) {
-				startB = Clock.getBytecodeNum();
-				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
-				int navBytecode = Clock.getBytecodeNum() - startB;
-				bytecodeIndicator += " Nav: " + navBytecode;
-			}
-			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
-				Nav.explore(enemies, friends);
-		}
-		rc.setIndicatorString(0, bytecodeIndicator);
-		// ends here
-	}
 
 	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
 		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
@@ -782,5 +749,56 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 		}
+	}
+	
+	public static void doHarass() throws GameActionException {
+		String bytecodeIndicator = "";
+		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
+		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, rc.senseHostileRobots(here, type.sensorRadiusSquared));
+		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
+		Signal[] signals = rc.emptySignalQueue();
+		// rc.setIndicatorString(0, "" + signals.length);
+		//updateTurretList(signals, enemies);
+		boolean turretUpdated = updateTurretLoc();
+		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
+			crunching = false;
+		}
+		//updateMoveIn(signals, enemies);
+		//boolean targetUpdated = updateTargetLoc(signals);
+		int startB = Clock.getBytecodeNum();
+		if(!crunching){
+			updateInfoFromSignals(signals, enemies);
+			updateTargetLocWithoutSignals();
+		}
+		int signalBytecode = Clock.getBytecodeNum() - startB;
+		bytecodeIndicator += "Signal Reading: " + signalBytecode;
+		if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) System.out.println("signal used " + signalBytecode);
+		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
+		// starts here
+		if (crunching) {
+			crunch();
+		} else {
+			startB = Clock.getBytecodeNum();
+			doMicro(enemies, enemiesICanShoot, friends);
+			int microBytecode = Clock.getBytecodeNum() - startB;
+			bytecodeIndicator += " Micro: " + microBytecode;
+			if(microBytecode > 2000) System.out.println("micro used " + microBytecode);
+		}
+		if(rc.isCoreReady()){ // no enemies
+			// maybe uncomment this but only do it if we can't see a scout
+//			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
+//				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+			if (targetLoc != null) {
+				startB = Clock.getBytecodeNum();
+				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
+				int navBytecode = Clock.getBytecodeNum() - startB;
+				bytecodeIndicator += " Nav: " + navBytecode;
+				if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
+			}
+			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
+				Nav.explore(enemies, friends);
+		}
+		rc.setIndicatorString(0, bytecodeIndicator);
+		// ends here
 	}
 }

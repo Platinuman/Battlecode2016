@@ -292,10 +292,7 @@ public class Nav extends Bot {
 		MapLocation center = Util.centroidOfUnits(unfriendly);
 		Direction away = center.directionTo(here);
 		if(away == Direction.OMNI){
-			 away = here.directionTo(rc.getInitialArchonLocations(us)[0]);
-		}
-		if(away == Direction.OMNI){
-			 away = Direction.NORTH;
+			 away = Util.closest(unfriendly, here).location.directionTo(here);
 		}
 		dest = here.add(away,10);
 		if (rc.canMove(away) && checkRubble()
