@@ -19,7 +19,7 @@ public enum MessageEncode {
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
-	CRUNCH_TIME			  (12,new int[]{1,2},0),// approximate center of turret 
+	CRUNCH_TIME			  (12,new int[]{1,2,4},1),// approximate center of turret, number of turrets visible 
 	NEUTRAL_ARCHON		  (13,new int[]{1,2},0);// xloc, yloc
 	//ZOMBIE_HORDE_NOTIF
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
@@ -57,7 +57,7 @@ public enum MessageEncode {
 	 * 1: loc.x (sent as an offset from sender's loc, offset by 80)
 	 * 2: loc.y (sent as an offset from sender's loc, offset by 80)
 	 * 3: health (max 2000, dens)
-	 * 4: some radius squared (max 2^7) //if this changes change howMuchSpaceDataNeeds
+	 * 4: some radius squared (max 2^7) ....... also how many turrets in CRUNCH_TIME
 	 * 5: number of parts
 	 * 6: robotType (max of 11, so 4 bits)
 	 * 7: special loc.x for multiple targets (restricted to 15 away from sender or less)

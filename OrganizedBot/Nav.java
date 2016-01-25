@@ -388,4 +388,20 @@ public class Nav extends Bot {
 			flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
 	}
+
+	public static void goAwayFrom(MapLocation loc, NavSafetyPolicy theSafety) throws GameActionException{
+		int farthestDist = -1;
+		MapLocation bestLoc = null;
+		for(Direction dir: Direction.values()){
+			if(!rc.canMove(dir))
+				continue;
+			MapLocation newLoc = here.add(dir);
+			if(loc.distanceSquaredTo(newLoc) > farthestDist){
+				bestLoc = newLoc;
+				farthestDist = loc.distanceSquaredTo(newLoc);
+			}
+		}
+		if(bestLoc != null)
+			Nav.goTo(bestLoc, theSafety);
+	}
 }
