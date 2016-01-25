@@ -63,30 +63,12 @@ public class BotScout extends Bot {
 		 * mobileID = signals[i].getID(); rc.setIndicatorString(0 ,"i am mobile"
 		 * ); break; } }
 		 */
-		/*
-		 * preferredScoutLocations = new MapLocation[] { alpha.add(2, 2),
-		 * alpha.add(2, -2), alpha.add(-2, 2), alpha.add(-2, -2), alpha.add(4,
-		 * 2), alpha.add(4, -2), alpha.add(-4, 2), alpha.add(-4, -2),
-		 * alpha.add(2, 4), alpha.add(2, -4), alpha.add(-2, 4), alpha.add(-2,
-		 * -4) };
-		 */
 		circlingTime = 0;
 		scoutType = 0;
 		denSize = 0;
 		dens = new MapLocation[10000];
 	}
 
-	/*
-	 * NEW MOVE THIS TO UTIL private static boolean
-	 * checkRubbleAndClear(Direction dir) {
-	 * 
-	 * // if (rc.senseRubble(rc.getLocation().add(dir)) >=
-	 * GameConstants.RUBBLE_OBSTRUCTION_THRESH) { if
-	 * (rc.senseRubble(rc.getLocation().add(dir)) > 0) { try {
-	 * rc.clearRubble(dir); } catch (Exception e) {
-	 * System.out.println(e.getMessage()); e.printStackTrace(); } return true; }
-	 * return false; }
-	 */
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		rc.setIndicatorString(0, "");
