@@ -182,7 +182,7 @@ public class BotArchon extends Bot {
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else
-			return;
+			Nav.goTo(targetDens[Util.closestLocation(targetDens, here, targetDenSize)], theSafety);
 		//Nav.explore();
 	}
 
@@ -196,7 +196,7 @@ public class BotArchon extends Bot {
 			}
 			return true;
 		}
-		else if(targetLocation != null && rc.canSense(targetLocation) && (rc.senseRobotAtLocation(targetLocation) == null || rc.senseRobotAtLocation(targetLocation).team != Team.NEUTRAL)){
+		else if(targetIsNeutral && targetLocation != null && rc.canSense(targetLocation) && (rc.senseRobotAtLocation(targetLocation) == null || rc.senseRobotAtLocation(targetLocation).team != Team.NEUTRAL)){
 			targetLocation = null;
 		}
 		return false;
