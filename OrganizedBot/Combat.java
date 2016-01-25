@@ -78,7 +78,9 @@ public class Combat extends Bot { //NEW up to you guys what to do here, but plea
 
 	public static boolean isSafe(MapLocation loc) {
 
-		RobotInfo[] potentialAttackers = rc.senseNearbyRobots(loc, 15, them);
+		if(isInRangeOfTurrets(loc))
+			return false;
+		RobotInfo[] potentialAttackers = rc.senseNearbyRobots(loc, type.sensorRadiusSquared, them);
 		for (RobotInfo enemy : potentialAttackers) {
 			if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
 				return false;

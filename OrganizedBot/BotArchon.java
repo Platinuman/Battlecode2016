@@ -141,7 +141,8 @@ public class BotArchon extends Bot {
 			//rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
 			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
-			if (rc.hasBuildRequirements(typeToBuild) && !targetIsNeutral) {
+			updateTargetLocationMySelf(allies);
+			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLocation) > 16)) {
 					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
 				typeToBuild = null;
 				return;
@@ -181,7 +182,7 @@ public class BotArchon extends Bot {
 				return;
 			}
 		}
-		if (targetLocation != null && targetLocation.equals(here)){
+		if (targetLocation != null && (targetLocation.equals(here) || !Combat.isSafe(targetLocation))){
 			targetLocation = null;
 			targetIsNeutral = false;
 		}
@@ -190,7 +191,7 @@ public class BotArchon extends Bot {
 			updateTargetLocationMySelf(hostiles);
 		}
 		*/
-		updateTargetLocationMySelf(hostiles);		
+			
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else{
