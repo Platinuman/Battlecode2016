@@ -9,7 +9,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		Boolean surrounded = true;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = loc.add(dir);
-			if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
+			if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 				surrounded = false;
 				break;
 			}
