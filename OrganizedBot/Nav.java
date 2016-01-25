@@ -322,14 +322,14 @@ public class Nav extends Bot {
 			Direction dirLeft = away.rotateLeft();
 			Direction dirRight = away.rotateRight();
 			for (int i = 0; i < 3; i++) {
-				dest = here.add(dirLeft,10);
+				dest = here.add(dirLeft,3);
 				if (rc.canMove(dirLeft) && checkRubble(500)&& rc.onTheMap(
 						here.add(dirLeft, dirLeft.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
 					rc.move(dirLeft);
 					break;
 				} 
-				dest = here.add(dirRight,10);
+				dest = here.add(dirRight,3);
 				if (rc.canMove(dirRight) && checkRubble(500) && rc.onTheMap(
 						here.add(dirRight, dirRight.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
@@ -343,6 +343,8 @@ public class Nav extends Bot {
 		if (rc.isCoreReady()) { // oh shit we trapped
 			Direction dirLeft = away.rotateLeft();
 			Direction dirRight = away.rotateRight();
+			if (rc.canMove(away)) {
+				rc.move(away);}
 			for (int i = 0; i < 3; i++) {
 
 				if (rc.canMove(dirLeft)) {
