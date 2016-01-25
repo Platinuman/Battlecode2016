@@ -64,7 +64,7 @@ public class Nav extends Bot {
 			return false;
 		}
 		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= threshold; // hard-coded
+		return rubbleCount <= threshold; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -308,60 +308,25 @@ public class Nav extends Bot {
 	}
 
 	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
-		MapLocation center = Util.centroidOfUnits(unfriendly);
-		Direction away = center.directionTo(here);
-		if(away == Direction.OMNI){
-			 away = Util.closest(unfriendly, here).location.directionTo(here);
-		}
-		dest = here.add(away,3);
-		if (rc.canMove(away) && checkRubble(500)
-				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
-			rc.move(away);
-		} else {
-			Direction dirLeft = away.rotateLeft();
-			Direction dirRight = away.rotateRight();
-			for (int i = 0; i < 3; i++) {
-				dest = here.add(dirLeft,10);
-				if (rc.canMove(dirLeft) && checkRubble(500)&& rc.onTheMap(
-						here.add(dirLeft, dirLeft.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
-					rc.move(dirLeft);
-					break;
-				} 
-				dest = here.add(dirRight,10);
-				if (rc.canMove(dirRight) && checkRubble(500) && rc.onTheMap(
-						here.add(dirRight, dirRight.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
-								: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
-					rc.move(dirRight);
-					break;
-				}
-				dirLeft = dirLeft.rotateLeft();
-				dirRight = dirRight.rotateRight();
+		Direction bestRetreatDir = null;
+		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
+		double bestDistSq = -10000;
+		for (Direction dir : Direction.values()) {
+			if (!rc.canMove(dir))
+				continue;
+			MapLocation retreatLoc = here.add(dir);
+			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
+			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
+			double rubble = rc.senseRubble(retreatLoc);
+			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			if (distSq-rubbleMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod;
+				bestRetreatDir = dir;
 			}
 		}
-		if (rc.isCoreReady()) { // oh shit we trapped
-			Direction dirLeft = away.rotateLeft();
-			Direction dirRight = away.rotateRight();
-			for (int i = 0; i < 3; i++) {
-
-				if (rc.canMove(dirLeft)) {
-					rc.move(dirLeft);
-					break;
-				} else if (rc.canMove(dirRight)) {
-					rc.move(dirRight);
-					break;
-				}
-				dirLeft = dirLeft.rotateLeft();
-				dirRight = dirRight.rotateRight();
-			}
+		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
+			rc.move(bestRetreatDir);
 		}
-		if (rc.isCoreReady()) {// last hope
-			if (checkRubble(Integer.MAX_VALUE) && rc.onTheMap(here.add(away))) {
-				rc.clearRubble(away);
-			}
-		}
-		// time to die... gg
 	}
 
 	// public static void explore() throws GameActionException { // NEW INTO
