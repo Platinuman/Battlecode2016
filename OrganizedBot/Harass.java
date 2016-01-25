@@ -237,7 +237,7 @@ public class Harass extends Bot {
 								+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
 								+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
 								+ (enemy.type == RobotType.FASTZOMBIE?5:0)
-								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
 							bestTarget = enemy;
