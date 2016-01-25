@@ -668,22 +668,6 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	public static void updateMoveIn(Signal signal) {
-		// if(type == RobotType.VIPER)
-		// return false;
-		if (signal.getTeam() == us) {
-			int[] message = signal.getMessage();
-			if (message != null) {
-				MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-				if (purpose == MessageEncode.CRUNCH_TIME){
-					int[] mess = purpose.decode(signal.getLocation(), message);
-					if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
-						crunching = true;
-				}
-			}
-		}
-	}
-
 	public static void crunch(RobotInfo[] enemies,RobotInfo[] allies) throws GameActionException {
 		if (turretLoc != null && rc.isCoreReady()) {
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(new RobotInfo[0]);
@@ -694,27 +678,29 @@ public class Harass extends Bot {
 			return;
 		}
 	}
-public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws GameActionException{
-	RobotInfo bestTarget = null;
-	double bestTargetingMetric = 0;
-	for (RobotInfo enemy : enemies) {
-		if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-			double targetingMetric = allies.length/ 3 / enemy.health
-					+ enemy.attackPower / 2.0 // TODO: optimize
-					+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
-					+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
-					+ (enemy.type == RobotType.FASTZOMBIE?5:0)
-					+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
-			if (targetingMetric > bestTargetingMetric) {
-				bestTargetingMetric = targetingMetric;
-				bestTarget = enemy;
+
+	public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws GameActionException{
+		RobotInfo bestTarget = null;
+		double bestTargetingMetric = 0;
+		for (RobotInfo enemy : enemies) {
+			if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+				double targetingMetric = allies.length/ 3 / enemy.health
+						+ enemy.attackPower / 2.0 // TODO: optimize
+						+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
+						+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
+						+ (enemy.type == RobotType.FASTZOMBIE?5:0)
+						+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+				if (targetingMetric > bestTargetingMetric) {
+					bestTargetingMetric = targetingMetric;
+					bestTarget = enemy;
+				}
 			}
 		}
+		if(bestTarget!=null && rc.isWeaponReady()){
+			rc.attackLocation(bestTarget.location);
+		}
 	}
-	if(bestTarget!=null && rc.isWeaponReady()){
-		rc.attackLocation(bestTarget.location);
-	}
-}
+	
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
 		//rc.setIndicatorString(2, "staying out of range");
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
@@ -746,14 +732,53 @@ public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws G
 	}
 
 	public static void updateInfoFromSignals(Signal[] signals, RobotInfo[] enemies) throws GameActionException{
-		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+		boolean canSeeHostiles = enemies.length > 0;
 		prepTargetLoc(canSeeHostiles);
-		for(Signal s: signals){
-			updateTargetLoc(s, canSeeHostiles);
-			if(s.getTeam() == them)
-				continue;
-			updateTurretList(new Signal[] {s});
-			updateMoveIn(s);
+		for(Signal signal: signals){
+			updateTargetLoc(signal, canSeeHostiles);
+			if(signal.getTeam() == us){
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					int[] data;
+					MapLocation senderloc, loc;
+					switch(purpose){
+					case ENEMY_TURRET_DEATH:
+						data = purpose.decode(signal.getLocation(), message);
+						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
+						break;
+					case WARN_ABOUT_TURRETS:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						loc = new MapLocation(data[0], data[1]);
+						if(!isLocationInTurretArray(loc)){
+							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+							turretSize++;
+						}
+						break;
+					case RELAY_TURRET_INFO:
+						if(rc.getRoundNum()-turnCreated > 10) break;
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						for(int i = 0; i< data.length; i +=2){
+							loc = new MapLocation(data[i], data[i+1]);
+							if(loc.equals(senderloc)){
+								break;
+							}
+							if(!isLocationInTurretArray(loc)){
+								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+								turretSize++;
+							}
+						}
+						break;
+					case CRUNCH_TIME:
+						int[] mess = purpose.decode(signal.getLocation(), message);
+						if(here.distanceSquaredTo(new MapLocation(mess[0], mess[1])) <= 400)
+							crunching = true;
+					default:
+					}
+				}
+			}
 		}
 		updateTurretList(enemies);
 	}
