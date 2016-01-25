@@ -357,8 +357,9 @@ public class Nav extends Bot {
 			double rubble = rc.senseRubble(retreatLoc);
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 			double wallMod = wallModCalc(retreatLoc,dir);
-			if (distSq-rubbleMod-wallMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod;
+			rc.setIndicatorString(2, ""+rubbleMod);
+			if (distSq-rubbleMod+wallMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod+wallMod;
 				bestRetreatDir = dir;
 			}
 		}
@@ -367,14 +368,15 @@ public class Nav extends Bot {
 		}
 	}
 
-	private static int wallModCalc(MapLocation retreatLoc,Direction dir){
-		int mod = 0;
-		while(rc.onTheMap(retreatLoc)){
-			retreatLoc.add(dir);
-			mod+=1;
+	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
+		double mod = 0;
+		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)){
+			retreatLoc = retreatLoc.add(dir);
+			mod+=1.0;
+
 		}
 		return mod;
-		
+
 	}
 	// public static void explore() throws GameActionException { // NEW INTO
 	// HARASS
