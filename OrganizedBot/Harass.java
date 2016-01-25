@@ -455,6 +455,7 @@ public class Harass extends Bot {
 	public static void updateTargetLocWithoutSignals() throws GameActionException {
 		if (type == RobotType.VIPER) {
 			updateViperTargetLocWithoutSignals();
+			return;
 		}
 		if(targetLoc == null){
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
@@ -481,9 +482,15 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 		}
+		if (targetLoc == null){
+			targetLoc = turretLoc;
+		}
 	}
 	
 	private static void updateViperTargetLocWithoutSignals() {
+		if (targetLoc == null){
+			targetLoc = turretLoc;
+		}
 		if (targetLoc == null) {
 			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
 			do {
@@ -760,7 +767,8 @@ public class Harass extends Bot {
 		wantToMove = true;
 		String bytecodeIndicator = "";
 		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
-		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, rc.senseHostileRobots(here, type.sensorRadiusSquared));
+		RobotInfo[] hostilesICanSee = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee);
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
 		Signal[] signals = rc.emptySignalQueue();
 		// rc.setIndicatorString(0, "" + signals.length);
@@ -782,7 +790,7 @@ public class Harass extends Bot {
 		// starts here
 		if (crunching) {
 			crunch(enemies,friends);
-		} else {
+		} else if (hostilesICanSee.length > 0) {
 			startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
 			int microBytecode = Clock.getBytecodeNum() - startB;
