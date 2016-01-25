@@ -64,7 +64,7 @@ public class Nav extends Bot {
 			return false;
 		}
 		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
-		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= threshold; // hard-coded
+		return rubbleCount <= threshold; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
