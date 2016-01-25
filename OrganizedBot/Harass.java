@@ -142,7 +142,7 @@ public class Harass extends Bot {
 	// support.
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, RobotInfo[] allies) throws GameActionException {
-		if (enemiesInSight.length == 0 || !(rc.isCoreReady() && rc.isWeaponReady())) {
+		if (enemiesInSight.length == 0 || !(rc.isCoreReady() || rc.isWeaponReady())) {
 			return false;
 		}
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
@@ -309,7 +309,7 @@ public class Harass extends Bot {
 					//we outrange them
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
-						System.out.println("we have allies");
+						//System.out.println("we have allies");
 						// see if we can assist our ally(s)
 						int maxEnemyExposure = numAlliesFightingEnemy;
 						if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemiesInSight)) {
@@ -317,7 +317,7 @@ public class Harass extends Bot {
 						}
 						// TODO: what if that didn't work?
 					} else {
-						System.out.println("no allies");
+						//System.out.println("no allies");
 
 						// no one is fighting this enemy, but we can try to engage them if we can win the 1v1
 						if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
