@@ -685,17 +685,37 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static void crunch() throws GameActionException {
+	public static void crunch(RobotInfo[] enemies,RobotInfo[] allies) throws GameActionException {
 		if (turretLoc != null && rc.isCoreReady()) {
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(new RobotInfo[0]);
 			Nav.goTo(turretLoc, theSafety);
 		}
 		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies();
+			crunchShoot(enemies,allies);
 			return;
 		}
 	}
-
+public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws GameActionException{
+	RobotInfo bestTarget = null;
+	double bestTargetingMetric = 0;
+	for (RobotInfo enemy : enemies) {
+		if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+			double targetingMetric = allies.length/ 3 / enemy.health
+					+ enemy.attackPower / 2.0 // TODO: optimize
+					+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
+					+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
+					+ (enemy.type == RobotType.FASTZOMBIE?5:0)
+					+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+			if (targetingMetric > bestTargetingMetric) {
+				bestTargetingMetric = targetingMetric;
+				bestTarget = enemy;
+			}
+		}
+	}
+	if(bestTarget!=null && rc.isWeaponReady()){
+		rc.attackLocation(bestTarget.location);
+	}
+}
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
 		//rc.setIndicatorString(2, "staying out of range");
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
@@ -777,7 +797,7 @@ public class Harass extends Bot {
 		if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) System.out.println("signal used " + signalBytecode);
 		// starts here
 		if (crunching) {
-			crunch();
+			crunch(enemies,friends);
 		} else {
 			startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
