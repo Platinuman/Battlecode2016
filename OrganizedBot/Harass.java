@@ -142,7 +142,7 @@ public class Harass extends Bot {
 	// support.
 
 	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] enemiesICanShoot, RobotInfo[] allies) throws GameActionException {
-		if (enemiesInSight.length == 0 || !(rc.isCoreReady() && rc.isWeaponReady())) {
+		if (enemiesInSight.length == 0 || !(rc.isCoreReady() || rc.isWeaponReady())) {
 			return false;
 		}
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
@@ -309,7 +309,7 @@ public class Harass extends Bot {
 					//we outrange them
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
-						System.out.println("we have allies");
+						//System.out.println("we have allies");
 						// see if we can assist our ally(s)
 						int maxEnemyExposure = numAlliesFightingEnemy;
 						if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemiesInSight)) {
@@ -317,7 +317,7 @@ public class Harass extends Bot {
 						}
 						// TODO: what if that didn't work?
 					} else {
-						System.out.println("no allies");
+						//System.out.println("no allies");
 
 						// no one is fighting this enemy, but we can try to engage them if we can win the 1v1
 						if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
@@ -681,7 +681,7 @@ public class Harass extends Bot {
 	}
 
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
-		rc.setIndicatorString(2, "staying out of range");
+		//rc.setIndicatorString(2, "staying out of range");
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
 		if (here.distanceSquaredTo(turretLoc) < 64) {
@@ -711,6 +711,7 @@ public class Harass extends Bot {
 	}
 	
 	public static void doHarass() throws GameActionException {
+		String bytecodeIndicator = "";
 		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
 		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, rc.senseHostileRobots(here, type.sensorRadiusSquared));
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
@@ -723,28 +724,37 @@ public class Harass extends Bot {
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
+		int startB = Clock.getBytecodeNum();
 		if(!crunching){
 			updateInfoFromSignals(signals, enemies);
 			updateTargetLocWithoutSignals();
 		}
-		
+		int signalBytecode = Clock.getBytecodeNum() - startB;
+		bytecodeIndicator += "Signal Reading: " + signalBytecode;
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
 		if (crunching) {
 			crunch();
 		} else {
+			startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
+			int microBytecode = Clock.getBytecodeNum() - startB;
+			bytecodeIndicator += " Micro: " + microBytecode;
 		}
 		if(rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
+				startB = Clock.getBytecodeNum();
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
+				int navBytecode = Clock.getBytecodeNum() - startB;
+				bytecodeIndicator += " Nav: " + navBytecode;
 			}
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
+		rc.setIndicatorString(0, bytecodeIndicator);
 		// ends here
 	}
 
