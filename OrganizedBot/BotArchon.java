@@ -15,6 +15,7 @@ public class BotArchon extends Bot {
 	static int numGuardsCreated = 0;
 	static boolean targetIsNeutral;//false if chasing neutral
 	static RobotType typeToBuild;
+	static int lastSeenHostile;
 	// static int numTurretsCreated = 0;
 
 	// -----mobile archon fields here-----
@@ -117,10 +118,11 @@ public class BotArchon extends Bot {
 			if (hostiles.length > 0){
 				//rc.setIndicatorDot(here, 255, 0, 0);
 				Nav.flee(hostiles);
+				lastSeenHostile = rc.getRoundNum();
 			}
-			else if(numDensToHunt == 0 && !haveEnoughFighters(allies)){
+			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 15){
 				int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
-				rc.broadcastMessageSignal(msg[0], msg[1], 1000);
+				rc.broadcastMessageSignal(msg[0], msg[1], 2000);
 			}
 			//RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			// if i can see enemies run away
@@ -162,8 +164,8 @@ public class BotArchon extends Bot {
 	}
 
 	private static void determineTypeToBuild(RobotInfo[] hostiles, RobotInfo[] allies) {
-		if(hostiles.length > 0 || !haveEnoughFighters(allies) && numGuardsCreated * 5 <= numSoldiersCreated){
-			typeToBuild = RobotType.GUARD;
+		if(rc.getRoundNum() - lastSeenHostile < 5 || (!haveEnoughFighters(allies) && numGuardsCreated * 5 <= numSoldiersCreated)){
+			typeToBuild = RobotType.SOLDIER;
 			return;
 		}
 		if(numScoutsCreated * 10 <= numSoldiersCreated)
@@ -465,7 +467,7 @@ public class BotArchon extends Bot {
 			if (rc.canBuild(Direction.values()[(dir.ordinal()+i+8)%8], r) && rc.isCoreReady()) {
 				rc.build(Direction.values()[(dir.ordinal()+i+8)%8], r);
 				sendNewUnitImportantData(allies);
-				incrementTypeCount(r);
+				incrementTypeCount(r, allies);
 				typeToBuild = null;
 				return true;
 			}
@@ -473,19 +475,19 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void incrementTypeCount(RobotType r) {
+	private static void incrementTypeCount(RobotType r, RobotInfo[] allies) {
 		switch (r){
 		case SCOUT:
 			numScoutsCreated++;
 			break;
 		case SOLDIER:
-			numSoldiersCreated++;
+			if(!haveEnoughFighters(allies) && numGuardsCreated * 5 <= numSoldiersCreated)
+				numGuardsCreated++;
+			else
+				numSoldiersCreated++;
 			break;
 		case VIPER:
 			numVipersCreated++;
-			break;
-		case GUARD:
-			numGuardsCreated++;
 			break;
 		default:
 			break;
@@ -500,7 +502,8 @@ public class BotArchon extends Bot {
 		//}
 		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
-		
+		if (!haveEnoughFighters(allies) && numGuardsCreated * 5 <= numSoldiersCreated)
+			notifySoldierTheyShouldGuard();
 		// now notify them of turrets
 		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
 		MapLocation t;
@@ -520,6 +523,11 @@ public class BotArchon extends Bot {
 		//send the extras
 		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+	}
+
+	private static void notifySoldierTheyShouldGuard() throws GameActionException{
+		int[] msg = MessageEncode.BE_MY_GUARD.encode(new int[] { here.x, here.y });
+		rc.broadcastMessageSignal(msg[0], msg[1], 2);
 	}
 
 	private static void aarons_shitty_strat() throws GameActionException {

@@ -11,6 +11,7 @@ public class Harass extends Bot {
 	static boolean targetUpdated, archonUpdated, huntingDen, crunching, wantToMove;
 	static int archonID;
 	static boolean swarmingArchon;
+	static boolean isGuard;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
 		if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN)
@@ -458,7 +459,7 @@ public class Harass extends Bot {
 			updateViperTargetLocWithoutSignals();
 			return;
 		}
-		else if (type == RobotType.GUARD && archonLoc != null){
+		else if (isGuard && archonLoc != null){
 			targetLoc = archonLoc;
 			swarmingArchon = true;
 			return;
@@ -650,6 +651,9 @@ public class Harass extends Bot {
 					int[] data;
 					MapLocation senderloc, loc;
 					switch(purpose){
+					case BE_MY_GUARD:
+						if(rc.getRoundNum() - turnCreated < 10)
+							isGuard = true;
 					case MOBILE_ARCHON_LOCATION:
 						data = purpose.decode(signal.getLocation(), message);
 						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
@@ -809,7 +813,7 @@ public class Harass extends Bot {
 		}
 		int signalBytecode = Clock.getBytecodeNum() - startB;
 		bytecodeIndicator += "Signal Reading: " + signalBytecode;
-		if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) System.out.println("signal used " + signalBytecode);
+		//if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) //System.out.println("signal used " + signalBytecode);
 		// starts here
 		if (crunching) {
 			crunch(enemies,friends);
@@ -818,7 +822,7 @@ public class Harass extends Bot {
 			doMicro(enemies, enemiesICanShoot, friends);
 			int microBytecode = Clock.getBytecodeNum() - startB;
 			bytecodeIndicator += " Micro: " + microBytecode;
-			if(microBytecode > 2000) System.out.println("micro used " + microBytecode);
+			//if(microBytecode > 2000) System.out.println("micro used " + microBytecode);
 		}
 		if(wantToMove && rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
@@ -829,7 +833,7 @@ public class Harass extends Bot {
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
 				int navBytecode = Clock.getBytecodeNum() - startB;
 				bytecodeIndicator += " Nav: " + navBytecode;
-				if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
+				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
