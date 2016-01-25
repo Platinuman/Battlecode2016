@@ -681,7 +681,7 @@ public class Harass extends Bot {
 	}
 
 	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
-		rc.setIndicatorString(2, "staying out of range");
+		//rc.setIndicatorString(2, "staying out of range");
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
 				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
 		if (here.distanceSquaredTo(turretLoc) < 64) {
@@ -711,6 +711,7 @@ public class Harass extends Bot {
 	}
 	
 	public static void doHarass() throws GameActionException {
+		String bytecodeIndicator = "";
 		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
 		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, rc.senseHostileRobots(here, type.sensorRadiusSquared));
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
@@ -723,28 +724,37 @@ public class Harass extends Bot {
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
+		int startB = Clock.getBytecodeNum();
 		if(!crunching){
 			updateInfoFromSignals(signals, enemies);
 			updateTargetLocWithoutSignals();
 		}
-		
+		int signalBytecode = Clock.getBytecodeNum() - startB;
+		bytecodeIndicator += "Signal Reading: " + signalBytecode;
 		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
 		if (crunching) {
 			crunch();
 		} else {
+			startB = Clock.getBytecodeNum();
 			doMicro(enemies, enemiesICanShoot, friends);
+			int microBytecode = Clock.getBytecodeNum() - startB;
+			bytecodeIndicator += " Micro: " + microBytecode;
 		}
 		if(rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
 //			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
 //				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
+				startB = Clock.getBytecodeNum();
 				Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(enemies));
+				int navBytecode = Clock.getBytecodeNum() - startB;
+				bytecodeIndicator += " Nav: " + navBytecode;
 			}
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true))
 				Nav.explore(enemies, friends);
 		}
+		rc.setIndicatorString(0, bytecodeIndicator);
 		// ends here
 	}
 
