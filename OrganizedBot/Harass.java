@@ -10,6 +10,7 @@ public class Harass extends Bot {
 	static MapLocation turretLoc, targetLoc, archonLoc;
 	static boolean targetUpdated, archonUpdated, huntingDen, crunching, wantToMove;
 	static int archonID;
+	static boolean swarmingArchon;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
 		if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN)
@@ -457,6 +458,11 @@ public class Harass extends Bot {
 			updateViperTargetLocWithoutSignals();
 			return;
 		}
+		else if (type == RobotType.GUARD && archonLoc != null){
+			targetLoc = archonLoc;
+			swarmingArchon = true;
+			return;
+		}
 		if(targetLoc == null){
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
 			for (RobotInfo zombie : zombies) {
@@ -464,6 +470,10 @@ public class Harass extends Bot {
 					targetLoc = zombie.location;
 				}
 			}
+		}
+		if(targetLoc == null && archonLoc != null){
+			targetLoc = archonLoc;
+			swarmingArchon = true;
 		}
 		else if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
 			// tell people a den has been killed
@@ -486,7 +496,7 @@ public class Harass extends Bot {
 			targetLoc = turretLoc;
 		}
 	}
-	
+
 	private static void updateViperTargetLocWithoutSignals() {
 		if (targetLoc == null){
 			targetLoc = turretLoc;
@@ -521,14 +531,15 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	private static boolean updateArchonLoc(Signal[] signals) {
+	private static boolean updateArchonLoc() {
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 		for (RobotInfo ally : allies) {
-			if (ally.ID == archonID) {
+			if (ally.type == RobotType.ARCHON) {
 				archonLoc = ally.location;
 				return true;
 			}
 		}
+		archonLoc = null;
 		return false;
 	}
 
@@ -615,6 +626,7 @@ public class Harass extends Bot {
 				RobotInfo bot = rc.senseRobotAtLocation(t);
 				if (bot == null || bot.type != RobotType.TURRET) {
 					removeLocFromTurretArray(t);
+					if(t.equals(targetLoc)) targetLoc = null;
 					i--;
 				}
 			}
@@ -638,9 +650,16 @@ public class Harass extends Bot {
 					int[] data;
 					MapLocation senderloc, loc;
 					switch(purpose){
+					case MOBILE_ARCHON_LOCATION:
+						data = purpose.decode(signal.getLocation(), message);
+						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
+						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc))
+							archonLoc = newArchonLoc;
 					case ENEMY_TURRET_DEATH:
 						data = purpose.decode(signal.getLocation(), message);
-						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
+						loc = new MapLocation(data[0],data[1]);
+						removeLocFromTurretArray(loc);
+						if(loc.equals(targetLoc)) targetLoc = null;
 						break;
 					case WARN_ABOUT_TURRETS:
 						senderloc = signal.getLocation();
@@ -686,6 +705,7 @@ public class Harass extends Bot {
 								targetLoc = denLoc;
 								bestIndex = targetDenSize - 1;
 								huntingDen = true;
+								swarmingArchon = false;
 							}
 						}
 						break;
@@ -697,6 +717,7 @@ public class Harass extends Bot {
 						if (!huntingDen && (targetLoc == null
 								|| (double) here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc)))) {
 							targetLoc = enemyLoc;
+							swarmingArchon = false;
 						}
 						break;
 					default:
@@ -729,6 +750,7 @@ public class Harass extends Bot {
 							targetLoc = null;
 							if (numDensToHunt > 0) {
 								huntingDen = true;
+								swarmingArchon = false;
 								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 								targetLoc = targetDens[bestIndex];
 							}
@@ -751,8 +773,9 @@ public class Harass extends Bot {
 	}
 
 	public static void prepTargetLoc(boolean canSeeHostiles) {
-		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-				&& !canSeeHostiles) {
+		updateArchonLoc();
+		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 10
+				&& !canSeeHostiles && !swarmingArchon) {
 			targetLoc = null;
 			huntingDen = false;
 			if (numDensToHunt > 0 && type != RobotType.VIPER) {
