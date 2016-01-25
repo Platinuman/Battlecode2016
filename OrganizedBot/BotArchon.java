@@ -526,7 +526,7 @@ public class BotArchon extends Bot {
 	}
 
 	private static void notifySoldierTheyShouldGuard() throws GameActionException{
-		int[] msg = MessageEncode.BE_MY_GUARD.encode(new int[] { here.x, here.y });
+		int[] msg = MessageEncode.BE_MY_GUARD.encode(new int[]{});
 		rc.broadcastMessageSignal(msg[0], msg[1], 2);
 	}
 
