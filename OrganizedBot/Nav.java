@@ -219,7 +219,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(200)) {
+				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -229,13 +229,23 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-		if(rc.isCoreReady() && (here.distanceSquaredTo(dest)<type.attackRadiusSquared || bugState == BugState.BUG && bugMovesSinceMadeProgress>20)){
-			if(rc.senseRubble(here.add(here.directionTo(dest)))> 0){
-				rc.clearRubble(here.directionTo(dest));
+		if (rc.isCoreReady()) {
+			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
+				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
+					rc.clearRubble(here.directionTo(dest));
+				}
 				return;
+			} else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20) {
+				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
+					rc.clearRubble(here.directionTo(dest));
+
+					return;
+				}
 			}
+
 		}
 		// If that failed, or if bugging, bug
+		
 		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
