@@ -160,8 +160,11 @@ public class BotArchon extends Bot {
 		here = rc.getLocation();
 		if (MapAnalysis.mapDifficulty == 0) {
 			RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
+			if(rc.isCoreReady()){
+				Nav.runAway();
+			}
 			if (rc.isCoreReady()) {
-				if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
+				if (here.distanceSquaredTo(alpha) <= 2) {
 					aarons_shitty_strat();
 				} else {
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
