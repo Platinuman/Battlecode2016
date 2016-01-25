@@ -50,7 +50,7 @@ public class Nav extends Bot {
 	private static Direction bugLookStartDir;
 	private static int bugRotationCount;
 	private static int bugMovesSinceSeenObstacle = 0;
-
+	private static int bugMovesSinceMadeProgress = 0;
 	private static boolean move(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
 			rc.move(dir);
@@ -104,6 +104,7 @@ public class Nav extends Bot {
 		bugLookStartDir = here.directionTo(dest);
 		bugRotationCount = 0;
 		bugMovesSinceSeenObstacle = 0;
+		bugMovesSinceMadeProgress = 0;
 
 		// try to intelligently choose on which side we will keep the wall
 		Direction leftTryDir = bugLastMoveDir.rotateLeft();
@@ -200,12 +201,16 @@ public class Nav extends Bot {
 		// Debug.indicate("nav", 0, "bugMovesSinceSeenObstacle = " +
 		// bugMovesSinceSeenObstacle + "; bugRotatoinCount = " +
 		// bugRotationCount);
-
 		// Check if we can stop bugging at the *beginning* of the turn
+//		rc.setIndicatorString(2, "I've been bugging for " +bugMovesSinceMadeProgress+ "turns.");
+//		rc.setIndicatorString(1, "bugMovesSinceSeenObstacle = " +
+//				 bugMovesSinceSeenObstacle + "; bugRotatoinCount = " +
+//				 bugRotationCount);
 		if (bugState == BugState.BUG) {
 			if (canEndBug()) {
 				// Debug.indicateAppend("nav", 1, "ending bug; ");
 				bugState = BugState.DIRECT;
+				bugMovesSinceMadeProgress = 0;
 			}
 		}
 
@@ -214,7 +219,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(200)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -224,16 +229,17 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-		if(here.distanceSquaredTo(dest)<type.attackRadiusSquared){
+		if(rc.isCoreReady() && (here.distanceSquaredTo(dest)<type.attackRadiusSquared || bugState == BugState.BUG && bugMovesSinceMadeProgress>20)){
 			if(rc.senseRubble(here.add(here.directionTo(dest)))> 0){
 				rc.clearRubble(here.directionTo(dest));
+				return;
 			}
-			return;
 		}
 		// If that failed, or if bugging, bug
 		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
+			bugMovesSinceMadeProgress++;
 		}
 	}
 
@@ -300,7 +306,7 @@ public class Nav extends Bot {
 		if(away == Direction.OMNI){
 			 away = here.directionTo(rc.getInitialArchonLocations(them)[0]);
 		}
-		dest = here.add(away,10);
+		dest = here.add(away,3);
 		if (rc.canMove(away) && checkRubble(500)
 				&& rc.onTheMap(here.add(away, away.isDiagonal() ? (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))
 						: (int) (Math.sqrt(type.sensorRadiusSquared / 1.0))))) {
@@ -344,7 +350,7 @@ public class Nav extends Bot {
 			}
 		}
 		if (rc.isCoreReady()) {// last hope
-			if (checkRubble(10000) && rc.onTheMap(here.add(away))) {
+			if (checkRubble(Integer.MAX_VALUE) && rc.onTheMap(here.add(away))) {
 				rc.clearRubble(away);
 			}
 		}
