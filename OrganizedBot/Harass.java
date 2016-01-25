@@ -642,8 +642,15 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static boolean updateTurretLoc() {
+	public static boolean updateTurretLoc(RobotInfo[] enemies) {
 		// then set turretTarget to closest one
+		turretLoc = null;
+		for(RobotInfo enemy:enemies){
+			if(enemy.type == RobotType.ARCHON){
+				turretLoc = enemy.location;
+				return true;
+			}
+		}
 		if (turretSize > 0) {
 			int min = 999999;
 			int dist;
@@ -658,7 +665,6 @@ public class Harass extends Bot {
 			}
 			return true;
 		}
-		turretLoc = null;
 		return false;
 
 	}
@@ -680,7 +686,6 @@ public class Harass extends Bot {
 	}
 
 	public static void crunch() throws GameActionException {
-		// if (friends.length > 20)
 		if (turretLoc != null && rc.isCoreReady()) {
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(new RobotInfo[0]);
 			Nav.goTo(turretLoc, theSafety);
@@ -756,7 +761,7 @@ public class Harass extends Bot {
 		Signal[] signals = rc.emptySignalQueue();
 		// rc.setIndicatorString(0, "" + signals.length);
 		//updateTurretList(signals, enemies);
-		boolean turretUpdated = updateTurretLoc();
+		boolean turretUpdated = updateTurretLoc(enemies);
 		if (turretLoc == null || enemies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
 			crunching = false;
 		}
@@ -770,7 +775,6 @@ public class Harass extends Bot {
 		int signalBytecode = Clock.getBytecodeNum() - startB;
 		bytecodeIndicator += "Signal Reading: " + signalBytecode;
 		if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) System.out.println("signal used " + signalBytecode);
-		// TODO Nate, can you take a look at the macro micro please, I'm bad at it
 		// starts here
 		if (crunching) {
 			crunch();
@@ -796,6 +800,5 @@ public class Harass extends Bot {
 				Nav.explore(enemies, friends);
 		}
 		rc.setIndicatorString(0, bytecodeIndicator);
-		// ends here
 	}
 }
