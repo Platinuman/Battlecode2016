@@ -110,7 +110,7 @@ public class BotArchon extends Bot {
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
 			if (hostiles.length > 0){
-				rc.setIndicatorDot(here, 255, 0, 0);
+				//rc.setIndicatorDot(here, 255, 0, 0);
 				Nav.flee(hostiles);
 			}
 			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
@@ -181,8 +181,11 @@ public class BotArchon extends Bot {
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
-		else
-			Nav.goTo(targetDens[Util.closestLocation(targetDens, here, targetDenSize)], theSafety);
+		else{
+			int bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+			if(bestIndex != -1)
+				Nav.goTo(targetDens[bestIndex], theSafety);
+		}
 		//Nav.explore();
 	}
 
