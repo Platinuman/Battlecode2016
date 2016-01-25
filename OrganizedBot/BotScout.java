@@ -230,7 +230,7 @@ public class BotScout extends Bot {
 		if (circlingTime>100&&circlingLoc != null
 				&& canWeBeatTheTurrets(allies)
 		        &&areEnoughAlliesEngaged(enemiesInSight,allies)){
-			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y });
+			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
 		// rc.setIndicatorString(2, "...");
@@ -245,8 +245,8 @@ private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
 		else if(bot.type == RobotType.VIPER)
 			numVipers+=1;
 	}
-	int viperPower = numVipers*(rc.getRoundNum()/800);
-	return turretSize < numSoldiers/3+viperPower;
+	int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 1000) / 1500);
+	return numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
 }
 	private static boolean areEnoughAlliesEngaged(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
 		int numEnemiesInTurtle = enemiesInSight.length;

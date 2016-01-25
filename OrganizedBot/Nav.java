@@ -315,6 +315,8 @@ public class Nav extends Bot {
 			if (!rc.canMove(dir))
 				continue;
 			MapLocation retreatLoc = here.add(dir);
+			if(isInRangeOfTurrets(retreatLoc))
+				continue;
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
@@ -387,5 +389,21 @@ public class Nav extends Bot {
 		if(hostileRobots.length > 0)
 			flee(hostileRobots);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
+	}
+
+	public static void goAwayFrom(MapLocation loc, NavSafetyPolicy theSafety) throws GameActionException{
+		int farthestDist = -1;
+		MapLocation bestLoc = null;
+		for(Direction dir: Direction.values()){
+			if(!rc.canMove(dir))
+				continue;
+			MapLocation newLoc = here.add(dir);
+			if(loc.distanceSquaredTo(newLoc) > farthestDist){
+				bestLoc = newLoc;
+				farthestDist = loc.distanceSquaredTo(newLoc);
+			}
+		}
+		if(bestLoc != null)
+			Nav.goTo(bestLoc, theSafety);
 	}
 }

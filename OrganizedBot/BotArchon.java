@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 public class BotArchon extends Bot {
 	static MapLocation alpha, hunter;//dont use currently
+	static MapLocation runAwayFromThisLoc;
+	static int runAwayRound;
 	static boolean isAlphaArchon;//dont use currently
 	static boolean isMobileArchon;
 	static int maxRange;//dont use currently
@@ -107,6 +109,7 @@ public class BotArchon extends Bot {
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
 		updateInfoFromScouts(hostiles);
 		hostiles = Util.removeHarmlessUnits(hostiles);
+		rc.setIndicatorString(0, "targetIsNeutral " + targetIsNeutral);
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
 			if (hostiles.length > 0){
@@ -168,6 +171,16 @@ public class BotArchon extends Bot {
 
 	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {
 		// TODO moves toward closest safe parts or neutral
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
+		if(runAwayFromThisLoc != null){
+			if(rc.getRoundNum() - runAwayRound > 75)
+				runAwayFromThisLoc = null;
+			else{
+				//MapLocation goToThisLoc = here.add(runAwayFromThisLoc.directionTo(here), 5);
+				Nav.goAwayFrom(runAwayFromThisLoc, theSafety);
+				return;
+			}
+		}
 		if (targetLocation != null && targetLocation.equals(here)){
 			targetLocation = null;
 			targetIsNeutral = false;
@@ -177,8 +190,7 @@ public class BotArchon extends Bot {
 			updateTargetLocationMySelf(hostiles);
 		}
 		*/
-		updateTargetLocationMySelf(hostiles);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
+		updateTargetLocationMySelf(hostiles);		
 		if (targetLocation != null)
 			Nav.goTo(targetLocation, theSafety);
 		else{
@@ -195,12 +207,14 @@ public class BotArchon extends Bot {
 			rc.activate(neutrals[0].location);
 			sendNewUnitImportantData(allies);
 			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
+				targetIsNeutral = false;
 				targetLocation = null;
 			}
 			return true;
 		}
 		else if(targetIsNeutral && targetLocation != null && rc.canSense(targetLocation) && (rc.senseRobotAtLocation(targetLocation) == null || rc.senseRobotAtLocation(targetLocation).team != Team.NEUTRAL)){
 			targetLocation = null;
+			targetIsNeutral = false;
 		}
 		return false;
 	}
@@ -278,6 +292,15 @@ public class BotArchon extends Bot {
 						MapLocation targetLoc = new MapLocation(data[0], data[1]);
 						if (targetLocation == null || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
 							targetLocation = targetLoc;
+							targetIsNeutral = false;
+						}
+					}
+					else if (purpose == MessageEncode.CRUNCH_TIME){
+						int[] data = purpose.decode(senderLoc, message);
+						if(data[2] > 6){
+							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
+							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
+							runAwayRound = rc.getRoundNum();
 						}
 					}
 				} else {

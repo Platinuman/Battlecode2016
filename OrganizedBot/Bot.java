@@ -113,12 +113,20 @@ public class Bot {
 		}
 		return false;
 	}
-	public static int numTurretsInRangeSquared(int range){
+	public static int numTurretsInRangeSquared(MapLocation loc, int range){
 		int count = 0;
 		for(int i = 0; i < turretSize ; i++){
-			if(enemyTurrets[i].location.distanceSquaredTo(here) <= range)
+			if(enemyTurrets[i].location.distanceSquaredTo(loc) <= range)
 				count++;
 		}
 		return count;
+	}
+	public static boolean isInRangeOfTurrets(MapLocation loc){
+		for(int i = 0 ; i < turretSize; i++){
+			if(enemyTurrets[i].location.distanceSquaredTo(loc) <= RobotType.TURRET.attackRadiusSquared){
+				return true;
+			}
+		}
+		return false;
 	}
 }
