@@ -159,7 +159,7 @@ public class Harass extends Bot {
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
-				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
+				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)&&rc.isLocationOccupied(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
 					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
 						// we can beat the other guy 1v1. fire away!
