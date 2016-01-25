@@ -9,7 +9,7 @@ public class Harass extends Bot {
 	// Once again Optimization.
 	static MapLocation turretLoc, targetLoc, archonLoc;
 	static boolean targetUpdated, archonUpdated, huntingDen, crunching, wantToMove;
-	static int archonID;
+	static int archonUpdate;
 	static boolean swarmingArchon;
 	static boolean isGuard;
 
@@ -649,13 +649,17 @@ public class Harass extends Bot {
 					case BE_MY_GUARD:
 						if(rc.getRoundNum() - turnCreated < 10)
 							isGuard = true;
+						break;
 					case MOBILE_ARCHON_LOCATION:
 						data = purpose.decode(signal.getLocation(), message);
 						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
-						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc)){
+						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc) || archonUpdate != rc.getRoundNum()){
 							archonLoc = newArchonLoc;
-							isGuard = true;
+							if(targetLoc == null)
+								isGuard = true;
 						}
+						archonUpdate = rc.getRoundNum();
+						break;
 					case ENEMY_TURRET_DEATH:
 						data = purpose.decode(signal.getLocation(), message);
 						loc = new MapLocation(data[0],data[1]);

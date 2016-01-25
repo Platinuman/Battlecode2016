@@ -186,7 +186,7 @@ public class BotArchon extends Bot {
 		// TODO moves toward closest safe parts or neutral
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
 		if(runAwayFromThisLoc != null){
-			if(rc.getRoundNum() - runAwayRound > 75)
+			if(rc.getRoundNum() - runAwayRound > 125)
 				runAwayFromThisLoc = null;
 			else{
 				//MapLocation goToThisLoc = here.add(runAwayFromThisLoc.directionTo(here), 5);
