@@ -179,7 +179,7 @@ public class Harass extends Bot {
 						rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
 						if (loneAttacker.type == RobotType.ARCHON && rc.isCoreReady())
-							shadowHarasser(loneAttacker, enemiesInSight);
+							shadowArchon(loneAttacker, enemiesInSight);
 						if(rc.isCoreReady())
 							tryToRetreat(enemiesInSight);
 					} else {
@@ -419,14 +419,15 @@ public class Harass extends Bot {
 
 			int enemyExposure = numEnemiesAttackingLocation(moveLoc, enemies);
 			if (enemyExposure <= maxEnemyExposure&&rc.canMove(dir)) {
-				rc.move(dir);
+				//rc.move(dir); 
+				Nav.goTo(moveLoc, new SafetyPolicyAvoidAllUnits(enemies));
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private static void shadowHarasser(RobotInfo enemyToShadow, RobotInfo[] enemies) throws GameActionException {
+	private static void shadowArchon(RobotInfo enemyToShadow, RobotInfo[] enemies) throws GameActionException {
 		Direction toEnemy = here.directionTo(enemyToShadow.location);
 		Direction[] dirs = new Direction[] { toEnemy, toEnemy.rotateRight(), toEnemy.rotateLeft(),
 				toEnemy.rotateRight().rotateRight(), toEnemy.rotateLeft().rotateLeft() };
