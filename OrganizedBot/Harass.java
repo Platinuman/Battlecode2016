@@ -257,7 +257,8 @@ public class Harass extends Bot {
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
-								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
+								- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
+								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
 							bestTarget = enemy;
@@ -319,7 +320,8 @@ public class Harass extends Bot {
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
-								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
+								- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
+								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
 							bestTarget = enemy;
@@ -492,9 +494,8 @@ public class Harass extends Bot {
 			updateViperTargetLocWithoutSignals();
 			return;
 		}
-		else if (isGuard && archonLoc != null){
+		else if (swarmingArchon && archonLoc != null){
 			targetLoc = archonLoc;
-			swarmingArchon = true;
 			return;
 		}
 		if(targetLoc == null){
@@ -508,6 +509,7 @@ public class Harass extends Bot {
 		if(targetLoc == null && archonLoc != null && turretLoc == null){
 			targetLoc = archonLoc;
 			swarmingArchon = true;
+			huntingDen = false;
 		}
 		else if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
 			// tell people a den has been killed
@@ -526,8 +528,9 @@ public class Harass extends Bot {
 				targetLoc = targetDens[bestIndex];
 			}
 		}
-		if (targetLoc == null){
+		if (targetLoc == null || swarmingArchon && !isGuard && turretLoc != null){
 			targetLoc = turretLoc;
+			swarmingArchon = false;
 		}
 	}
 
@@ -760,8 +763,8 @@ public class Harass extends Bot {
 						senderloc = signal.getLocation();
 						data = purpose.decode(senderloc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if (!huntingDen && (targetLoc == null
-								|| (double) here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc)))) {
+						if (swarmingArchon && !isGuard || targetLoc == null
+								|| (double) here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc))) {
 							targetLoc = enemyLoc;
 							swarmingArchon = false;
 						}
@@ -820,7 +823,7 @@ public class Harass extends Bot {
 
 	public static void prepTargetLoc() {
 		updateArchonLoc();
-		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 9
+		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
 			 && !swarmingArchon) {
 			targetLoc = null;
 			huntingDen = false;
@@ -872,7 +875,7 @@ public class Harass extends Bot {
 			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 4)
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
-				if(targetLoc == archonLoc && Util.isSurrounded(archonLoc)&&rc.isCoreReady())
+				if(targetLoc == archonLoc && here.distanceSquaredTo(archonLoc) + 4 < type.sensorRadiusSquared && Util.isSurrounded(archonLoc) &&rc.isCoreReady())
 					Nav.goAwayFrom(archonLoc, theSafety);
 				else if(rc.isCoreReady()){
 					startB = Clock.getBytecodeNum();
@@ -883,10 +886,10 @@ public class Harass extends Bot {
 				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true)  && rc.isCoreReady())
-				Nav.explore(enemies, friends);
+				Nav.followFriends(friends, enemies);
 		}
-		rc.setIndicatorString(0, bytecodeIndicator);
-		//rc.setIndicatorString(1, "healMe = " + healMe);
-		//rc.setIndicatorString(2, "helping ally = " + helpingAlly);
+		rc.setIndicatorString(0, "targetLoc = " + targetLoc);
+		rc.setIndicatorString(1, "isGuard = " + isGuard);
+		rc.setIndicatorString(2, "swarming archon = " + swarmingArchon);
 	}
 }

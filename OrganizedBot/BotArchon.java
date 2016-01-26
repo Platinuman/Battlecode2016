@@ -296,7 +296,7 @@ public class BotArchon extends Bot {
 					}
 					else if (purpose == MessageEncode.CRUNCH_TIME){
 						int[] data = purpose.decode(senderLoc, message);
-						if(data[2] > 6){
+						if(data[2] > 3){
 							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
 							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
 							runAwayRound = rc.getRoundNum();
