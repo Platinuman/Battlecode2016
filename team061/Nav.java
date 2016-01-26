@@ -24,9 +24,14 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 						- ((type == RobotType.ARCHON) ? 24 : 0))// hardcoded
 					return false;
 				break;
+			case TURRET:
+				if (enemy.type.attackRadiusSquared +((type != RobotType.SCOUT)? 10 + ((type == RobotType.ARCHON) ? 30 : 0) : 0) >= loc.distanceSquaredTo(enemy.location)){
+					return false;
+				}
+				break;
 			default:
-				if (enemy.type.attackRadiusSquared + ((enemy.type == RobotType.TURRET && type != RobotType.SCOUT)
-						? 10 + ((type == RobotType.ARCHON) ? 30 : 0) : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
+				if (enemy.type.attackRadiusSquared +((enemy.type != RobotType.SCOUT && type == RobotType.SCOUT)
+						? 10 : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
 					return false;
 				break;
 			}
@@ -360,20 +365,26 @@ public class Nav extends Bot {
 		for (Direction dir : Direction.values()) {
 			MapLocation retreatLoc = here.add(dir);
 			if (!rc.canMove(dir)){
-				if(rc.senseRubble(retreatLoc)>GameConstants.RUBBLE_OBSTRUCTION_THRESH && !rc.isLocationOccupied(retreatLoc))
+				if(rc.senseRubble(retreatLoc)>GameConstants.RUBBLE_OBSTRUCTION_THRESH &&type!= RobotType.SCOUT && type!= RobotType.TURRET && type!= RobotType.TTM&& !rc.isLocationOccupied(retreatLoc))
 					spotToClear = true;
 				continue;
 			}
-			if(isInRangeOfTurrets(retreatLoc))
-				continue;
+			double turretMod = 0;
+			if (isInRangeOfTurrets(retreatLoc)) {
+				if (spotToClear)
+					continue;
+				else
+					turretMod = 100;
+			}
+
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 			double wallMod = wallModCalc(retreatLoc,dir);
 			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-			rc.setIndicatorString(2, ""+rubbleMod);
-			if (distSq-rubbleMod+wallMod+allyMod > bestDistSq) {
+			//rc.setIndicatorString(2, ""+rubbleMod);
+			if (distSq-rubbleMod-turretMod+wallMod+allyMod > bestDistSq) {
 				bestDistSq = distSq-rubbleMod+wallMod+allyMod;
 				bestRetreatDir = dir;
 			}
@@ -383,18 +394,19 @@ public class Nav extends Bot {
 		}else if(spotToClear){
 			bestDistSq = -10000;
 			for (Direction dir : Direction.values()) {
-				if (!rc.canMove(dir) && rc.senseRubble(here.add(dir))<GameConstants.RUBBLE_OBSTRUCTION_THRESH )
-					continue;
 				MapLocation retreatLoc = here.add(dir);
-				if(isInRangeOfTurrets(retreatLoc))
+				if (rc.senseRubble(retreatLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH || type == RobotType.SCOUT || type == RobotType.TURRET || type == RobotType.TTM || rc.isLocationOccupied(retreatLoc) )
 					continue;
+				double turretMod = 0;
+				if(isInRangeOfTurrets(retreatLoc))
+					turretMod = 100;
 				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 				double rubble = rc.senseRubble(retreatLoc);
 				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 				double wallMod = wallModCalc(retreatLoc,dir);
 				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-				if (distSq-rubbleMod+wallMod+allyMod> bestDistSq) {
+				if (distSq-rubbleMod-turretMod+wallMod+allyMod> bestDistSq) {
 					bestDistSq = distSq-rubbleMod+wallMod+allyMod;
 					bestRetreatDir = dir;
 				}
@@ -402,10 +414,17 @@ public class Nav extends Bot {
 			if(rc.isCoreReady() && bestRetreatDir!=null )
 				Util.checkRubbleAndClear(bestRetreatDir,true);
 		}
+//		if(bestRetreatDir==null && rc.isCoreReady()){
+//			bestRetreatDir = Util.closest(unfriendly, here).location.directionTo(here);
+//			if(rc.canMove(bestRetreatDir)){
+//			System.out.println("had to do a simple run");
+//				rc.move(bestRetreatDir);
+//			}
+//		}
 	}
 	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
 		double mod = 0;
-		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)){
+		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)&&rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH){
 			retreatLoc = retreatLoc.add(dir);
 			mod+=1.0;
 
@@ -499,5 +518,12 @@ public class Nav extends Bot {
 		}
 		if(bestLoc != null)
 			Nav.goTo(bestLoc, theSafety);
+	}
+
+	public static void followFriends(RobotInfo[] friends, RobotInfo[] enemies) throws GameActionException {
+		 NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+		if(friends.length > 0){
+			Nav.goTo(Util.centroidOfUnits(friends), theSafety);
+		}
 	}
 }

@@ -13,6 +13,14 @@ public class MapAnalysis extends Bot {
 
 	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
 		mapSymmetry = MapSymmetry.UNKNOWN;// lol this needs to be fixed
+		switch (ourArchons.length) {
+		case 1:
+			if (ourArchons[0].x == theirArchons[0].x || ourArchons[0].y == theirArchons[0].y) {
+				return;
+			}
+		default:
+			return;
+		}
 	}
 
 	private static void setCenter(MapLocation[] ourArchons, MapLocation[] theirArchons) {
@@ -25,8 +33,9 @@ public class MapAnalysis extends Bot {
 			xavg += theirArchons[i].x;
 			yavg += theirArchons[i].y;
 		}
+		
 		center = new MapLocation(Math.round(xavg / (ourArchons.length+theirArchons.length)), Math.round(yavg /(ourArchons.length+theirArchons.length)));
-
+		//System.out.println("center at: " + center.x + ", " + center.y);
 	}
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;

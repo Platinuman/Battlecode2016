@@ -21,24 +21,6 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 	public static boolean checkRubbleAndClear(Direction dir,boolean clearToughRubble) throws GameActionException { // NEW Now checks all directions
 		int toughRubble = (int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH*2);
 		double rubble = rc.senseRubble(here.add(dir));
-//		if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rubble <= toughRubble)) {
-//			rc.clearRubble(dir);
-//			return true;
-//		}
-//		Direction dirLeft = dir.rotateLeft();
-//		Direction dirRight = dir.rotateRight();
-//		for (int i = 0; i <= 4; i++) {
-//
-//			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
-//				rc.clearRubble(dirLeft);
-//				return true;
-//			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
-//				rc.clearRubble(dirRight);
-//				return true;
-//			}
-//			dirLeft = dirLeft.rotateLeft();
-//			dirRight = dirRight.rotateRight();
-//		}
 		if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)){
 			rc.clearRubble(dir);
 			return true;

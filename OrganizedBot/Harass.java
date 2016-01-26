@@ -101,7 +101,7 @@ public class Harass extends Bot {
 			if(Util.isInRangeOfTurrets(retreatLoc)){
 				continue;
 			}
-			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc); TODO: put this back in, maybe only if there aren't tons of enemies?
+			RobotInfo closestEnemy = Util.closest(enemies, retreatLoc); // TODO: put this back in, maybe only if there aren't tons of enemies?
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
@@ -140,7 +140,7 @@ public class Harass extends Bot {
 	// should avoid initiating 1v1s if there are enemies nearby that can
 	// support.
 
-	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] hostilesICanSee, RobotInfo[] enemiesICanShoot, RobotInfo[] allies, RobotInfo[] enemiesWithoutZombies) throws GameActionException {
+	private static boolean doMicro(RobotInfo[] enemiesInSight, RobotInfo[] hostilesICanSee, RobotInfo[] enemiesICanShoot, RobotInfo[] allies, RobotInfo[] enemiesWithoutZombies, RobotInfo[] enemiesAttackingUs, int numEnemiesAttackingUs) throws GameActionException {
 		if (enemiesInSight.length == 0 || !(rc.isCoreReady() || rc.isWeaponReady())) {
 			return false;
 		}
@@ -157,14 +157,6 @@ public class Harass extends Bot {
 		}
 		if (hostilesICanSee.length == 0 || !(rc.isCoreReady() || rc.isWeaponReady())) {
 			return false;
-		}
-
-		int numEnemiesAttackingUs = 0;
-		RobotInfo[] enemiesAttackingUs = new RobotInfo[enemiesInSight.length];
-		for (RobotInfo enemy : enemiesInSight) {
-			if (enemy.type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-				enemiesAttackingUs[numEnemiesAttackingUs++] = enemy;
-			}
 		}
 
 		if (numEnemiesAttackingUs > 0) {
@@ -740,22 +732,33 @@ public class Harass extends Bot {
 						if(here.distanceSquaredTo(new MapLocation(data[0], data[1])) <= 400)
 							crunching = true;
 						break;
-					case DIRECT_MOBILE_ARCHON:
+					case DEN_NOTIF:
 						if(type == RobotType.VIPER) break;
 						senderloc = signal.getLocation();
 						data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
-						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-								&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-							targetDens[targetDenSize] = denLoc;
-							targetDenSize++;
-							numDensToHunt++;
-							if (!isGuard && (!huntingDen //test this
-									|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc))) {
-								targetLoc = denLoc;
-								bestIndex = targetDenSize - 1;
-								huntingDen = true;
-								swarmingArchon = false;
+						if(data[2] == 1){
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+								targetDens[targetDenSize] = denLoc;
+								targetDenSize++;
+								numDensToHunt++;
+								if (!isGuard && (!huntingDen //test this
+										|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc))) {
+									targetLoc = denLoc;
+									bestIndex = targetDenSize - 1;
+									huntingDen = true;
+									swarmingArchon = false;
+								}
+							}
+						} else {
+							if(!Util.containsMapLocation(killedDens, denLoc, targetDenSize)){
+								killedDens[killedDenSize] = targetDens[bestIndex];
+								killedDenSize++;
+							}
+							if(Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+								targetDens[bestIndex] = null;
+								numDensToHunt--;
 							}
 						}
 						break;
@@ -844,6 +847,13 @@ public class Harass extends Bot {
 		RobotInfo[] hostilesICanSee = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		RobotInfo[] enemies = Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee);
 		RobotInfo[] enemiesICanShoot = rc.senseHostileRobots(here, type.attackRadiusSquared);
+		int numEnemiesAttackingUs = 0;
+		RobotInfo[] enemiesAttackingUs = new RobotInfo[enemies.length];
+		for (RobotInfo enemy : enemies) {
+			if (enemy.type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+				enemiesAttackingUs[numEnemiesAttackingUs++] = enemy;
+			}
+		}
 		// rc.setIndicatorString(0, "" + signals.length);
 		boolean turretUpdated = updateTurretStuff(enemies);
 		if (turretLoc == null || enemiesWithoutZombies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
@@ -852,7 +862,7 @@ public class Harass extends Bot {
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
 		int startB = Clock.getBytecodeNum();
-		if(!crunching && hostilesICanSee.length == 0){
+		if(!crunching && numEnemiesAttackingUs == 0){
 			Signal[] signals = rc.emptySignalQueue();
 			updateInfoFromSignals(signals);
 			updateTargetLocWithoutSignals();
@@ -865,7 +875,7 @@ public class Harass extends Bot {
 			crunch(enemies,friends);
 		} else if (hostilesICanSee.length > 0) {
 			startB = Clock.getBytecodeNum();
-			doMicro(enemies, hostilesICanSee, enemiesICanShoot, friends, enemiesWithoutZombies);
+			doMicro(enemies, hostilesICanSee, enemiesICanShoot, friends, enemiesWithoutZombies, enemiesAttackingUs, numEnemiesAttackingUs);
 			int microBytecode = Clock.getBytecodeNum() - startB;
 			bytecodeIndicator += " Micro: " + microBytecode;
 			//if(microBytecode > 2000) System.out.println("micro used " + microBytecode);
