@@ -72,13 +72,13 @@ public class BotScout extends Bot {
 //		rc.setIndicatorString(0, s + " " + turretSize);
 		switch (scoutType) {
 		case 0:// exploring
-			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
-			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
-			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
+			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
+			RobotInfo[] enemies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, them);
+			RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
-			RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
+			RobotInfo[] neutrals = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.NEUTRAL);
 			patience--;
-			boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies);
+			boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies, Util.getUnitsOfType(allies, RobotType.SCOUT) != null);
 			updateProgress();
 			if(circlingLoc != null){
 				rc.setIndicatorString(0, circlingLoc.toString());
@@ -136,9 +136,10 @@ public class BotScout extends Bot {
 	private static void updateProgress() {
 		//see if we are making headway
 		Direction dirFromBest = farthestLoc.directionTo(here);
-		if(dirFromBest == directionIAmMoving || dirFromBest == directionIAmMoving.rotateLeft() || dirFromBest == directionIAmMoving.rotateRight())
-		patience = PATIENCESTART; 
-		farthestLoc = here;
+		if(dirFromBest == directionIAmMoving || dirFromBest == directionIAmMoving.rotateLeft() || dirFromBest == directionIAmMoving.rotateRight()){
+			patience = PATIENCESTART; 
+			farthestLoc = here;
+		}
 	}
 
 	/*
@@ -147,7 +148,7 @@ public class BotScout extends Bot {
 	 * they can see any turrets that haven't been seen before -notify units of
 	 * turrets that are no longer there
 	 */
-	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
+	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies, boolean seeScout) throws GameActionException {
 		boolean updated = false;
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -222,7 +223,8 @@ public class BotScout extends Bot {
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					i--;
 					updated = true;
-				}
+				} else if (!seeScout && bot.location.distanceSquaredTo(here) < 82)
+					circlingLoc = bot.location;
 			}
 		}
 		for (RobotInfo e : enemies)
