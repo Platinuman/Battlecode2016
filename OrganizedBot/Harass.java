@@ -726,8 +726,10 @@ public class Harass extends Bot {
 						break;
 					case CRUNCH_TIME:
 						data = purpose.decode(signal.getLocation(), message);
-						if(here.distanceSquaredTo(new MapLocation(data[0], data[1])) <= 400)
+						if(here.distanceSquaredTo(new MapLocation(data[0], data[1])) <= 400){
 							crunching = true;
+						    huntingDen = false;
+						}
 						break;
 					case DEN_NOTIF:
 						if(type == RobotType.VIPER) break;
@@ -866,9 +868,10 @@ public class Harass extends Bot {
 		}
 		// rc.setIndicatorString(0, "" + signals.length);
 		boolean turretUpdated = updateTurretStuff(enemies);
-		if (turretLoc == null || enemiesWithoutZombies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
+		if (crunching && (turretLoc == null || enemiesWithoutZombies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150)) {
 			crunching = false;
 			targetLoc = null;
+			huntingDen = false;
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
