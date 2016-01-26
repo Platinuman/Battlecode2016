@@ -386,7 +386,7 @@ public class Nav extends Bot {
 			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
 			//rc.setIndicatorString(2, ""+rubbleMod);
 			if (distSq-rubbleMod-turretMod+wallMod+allyMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod+wallMod+allyMod;
+				bestDistSq = distSq-rubbleMod+wallMod+allyMod-turretMod;
 				bestRetreatDir = dir;
 			}
 		}
@@ -410,7 +410,7 @@ public class Nav extends Bot {
 				double wallMod = wallModCalc(retreatLoc,dir);
 				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
 				if (distSq-rubbleMod-turretMod+wallMod+allyMod> bestDistSq) {
-					bestDistSq = distSq-rubbleMod+wallMod+allyMod;
+					bestDistSq = distSq-rubbleMod+wallMod+allyMod-turretMod;
 					bestRetreatDir = dir;
 				}
 			}
