@@ -174,7 +174,7 @@ public class BotArchon extends Bot {
 		}
 		if(numScoutsCreated * 8 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
-		else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?5:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
+		else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?7:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
 			typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
@@ -182,7 +182,7 @@ public class BotArchon extends Bot {
 
 	private static void callForHelp() throws GameActionException {
 		rc.broadcastSignal((int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
-		rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
+		//rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
 	}
 
 	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {
