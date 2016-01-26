@@ -237,7 +237,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  rc.onTheMap(here.add(here.directionTo(dest))) && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
