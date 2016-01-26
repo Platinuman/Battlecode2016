@@ -160,10 +160,12 @@ public class Harass extends Bot {
 			// we are in combat
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
+				boolean dontShoot = false;
+				dontShoot = (type == RobotType.VIPER && enemiesInSight.length == 1 && enemiesInSight[0].zombieInfectedTurns == 0 && enemiesInSight[0].viperInfectedTurns == 0 && allies.length > 3);
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)&&rc.isLocationOccupied(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
+					if (!dontShoot && (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker))) {
 						// we can beat the other guy 1v1. fire away!
 						rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
@@ -173,7 +175,7 @@ public class Harass extends Bot {
 							tryToRetreat(enemiesInSight);
 					} else {
 						// check if we actually have some allied support. if so, we can keep fighting
-						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0) {
+						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0 && !dontShoot) {
 							// an ally is helping us, so keep fighting the lone enemy
 							rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
 							// TODO: archon test shooting zombies first instead (comment out two lines below)
@@ -185,7 +187,7 @@ public class Harass extends Bot {
 						} else {
 							// we can't win the 1v1.
 							if (type.cooldownDelay <= 1 && loneAttacker.weaponDelay >= 2
-									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1) {
+									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1 && !dontShoot) {
 								// we can get a shot off and retreat before the enemy can fire at us again, so do that
 								rc.setIndicatorString(1, "can't win 1v1, but can shoot and run");
 								attackIfReady(loneAttacker.location);
@@ -199,12 +201,12 @@ public class Harass extends Bot {
 									if (tryToRetreat(enemiesInSight)) {
 										// we moved away
 										return true;
-									} else {
+									} else if (!dontShoot){
 										// we couldn't find anywhere to retreat to. fire a desperate shot if possible
 										attackIfReady(loneAttacker.location);
 										return true;
 									}
-								} else {
+								} else if(!dontShoot){
 									// we can't move this turn. if it won't delay retreating, shoot instead
 									if (type.cooldownDelay <= 1) {
 										rc.setIndicatorString(1, "can't win 1v1 or move, trying to shoot");
@@ -228,12 +230,14 @@ public class Harass extends Bot {
 				int maxAlliesAttackingAnEnemy = 0;
 				for (int i = 0; i < numEnemiesAttackingUs; i++) {
 					RobotInfo enemy = enemiesAttackingUs[i];
+					if(type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE);
+						rc.setIndicatorString(1, "yay");
 					int numAlliesAttackingEnemy = allies.length > numEnemiesAttackingUs*3?allies.length / 2 + 1 : 1 + numOtherAlliesInAttackRange(enemy.location, allies);
 					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
-								+ (enemy.team == Team.ZOMBIE?0:.2) // shoot zombies last
+								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -288,9 +292,7 @@ public class Harass extends Bot {
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
-							//	+ enemy.attackPower // TODO: optimize
-							//	+ (enemy.type == RobotType.FASTZOMBIE?10:0)
-								- (enemy.team == Team.ZOMBIE?0:.2) // shoot zombies last
+								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -605,12 +607,9 @@ public class Harass extends Bot {
 		for (RobotInfo enemy : enemies) {
 			if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 				double targetingMetric = allies.length/ 3 / enemy.health
-						+ enemy.attackPower / 2.0 // TODO: optimize
-						+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
-						+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
-						+ (enemy.type == RobotType.FASTZOMBIE?5:0)
-						+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
-				if (targetingMetric > bestTargetingMetric) {
+						+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
+						+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
+			if (targetingMetric > bestTargetingMetric) {
 					bestTargetingMetric = targetingMetric;
 					bestTarget = enemy;
 				}
@@ -842,7 +841,7 @@ public class Harass extends Bot {
 				Nav.explore(enemies, friends);
 		}
 		rc.setIndicatorString(0, bytecodeIndicator);
-		rc.setIndicatorString(1, "isGuard = " + isGuard);
-		rc.setIndicatorString(2, "archonLoc = " + archonLoc);
+		//rc.setIndicatorString(1, "isGuard = " + isGuard);
+		//rc.setIndicatorString(2, "archonLoc = " + archonLoc);
 	}
 }
