@@ -176,6 +176,8 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
     	switch(theType){
     	case ARCHON:
     		return false;
+    	case TTM:
+    		return false;
     	case ZOMBIEDEN:
     		if(getRoundsUntilNextZombieSpawn() < 20) return true;
     		return false;
@@ -298,7 +300,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
 		for (int j = 0; j < newlength; j++){
-			harmfulUnits[j] = hostiles[j];
+			harmfulUnits[j] = hostiles[inds[j]];
 		}
 		return harmfulUnits;
 	}

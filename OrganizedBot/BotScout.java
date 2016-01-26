@@ -86,15 +86,17 @@ public class BotScout extends Bot {
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
-			RobotInfo[] hostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
 			if (rc.isCoreReady()) {
 				if (circlingLoc != null) {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(hostiles));
+					if(rc.isCoreReady() && hostiles.length > 0)
+						Nav.flee(hostiles,allies);
 					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
 					// us).length);
 				} else{
-					Nav.explore(Util.removeHarmlessUnits(hostiles), allies);
+					Nav.explore(hostiles, allies);
 				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
