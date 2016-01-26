@@ -289,7 +289,7 @@ public class BotArchon extends Bot {
 					} else if (purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF) {
 						int[] data = purpose.decode(senderLoc, message);
 						MapLocation targetLoc = new MapLocation(data[0], data[1]);
-						if (targetLocation == null || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
+						if (targetLocation == null || data[2] == 1 || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
 							targetLocation = targetLoc;
 							targetIsNeutral = false;
 						}

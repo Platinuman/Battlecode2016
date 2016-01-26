@@ -74,6 +74,7 @@ public class BotScout extends Bot {
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
+			RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
 			patience--;
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
 			updateProgress();
@@ -82,9 +83,15 @@ public class BotScout extends Bot {
 				patience = PATIENCESTART;
 			}
 			MapLocation enemyArchonLocation = Util.getLocationOfType(enemies, RobotType.ARCHON);
+			MapLocation neutralArchonLoc = Util.getLocationOfType(neutrals, RobotType.ARCHON);
 			boolean seeEnemyArchon = enemyArchonLocation != null;
+			boolean seeNeutralArchon = neutralArchonLoc != null;
 			if(seeEnemyArchon){
 				directionIAmMoving = here.directionTo(enemyArchonLocation);
+				patience = PATIENCESTART;
+				farthestLoc = here;
+			} else if(seeNeutralArchon){
+				directionIAmMoving = here.directionTo(neutralArchonLoc);
 				patience = PATIENCESTART;
 				farthestLoc = here;
 			}
@@ -109,7 +116,7 @@ public class BotScout extends Bot {
 				lastRoundNotifiedOfArmy = round;
 			}
 			if (round - lastRoundNotifiedOfPN > 30 && (enemies.length == 0 || Util.closest(enemies, here).location.distanceSquaredTo(here) > 20)) {
-				notifyArchonOfPartOrNeutral();
+				notifyArchonOfPartOrNeutral(neutrals, seeNeutralArchon);
 				lastRoundNotifiedOfPN = round;
 			}
 			break;
@@ -217,9 +224,8 @@ public class BotScout extends Bot {
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
 	}
 
-	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
+	private static void notifyArchonOfPartOrNeutral(RobotInfo[] neutrals, boolean seeNeutralArchon) throws GameActionException {
 		MapLocation partOrNeutralLoc = null;
-		RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
 		if (neutrals.length > 0) {
 			partOrNeutralLoc = neutrals[0].location;
 		} else {
@@ -229,7 +235,7 @@ public class BotScout extends Bot {
 		}
 		if (partOrNeutralLoc != null) {
 			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
-					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
+					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y , seeNeutralArchon ? 1 : 0});
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
 		}
 	}

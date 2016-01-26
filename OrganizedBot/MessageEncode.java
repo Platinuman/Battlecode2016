@@ -14,7 +14,7 @@ public enum MessageEncode {
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	WARN_ABOUT_TURRETS    (7, new int[]{7,8}, 0),// map location of enemy turrets -- (here.x,here.y) if fewer than 5
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
-	PART_OR_NEUTRAL_NOTIF (8, new int[]{1,2},0),// map location of parts/neutral thing
+	PART_OR_NEUTRAL_NOTIF (8, new int[]{1,2,9},0),// map location of parts/neutral thing, is it an archon
 	ENEMY_ARMY_NOTIF	  (9, new int[]{1,2,9},0),// map location of centroid or archon if there is one, boolean that says if there is an enemy archon
 	ENEMY_TURRET_DEATH	  (10,new int[]{7,8},0),// map location where there is no longer a turret
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
