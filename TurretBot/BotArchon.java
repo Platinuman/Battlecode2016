@@ -160,8 +160,8 @@ public class BotArchon extends Bot {
 		here = rc.getLocation();
 		if (MapAnalysis.mapDifficulty == 0) {
 			RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
-			if(rc.isCoreReady()){
-				Nav.runAway();
+			if(rc.isCoreReady() && enemies.length > 0 && rc.getRoundNum() > 500){
+				Nav.runAway(enemies);
 			}
 			if (rc.isCoreReady()) {
 				if (here.distanceSquaredTo(alpha) <= 2) {
@@ -184,7 +184,7 @@ public class BotArchon extends Bot {
 		}
 		constructNeededUnits(needed);
 		if (rc.isCoreReady()) {
-			Util.checkRubbleAndClear(here.directionTo(center));
+			Util.checkRubbleAndClear(here.directionTo(center),true);
 		}
 
 	}

@@ -5,37 +5,29 @@ import battlecode.common.*;
 public class Util extends Bot {// NEW generic methods for use by many classes,
 								// optimization is key once again.
 
-	public static boolean checkRubbleAndClear(Direction dir) throws GameActionException {
-
-		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+	public static boolean checkRubbleAndClear(Direction dir, boolean clearToughRubble) throws GameActionException { // NEW
+																													// Now
+																													// checks
+																													// all
+																													// directions
+		int toughRubble = (int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH * 2);
+		double rubble = rc.senseRubble(here.add(dir));
+		if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
 			rc.clearRubble(dir);
 			return true;
 		}
 		Direction dirLeft = dir.rotateLeft();
 		Direction dirRight = dir.rotateRight();
-		for (int i = 0; i <= 4; i++) {
-
-			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				rc.clearRubble(dirLeft);
-				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				rc.clearRubble(dirRight);
-				return true;
-			}
-			dirLeft = dirLeft.rotateLeft();
-			dirRight = dirRight.rotateRight();
-		}
-		if (rc.senseRubble(here.add(dir)) > 0) {
-			rc.clearRubble(dir);
-			return true;
-		}
 		dirLeft = dir.rotateLeft();
 		dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
-			if (rc.senseRubble(here.add(dirLeft)) > 0) {
+			rubble = rc.senseRubble(here.add(dirLeft));
+			if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
 				rc.clearRubble(dirLeft);
 				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) > 0) {
+			}
+			rubble = rc.senseRubble(here.add(dirRight));
+			if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
 				rc.clearRubble(dirRight);
 				return true;
 			}
@@ -79,7 +71,8 @@ public class Util extends Bot {// NEW generic methods for use by many classes,
 		RobotInfo ret = null;
 		double minHealth = 1e99;
 		for (int i = 0; i < robots.length; i++) {
-			if ((int)robots[i].health != (int)robots[i].maxHealth &&  robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
+			if ((int) robots[i].health != (int) robots[i].maxHealth && robots[i].health < minHealth
+					&& (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
 				minHealth = robots[i].health;
 				ret = robots[i];
 			}

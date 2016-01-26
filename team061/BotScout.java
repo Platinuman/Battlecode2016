@@ -104,11 +104,11 @@ public class BotScout extends Bot {
 			updateCrunchTime(enemies,allies);
 			// }
 			int round = rc.getRoundNum();
-			if (lastRoundNotifiedOfArmy - round > 25 && (seeEnemyArchon || enemies.length > 2)) {
+			if (round - lastRoundNotifiedOfArmy > 25 && (seeEnemyArchon || enemies.length > 2)) {
 				notifySoldiersOfEnemyArmy(enemies, seeEnemyArchon);
 				lastRoundNotifiedOfArmy = round;
 			}
-			if (lastRoundNotifiedOfPN - round > 20 && Util.closest(enemies, here).location.distanceSquaredTo(here) > 20) {
+			if (round - lastRoundNotifiedOfPN > 30 && (enemies.length == 0 || Util.closest(enemies, here).location.distanceSquaredTo(here) > 20)) {
 				notifyArchonOfPartOrNeutral();
 				lastRoundNotifiedOfPN = round;
 			}
@@ -211,7 +211,10 @@ public class BotScout extends Bot {
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
 		int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
 				.encode(new int[] { enemies[0].location.x, enemies[0].location.y, seeEnemyArchon ? 1 : 0 });
-		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
+		if(!seeEnemyArchon)
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
+		else
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
 	}
 
 	private static void notifyArchonOfPartOrNeutral() throws GameActionException {

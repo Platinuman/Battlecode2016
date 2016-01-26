@@ -433,6 +433,7 @@ public class Nav extends Bot {
 		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)&&rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH){
 			retreatLoc = retreatLoc.add(dir);
 			mod+=1.0;
+
 		}
 		return mod;
 
@@ -503,12 +504,8 @@ public class Nav extends Bot {
 
 	private static void scrambleDirectionIAmMoving() {
 		directionIAmMoving = (new Direction[] {
-				directionIAmMoving.opposite(),
 				directionIAmMoving.opposite().rotateLeft(),
-				directionIAmMoving.opposite().rotateRight(),
-				directionIAmMoving.opposite().rotateLeft(),
-				directionIAmMoving.opposite().rotateRight(),
-				here.directionTo(center)})[rand.nextInt(6)];
+				directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
 		BotScout.patience = BotScout.PATIENCESTART; 
 		BotScout.farthestLoc = here;
 	}

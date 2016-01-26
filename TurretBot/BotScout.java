@@ -38,7 +38,7 @@ public class BotScout extends Bot {
 			moveToLocFartherThanAlphaIfPossible(here);
 		}
 		if (rc.isCoreReady()) {
-			Util.checkRubbleAndClear(here.directionTo(alpha));
+			Util.checkRubbleAndClear(here.directionTo(alpha),true);
 		}
 		broadcastEnemies();
 		
