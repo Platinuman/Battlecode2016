@@ -407,6 +407,13 @@ public class Nav extends Bot {
 			if(rc.isCoreReady() && bestRetreatDir!=null )
 				Util.checkRubbleAndClear(bestRetreatDir,true);
 		}
+		if(bestRetreatDir==null && rc.isCoreReady()){
+			bestRetreatDir = Util.closest(unfriendly, here).location.directionTo(here);
+			if(rc.canMove(bestRetreatDir)){
+			System.out.println("had to do a simple run");
+				rc.move(bestRetreatDir);
+			}
+		}
 	}
 	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
 		double mod = 0;
