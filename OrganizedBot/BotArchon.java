@@ -121,7 +121,7 @@ public class BotArchon extends Bot {
 				Nav.flee(hostiles,allies);
 				lastSeenHostile = rc.getRoundNum();
 			}
-			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 15 && rc.getRoundNum() % 50 == 0){
+			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
 				int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
 				rc.broadcastMessageSignal(msg[0], msg[1], 2000);
 			}
@@ -165,7 +165,7 @@ public class BotArchon extends Bot {
 	}
 
 	private static void determineTypeToBuild(RobotInfo[] hostiles, RobotInfo[] allies) {
-		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 5){
+		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 15){
 			typeToBuild = RobotType.SOLDIER;
 			return;
 		}
@@ -468,7 +468,7 @@ public class BotArchon extends Bot {
 			numScoutsCreated++;
 			break;
 		case SOLDIER:
-			if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 5)
+			if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
 				numGuardsCreated++;
 			else
 				numSoldiersCreated++;
@@ -489,7 +489,7 @@ public class BotArchon extends Bot {
 		//}
 		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
-		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 5)
+		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
 			notifySoldierTheyShouldGuard();
 		// now notify them of turrets
 		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
