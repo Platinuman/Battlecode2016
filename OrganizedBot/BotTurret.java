@@ -72,7 +72,7 @@ public class BotTurret extends Bot {
 //		for(Signal s: signals){
 //			Harass.updateTargetLoc(s, canSeeHostiles);
 //		}
-		rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
+		//rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
 
 		// MessageEncode.updateRange(); //NEW update the range and get list of
 		// possible targets in same loop to conserve bytecode

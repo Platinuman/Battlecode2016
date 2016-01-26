@@ -113,10 +113,10 @@ public class Harass extends Bot {
 
 		if (bestRetreatDir != null && rc.isCoreReady()&&rc.canMove(bestRetreatDir)) {
 			rc.move(bestRetreatDir);
-			rc.setIndicatorString(2, "retreating cost us " + (Clock.getBytecodeNum() - bytecodechecker));
+			//rc.setIndicatorString(2, "retreating cost us " + (Clock.getBytecodeNum() - bytecodechecker));
 			return true;
 		}
-		rc.setIndicatorString(2, "trying to retreat and failing cost us " + (Clock.getBytecodeNum() - bytecodechecker));
+		//rc.setIndicatorString(2, "trying to retreat and failing cost us " + (Clock.getBytecodeNum() - bytecodechecker));
 		return false;
 	}
 
@@ -168,7 +168,7 @@ public class Harass extends Bot {
 					// we can actually shoot at the enemy we are 1v1ing
 					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
 						// we can beat the other guy 1v1. fire away!
-						rc.setIndicatorString(1, "can win 1v1");
+						//rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
 						if (loneAttacker.type == RobotType.ARCHON && rc.isCoreReady())
 							shadowArchon(loneAttacker, enemiesInSight);
@@ -178,7 +178,7 @@ public class Harass extends Bot {
 						// check if we actually have some allied support. if so, we can keep fighting
 						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0) {
 							// an ally is helping us, so keep fighting the lone enemy
-							rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
+							//rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
 							// TODO: archon test shooting zombies first instead (comment out two lines below)
 							if(rc.isCoreReady() && loneAttacker.team == Team.ZOMBIE)
 								tryToRetreat(enemiesInSight);
@@ -194,14 +194,14 @@ public class Harass extends Bot {
 							if (type.cooldownDelay <= 1 && loneAttacker.weaponDelay >= 2
 									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1) {
 								// we can get a shot off and retreat before the enemy can fire at us again, so do that
-								rc.setIndicatorString(1, "can't win 1v1, but can shoot and run");
+								//rc.setIndicatorString(1, "can't win 1v1, but can shoot and run");
 								attackIfReady(loneAttacker.location);
 								if(rc.isCoreReady())
 									tryToRetreat(enemiesInSight);
 							} else {
 								// we can't get another shot off. run away!
 								if (rc.isCoreReady()) {
-									rc.setIndicatorString(1, "can't win 1v1, trying to retreat");
+									//rc.setIndicatorString(1, "can't win 1v1, trying to retreat");
 									// we can move this turn
 									if (tryToRetreat(enemiesInSight)) {
 										// we moved away
@@ -214,7 +214,7 @@ public class Harass extends Bot {
 								} else{
 									// we can't move this turn. if it won't delay retreating, shoot instead
 									if (type.cooldownDelay <= 1) {
-										rc.setIndicatorString(1, "can't win 1v1 or move, trying to shoot");
+										//rc.setIndicatorString(1, "can't win 1v1 or move, trying to shoot");
 										attackIfReady(loneAttacker.location);
 									}
 									return true;
@@ -224,7 +224,7 @@ public class Harass extends Bot {
 					}
 				} else {
 					// we are getting shot by someone who outranges us, CRUNCH!
-					rc.setIndicatorString(1, "outranged!");
+					//rc.setIndicatorString(1, "outranged!");
 					if(rc.isCoreReady())
 						Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 					return true;
@@ -235,8 +235,6 @@ public class Harass extends Bot {
 				int maxAlliesAttackingAnEnemy = 0;
 				for (int i = 0; i < numEnemiesAttackingUs; i++) {
 					RobotInfo enemy = enemiesAttackingUs[i];
-					if(type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE);
-						rc.setIndicatorString(1, "yay");
 					int numAlliesAttackingEnemy = allies.length > numEnemiesAttackingUs*3?allies.length / 2 + 1 : 1 + numOtherAlliesInAttackRange(enemy.location, allies);
 					if (numAlliesAttackingEnemy > maxAlliesAttackingAnEnemy)
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
@@ -257,7 +255,7 @@ public class Harass extends Bot {
 				// multiple enemies are attacking us. stay in the fight iff enough allies are also engaged
 				if (maxAlliesAttackingAnEnemy >= numEnemiesAttackingUs && bestTarget != null) {
 					// enough allies are in the fight.
-					rc.setIndicatorString(1, "more than one enemy, but have enough allies");
+					//rc.setIndicatorString(1, "more than one enemy, but have enough allies");
 					attackIfReady(bestTarget.location);
 					if(rc.isCoreReady())
 						tryToRetreat(enemiesInSight);
@@ -268,23 +266,23 @@ public class Harass extends Bot {
 					if(rc.getViperInfectedTurns() == 0 && !inRangeOfZombieDen(rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE)))
 						rc.broadcastSignal((int)(type.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
 					*/
-					rc.setIndicatorString(1, "more than one enemy, don't have enough allies");
+					//rc.setIndicatorString(1, "more than one enemy, don't have enough allies");
 					if (rc.isCoreReady()) {
 						// we can move this turn
 						if (tryToRetreat(enemiesInSight)) {
 							// we moved away :)
-							rc.setIndicatorString(1, "more than one enemy, retreated!");
+							//rc.setIndicatorString(1, "more than one enemy, retreated!");
 							return true;
 						} else if (bestTarget != null) {
 							// we couldn't find anywhere to retreat to. fire a desperate shot if possible
-							rc.setIndicatorString(1, "more than one enemy, couldn't retreat, desprate shot");
+							//rc.setIndicatorString(1, "more than one enemy, couldn't retreat, desprate shot");
 							attackIfReady(bestTarget.location);
 							return true;
 						}
 					} else {
 						// we can't move this turn. if it won't delay retreating, shoot instead
 						if (type.cooldownDelay <= 1 && bestTarget != null) {
-							rc.setIndicatorString(1, "more than one enemy, couldn't move, shot instead");
+							//rc.setIndicatorString(1, "more than one enemy, couldn't move, shot instead");
 							attackIfReady(bestTarget.location);
 						}
 						return true;
@@ -320,24 +318,24 @@ public class Harass extends Bot {
 			}
 			// shoot someone if there is someone to shoot
 			if (bestTarget != null) {
-				rc.setIndicatorString(1, "no enemies shooting me, shot someone else");
+				//rc.setIndicatorString(1, "no enemies shooting me, shot someone else");
 				attackIfReady(bestTarget.location);
 				return true;
 			}
 			// we can't shoot anyone or there was weapon delay
 			if (rc.isCoreReady()) { // all remaining possible actions are movements
 				// check if we can move to help an ally who has already engaged a nearby enemy
-				rc.setIndicatorString(2, "No core delay, we can see but not shoot");
+				//rc.setIndicatorString(2, "No core delay, we can see but not shoot");
 				RobotInfo closestEnemy = Util.closest(enemiesInSight, here);
 				// we can only think about engaging enemies with equal or shorter range
 				if (closestEnemy != null
 						&& (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
 							|| closestEnemy.type == RobotType.ARCHON)) {
 					//we outrange them
-					rc.setIndicatorString(2, "No core delay, we can see but not shoot, move to engage closest enemy");
+					//rc.setIndicatorString(2, "No core delay, we can see but not shoot, move to engage closest enemy");
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
 					if (numAlliesFightingEnemy > 0) {
-						rc.setIndicatorString(2, "No core delay, we can see but not shoot, trying to move to help allies");
+						//rc.setIndicatorString(2, "No core delay, we can see but not shoot, trying to move to help allies");
 						// see if we can assist our ally(s)
 						int maxEnemyExposure = numAlliesFightingEnemy;
 						if (tryMoveTowardLocationWithMaxEnemyExposure(closestEnemy.location, maxEnemyExposure, enemiesInSight)) {
@@ -349,13 +347,13 @@ public class Harass extends Bot {
 						// no one is fighting this enemy, but we can try to engage them if we can win the 1v1
 						if (canWin1v1AfterMovingTo(here.add(here.directionTo(closestEnemy.location)), closestEnemy)) {
 							int maxEnemyExposure = 1;
-							rc.setIndicatorString(2, "No core delay, we can see but not shoot, going for the 1v1 win");
+							//rc.setIndicatorString(2, "No core delay, we can see but not shoot, going for the 1v1 win");
 							if (tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(closestEnemy.location,
 									maxEnemyExposure, enemiesInSight)) {
 								return true;
 							}
 							// TODO: what if it didn't work?
-							rc.setIndicatorString(2, "no allies to help, no action :(");
+							//rc.setIndicatorString(2, "no allies to help, no action :(");
 						}
 					}
 				}
@@ -737,7 +735,7 @@ public class Harass extends Bot {
 						data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(data[2] == 1){
-							System.out.println("got a den notif");
+							//System.out.println("got a den notif");
 							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
 									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
 								targetDens[targetDenSize] = denLoc;
@@ -752,7 +750,7 @@ public class Harass extends Bot {
 								}
 							}
 						} else {
-							System.out.println("got a den death notif");
+							//System.out.println("got a den death notif");
 							//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
 							killedDens[killedDenSize] = denLoc;
 							killedDenSize++;
@@ -913,14 +911,14 @@ public class Harass extends Bot {
 			else if(!Util.checkRubbleAndClear(here.directionTo(center), true)  && rc.isCoreReady())
 				Nav.followFriends(friends, enemies);
 		}
-		rc.setIndicatorString(0, "targetLoc = " + targetLoc);
+		//rc.setIndicatorString(0, "targetLoc = " + targetLoc);
 		//rc.setIndicatorString(1, "isGuard = " + isGuard);
-		String s = "";
-		for(int i = 0; i < targetDenSize; i++){
-			if(targetDens[i] != null)
-			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
-		}
-		rc.setIndicatorString(1, s + " " + targetDenSize);
-		rc.setIndicatorString(2, "swarming archon = " + swarmingArchon);
+//		String s = "";
+//		for(int i = 0; i < targetDenSize; i++){
+//			if(targetDens[i] != null)
+//			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
+//		}
+//		rc.setIndicatorString(1, s + " " + targetDenSize);
+//		rc.setIndicatorString(2, "swarming archon = " + swarmingArchon);
 	}
 }

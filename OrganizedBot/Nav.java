@@ -215,10 +215,6 @@ public class Nav extends Bot {
 	}
 
 	private static void bugMove() throws GameActionException {
-		// Debug.clear("nav");
-		// Debug.indicate("nav", 0, "bugMovesSinceSeenObstacle = " +
-		// bugMovesSinceSeenObstacle + "; bugRotatoinCount = " +
-		// bugRotationCount);
 		// Check if we can stop bugging at the *beginning* of the turn
 //		rc.setIndicatorString(2, "I've been bugging for " +bugMovesSinceMadeProgress+ "turns.");
 //		rc.setIndicatorString(1, "bugMovesSinceSeenObstacle = " +
@@ -226,7 +222,6 @@ public class Nav extends Bot {
 //				 bugRotationCount);
 		if (bugState == BugState.BUG) {
 			if (canEndBug()) {
-				// Debug.indicateAppend("nav", 1, "ending bug; ");
 				bugState = BugState.DIRECT;
 				bugMovesSinceMadeProgress = 0;
 			}
@@ -236,7 +231,6 @@ public class Nav extends Bot {
 
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
-				// Debug.indicateAppend("nav", 1, "starting to bug; ");
 				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  rc.onTheMap(here.add(here.directionTo(dest))) && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
@@ -245,7 +239,6 @@ public class Nav extends Bot {
 				}
 			}
 			// checkRubbleAndClear(here.directionTo(dest));
-			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
 		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM) {
 			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
@@ -261,7 +254,6 @@ public class Nav extends Bot {
 		// If that failed, or if bugging, bug
 		
 		if (bugState == BugState.BUG) {
-			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
 			bugMovesSinceMadeProgress++;
 		}

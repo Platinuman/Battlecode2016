@@ -7,7 +7,7 @@ public class BotSoldier extends Bot {
 	
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
-		init();
+		//init();
 		while (true) {
 			try {
 				turn();
@@ -20,9 +20,9 @@ public class BotSoldier extends Bot {
 	
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		rc.setIndicatorString(0, "");
-		rc.setIndicatorString(1, "");
-		rc.setIndicatorString(2, "");
+//		rc.setIndicatorString(0, "");
+//		rc.setIndicatorString(1, "");
+//		rc.setIndicatorString(2, "");
 		//MessageEncode.readMessagesAndUpdateInfo();
 		//TODO make new data types in encode and use the to notify us when a bot is turtling
 		Harass.doHarass();

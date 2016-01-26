@@ -26,8 +26,8 @@ public class MapAnalysis extends Bot {
 			boolean possiblyRotation = true;
 			for (int i = 0; i < ourArchons.length; i++){
 				MapLocation testCenter = new MapLocation(Math.round((ourArchons[i].x + theirArchons[theirArchons.length-1-i].x)/2),Math.round((ourArchons[i].y + theirArchons[theirArchons.length-1-i].y)/2));
-				System.out.println("testCenter = " + testCenter);
-				System.out.println("Center = " + center);
+				//System.out.println("testCenter = " + testCenter);
+				//System.out.println("Center = " + center);
 				if (testCenter.equals(center)){
 					continue;
 				}else{

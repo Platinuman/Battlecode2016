@@ -8,7 +8,7 @@ public class BotViper extends Bot {
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
-		init();
+		//init();
 		while (true) {
 			try {
 				turn();
@@ -21,9 +21,9 @@ public class BotViper extends Bot {
 	
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		rc.setIndicatorString(0, "");
-		rc.setIndicatorString(1, "");
-		rc.setIndicatorString(2, "");
+//		rc.setIndicatorString(0, "");
+//		rc.setIndicatorString(1, "");
+//		rc.setIndicatorString(2, "");
 //		String s = "";
 //		for(int i = 0; i < turretSize; i++){
 //			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 

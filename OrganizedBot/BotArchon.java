@@ -116,7 +116,7 @@ public class BotArchon extends Bot {
 		RobotInfo[] allies = rc.senseNearbyRobots(type.sensorRadiusSquared, us);
 		updateInfoFromScouts(hostiles);
 		hostiles = Util.removeHarmlessUnits(hostiles);
-		rc.setIndicatorString(0, "targetIsNeutral " + targetIsNeutral);
+		//rc.setIndicatorString(0, "targetIsNeutral " + targetIsNeutral);
 		//rc.setIndicatorString(1,"target loc is " + targetLocation);
 		if (rc.isCoreReady()) {
 			if (hostiles.length > 0){
@@ -182,7 +182,7 @@ public class BotArchon extends Bot {
 
 	private static void callForHelp() throws GameActionException {
 		rc.broadcastSignal((int) (RobotType.ARCHON.sensorRadiusSquared * GameConstants.BROADCAST_RANGE_MULTIPLIER));
-		rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
+		//rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
 	}
 
 	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {

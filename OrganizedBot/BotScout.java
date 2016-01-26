@@ -55,16 +55,16 @@ public class BotScout extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		rc.setIndicatorDot(here, 255, 255, 255);
-		rc.setIndicatorString(0, "");
-		rc.setIndicatorString(1, "");
-		String s = "";
-		for(int i = 0; i < targetDenSize; i++){
-			if(targetDens[i] != null)
-			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
-		}
-		rc.setIndicatorString(1, s + " " + targetDenSize);
-		rc.setIndicatorString(2, "patience " + patience);
+//		rc.setIndicatorDot(here, 255, 255, 255);
+//		rc.setIndicatorString(0, "");
+//		rc.setIndicatorString(1, "");
+//		String s = "";
+//		for(int i = 0; i < targetDenSize; i++){
+//			if(targetDens[i] != null)
+//			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
+//		}
+//		rc.setIndicatorString(1, s + " " + targetDenSize);
+//		rc.setIndicatorString(2, "patience " + patience);
 //		String s = "";
 //		for (int i = 0; i < turretSize; i++) {
 //			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
@@ -312,7 +312,7 @@ public class BotScout extends Bot {
 			if (rc.canSenseLocation(denLoc) && (rc.senseRobotAtLocation(denLoc) == null || rc.senseRobotAtLocation(denLoc).type != RobotType.ZOMBIEDEN)) {
 				// tell people a den has been killed
 				int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { denLoc.x, denLoc.y, 0});
-				System.out.println("dead den");
+				//System.out.println("dead den");
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
 				killedDens[killedDenSize] = denLoc;
 				targetDens[i] = null;
