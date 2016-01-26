@@ -271,7 +271,7 @@ public class BotScout extends Bot {
 			else if(bot.type == RobotType.VIPER)
 				numVipers+=1;
 		}
-		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 750) / 1500);
+		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.5) + 750) / 1500);
 		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/3 + viperPower;
 		return canWeBeat && alliesEngaged;
 		
