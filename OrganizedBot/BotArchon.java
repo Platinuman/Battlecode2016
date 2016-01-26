@@ -60,6 +60,7 @@ public class BotArchon extends Bot {
 		targetDen = null;
 		typeToBuild = null;
 		lastSeenHostile = -100;
+		lastEnemyRound = -100;
 		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
 		//// method
 		// analyzeMap();
@@ -167,7 +168,7 @@ public class BotArchon extends Bot {
 	}
 
 	private static void determineTypeToBuild(RobotInfo[] hostiles, RobotInfo[] allies) {
-		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 15){
+		if(!haveEnoughFighters(allies) && rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated){
 			typeToBuild = RobotType.SOLDIER;
 			return;
 		}
@@ -318,7 +319,7 @@ public class BotArchon extends Bot {
 					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
 						int[] data = purpose.decode(senderLoc, message);
 						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if(here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
+						if(lastEnemyLoc == null || here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
 							lastEnemyRound = rc.getRoundNum();
 							lastEnemyLoc = enemyLoc;
 						}
@@ -489,7 +490,7 @@ public class BotArchon extends Bot {
 			numScoutsCreated++;
 			break;
 		case SOLDIER:
-			if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
+			if(!haveEnoughFighters(allies) && rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated)
 				numGuardsCreated++;
 			else
 				numSoldiersCreated++;
@@ -508,14 +509,14 @@ public class BotArchon extends Bot {
 		//	myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 		//	rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 		//}
-		if (numDensToHunt > 0)
+		if(!haveEnoughFighters(allies) && rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated)
+			notifySoldierTheyShouldGuard();
+		else if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
-		else{
+		else if (lastEnemyLoc != null){
 			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 0);
 		}
-		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
-			notifySoldierTheyShouldGuard();
 		// now notify them of turrets
 		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
 		MapLocation t;
