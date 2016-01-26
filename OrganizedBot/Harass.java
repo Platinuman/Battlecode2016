@@ -436,7 +436,7 @@ public class Harass extends Bot {
 	public static int numOtherAlliesInAttackRange(MapLocation loc, RobotInfo[] allies) {
 		int ret = 0;
 		for (RobotInfo ally : allies) {
-			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location))
+			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location) && ally.type!=RobotType.ARCHON)
 				ret++;
 		}
 		return ret;
