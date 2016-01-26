@@ -239,7 +239,10 @@ public class Harass extends Bot {
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
-								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
+								+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
+								+  enemy.attackPower/300
+								+  enemy.type.attackRadiusSquared/2000
+								-  enemy.type.movementDelay/300
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -294,7 +297,10 @@ public class Harass extends Bot {
 						maxAlliesAttackingAnEnemy = numAlliesAttackingEnemy;
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
-								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
+								+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
+								+  enemy.attackPower/300
+								+  enemy.type.attackRadiusSquared/2000
+								-  enemy.type.movementDelay/300
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -609,11 +615,11 @@ public class Harass extends Bot {
 		for (RobotInfo enemy : enemies) {
 			if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 				double targetingMetric = allies.length/ 3 / enemy.health
-						+ enemy.attackPower / 2.0 // TODO: optimize
-						+ enemy.type.attackRadiusSquared / 2.0 // ranged things are annoying TODO: optimize
-						+ (enemy.team == Team.ZOMBIE?0:200) // shoot zombies last
-						+ (enemy.type == RobotType.FASTZOMBIE?5:0)
-						+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);// shoot non-infected first if viper
+						+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
+						+  enemy.attackPower/300
+						+  enemy.type.attackRadiusSquared/2000
+						-  enemy.type.movementDelay/300
+						+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 				if (targetingMetric > bestTargetingMetric) {
 					bestTargetingMetric = targetingMetric;
 					bestTarget = enemy;
