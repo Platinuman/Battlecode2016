@@ -311,4 +311,11 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 				return ri.location;
 		return null;
 	}
+	
+	public static int indexOfLocation(MapLocation[] array, int arraySize, MapLocation loc){
+		for(int i = arraySize; i --> 0; )
+			if(array[i] != null && array[i].equals(loc))
+				return i;
+		return -1;
+	}
 }

@@ -17,8 +17,6 @@ public class BotScout extends Bot {
 	 * static boolean atScoutLocation; static MapLocation lastBroadcasted;
 	 * static int lastBroadcastedType;
 	 */
-	static MapLocation[] dens;
-	static int denSize;
 	static MapLocation circlingLoc, farthestLoc;
 	static int circlingTime, lastRoundNotifiedOfArmy, lastRoundNotifiedOfPN;
 	static int lastCrunchRound;
@@ -46,8 +44,6 @@ public class BotScout extends Bot {
 		 */
 		circlingTime = 0;
 		scoutType = 0;
-		denSize = 0;
-		dens = new MapLocation[10000];
 		lastRoundNotifiedOfArmy = 0;
 		lastRoundNotifiedOfPN = 0;
 		lastCrunchRound = 0;
@@ -62,6 +58,12 @@ public class BotScout extends Bot {
 		rc.setIndicatorDot(here, 255, 255, 255);
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
+		String s = "";
+		for(int i = 0; i < targetDenSize; i++){
+			if(targetDens[i] != null)
+			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
+		}
+		rc.setIndicatorString(1, s + " " + targetDenSize);
 		rc.setIndicatorString(2, "patience " + patience);
 //		String s = "";
 //		for (int i = 0; i < turretSize; i++) {
@@ -76,7 +78,7 @@ public class BotScout extends Bot {
 			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
 			RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
 			patience--;
-			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
+			boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies);
 			updateProgress();
 			if(circlingLoc != null){
 				rc.setIndicatorString(0, circlingLoc.toString());
@@ -145,9 +147,70 @@ public class BotScout extends Bot {
 	 * they can see any turrets that haven't been seen before -notify units of
 	 * turrets that are no longer there
 	 */
-	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
-		boolean updated = Bot.updateTurretList(signals);
-		String s = "";
+	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
+		boolean updated = false;
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us) {
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					int[] data;
+					MapLocation senderloc, loc;
+					switch(purpose){
+					case ENEMY_TURRET_DEATH:
+						data = purpose.decode(signal.getLocation(), message);
+						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
+						updated = true;
+						break;
+					case WARN_ABOUT_TURRETS:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						loc = new MapLocation(data[0], data[1]);
+						if(!isLocationInTurretArray(loc)){
+							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+							turretSize++;
+						}
+						updated = true;
+						break;
+					case RELAY_TURRET_INFO:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						for(int i = 0; i< data.length; i +=2){
+							loc = new MapLocation(data[i], data[i+1]);
+							if(loc.equals(senderloc)){
+								break;
+							}
+							if(!isLocationInTurretArray(loc)){
+								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+								turretSize++;
+							}
+						}
+						updated = true;
+						break;
+					case DEN_NOTIF:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						MapLocation denLoc = new MapLocation(data[0], data[1]);
+						if(data[2] == 1){
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+								targetDens[targetDenSize] = denLoc;
+								targetDenSize++;
+								numDensToHunt++;
+							}
+						} else if (!Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+							//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+							killedDens[killedDenSize] = denLoc;
+							killedDenSize++;
+							numDensToHunt--;
+						}
+						break;
+					default:
+					}
+				}
+			}
+		}
+
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
@@ -157,7 +220,6 @@ public class BotScout extends Bot {
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
 							new int[] { t.x, t.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					s += "tDEATH, ";
 					i--;
 					updated = true;
 				}
@@ -173,13 +235,11 @@ public class BotScout extends Bot {
 					turretSize++;
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					s += "tLIFE, ";
 					updated = true;
 				}
 			}
 		if (turretSize == 0)
 			circlingLoc = null;
-		rc.setIndicatorString(1, "messages sent about turrets: " + s);
 		return updated;
 	}
 
@@ -243,11 +303,26 @@ public class BotScout extends Bot {
 	}
 
 	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { // first
+		MapLocation denLoc;
+		for(int i = targetDenSize; i --> 0;){
+			if(targetDens[i] == null) continue;
+			denLoc = targetDens[i];
+			if (rc.canSenseLocation(denLoc) && (rc.senseRobotAtLocation(denLoc) == null || rc.senseRobotAtLocation(denLoc).type != RobotType.ZOMBIEDEN)) {
+				// tell people a den has been killed
+				int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { denLoc.x, denLoc.y, 0});
+				System.out.println("dead den");
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
+				killedDens[killedDenSize] = denLoc;
+				targetDens[i] = null;
+				killedDenSize++;
+				numDensToHunt--;
+			}
+		}
 		for (RobotInfo hostileUnit : hostileRobots) {
 			if (hostileUnit.type == RobotType.ZOMBIEDEN) {
-				if (!Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
-					dens[denSize] = hostileUnit.location;
-					denSize++;
+				if (!Util.containsMapLocation(targetDens, hostileUnit.location, targetDenSize)) {
+					targetDens[targetDenSize] = hostileUnit.location;
+					targetDenSize++;
 					MapLocation hostileLoc = hostileUnit.location;
 					int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { hostileLoc.x, hostileLoc.y, 1});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);

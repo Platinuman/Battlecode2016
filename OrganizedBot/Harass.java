@@ -738,6 +738,7 @@ public class Harass extends Bot {
 						data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(data[2] == 1){
+							System.out.println("got a den notif");
 							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
 									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
 								targetDens[targetDenSize] = denLoc;
@@ -752,13 +753,25 @@ public class Harass extends Bot {
 								}
 							}
 						} else {
-							if(!Util.containsMapLocation(killedDens, denLoc, targetDenSize)){
-								killedDens[killedDenSize] = targetDens[bestIndex];
-								killedDenSize++;
-							}
-							if(Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
-								targetDens[bestIndex] = null;
+							System.out.println("got a den death notif");
+							//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+							killedDens[killedDenSize] = denLoc;
+							killedDenSize++;
+							int deadDenIndex = Util.indexOfLocation(targetDens, targetDenSize, denLoc);
+							if(deadDenIndex != -1){
+								targetDens[deadDenIndex] = null;
 								numDensToHunt--;
+								if(huntingDen && targetLoc.equals(denLoc)){
+									//rc.setIndicatorString(0, "here"); 
+									huntingDen = false;
+									targetLoc = null;
+									if (numDensToHunt > 0) {
+										huntingDen = true;
+										swarmingArchon = false;
+										bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+										targetLoc = targetDens[bestIndex];
+									}
+								}
 							}
 						}
 						break;
@@ -900,7 +913,13 @@ public class Harass extends Bot {
 				Nav.followFriends(friends, enemies);
 		}
 		rc.setIndicatorString(0, "targetLoc = " + targetLoc);
-		rc.setIndicatorString(1, "isGuard = " + isGuard);
+		//rc.setIndicatorString(1, "isGuard = " + isGuard);
+		String s = "";
+		for(int i = 0; i < targetDenSize; i++){
+			if(targetDens[i] != null)
+			s += "[" + targetDens[i].x + ", " + targetDens[i].y +"], "; 
+		}
+		rc.setIndicatorString(1, s + " " + targetDenSize);
 		rc.setIndicatorString(2, "swarming archon = " + swarmingArchon);
 	}
 }
