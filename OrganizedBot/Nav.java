@@ -231,7 +231,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -241,7 +241,7 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-		if (rc.isCoreReady()) {
+		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM) {
 			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
 				Util.checkRubbleAndClear(here.directionTo(dest), true);
 				return;
@@ -348,12 +348,12 @@ public class Nav extends Bot {
 		double bestDistSq = -10000;
 		boolean spotToClear = false;
 		for (Direction dir : Direction.values()) {
+			MapLocation retreatLoc = here.add(dir);
 			if (!rc.canMove(dir)){
-				if(rc.senseRubble(here.add(dir))>0)
+				if(rc.senseRubble(retreatLoc)>GameConstants.RUBBLE_OBSTRUCTION_THRESH && !rc.isLocationOccupied(retreatLoc))
 					spotToClear = true;
 				continue;
 			}
-			MapLocation retreatLoc = here.add(dir);
 			if(isInRangeOfTurrets(retreatLoc))
 				continue;
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
@@ -368,12 +368,12 @@ public class Nav extends Bot {
 				bestRetreatDir = dir;
 			}
 		}
-		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
+		if (bestRetreatDir != null) {
 			rc.move(bestRetreatDir);
 		}else if(spotToClear){
 			bestDistSq = -10000;
 			for (Direction dir : Direction.values()) {
-				if (!rc.canMove(dir) && rc.senseRubble(here.add(dir))<1)
+				if (!rc.canMove(dir) && rc.senseRubble(here.add(dir))<GameConstants.RUBBLE_OBSTRUCTION_THRESH )
 					continue;
 				MapLocation retreatLoc = here.add(dir);
 				if(isInRangeOfTurrets(retreatLoc))
@@ -470,7 +470,7 @@ public class Nav extends Bot {
 			if(!rc.canMove(dir))
 				continue;
 			MapLocation newLoc = here.add(dir);
-			if(loc.distanceSquaredTo(newLoc) > farthestDist){
+			if(rc.onTheMap(newLoc) && loc.distanceSquaredTo(newLoc) > farthestDist){
 				bestLoc = newLoc;
 				farthestDist = loc.distanceSquaredTo(newLoc);
 			}
