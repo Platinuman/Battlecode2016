@@ -63,7 +63,7 @@ public class BotTurret extends Bot {
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		RobotInfo[] enemies = rc.senseHostileRobots(here, RobotType.TURRET.sensorRadiusSquared);
+		RobotInfo[] enemies = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		Signal[] signals = rc.emptySignalQueue();
 		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
