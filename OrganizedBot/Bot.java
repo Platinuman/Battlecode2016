@@ -96,13 +96,14 @@ public class Bot {
 		return updated;
 	}
 	
-	public static void removeLocFromTurretArray(MapLocation loc) {
+	public static boolean removeLocFromTurretArray(MapLocation loc) {
 		for(int i = 0 ; i < turretSize; i++){
 			if( enemyTurrets[i].location.equals(loc)){
 				Util.removeIndexFromArray(enemyTurrets, i, turretSize--);
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 	public static boolean isLocationInTurretArray(MapLocation loc){
 		for(int i = 0 ; i < turretSize; i++){
