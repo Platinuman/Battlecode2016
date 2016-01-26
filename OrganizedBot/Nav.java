@@ -304,9 +304,17 @@ public class Nav extends Bot {
 			dirs[2] = dirLeft.rotateLeft();
 			dirs[3] = dirRight.rotateRight();
 		}
+		boolean notSafeToMoveAhead = false;
 		for (Direction dir : dirs) {
-			if (canMove(dir)
-					&& rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
+			if(dir == directionIAmMoving){
+				if (canMove(dir) )
+					if( rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
+						move(dir);
+						return true;
+					}
+					else notSafeToMoveAhead = true;
+			}else if (canMove(dir)
+					&& (notSafeToMoveAhead || rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0)))))) {
 				move(dir);
 				return true;
 			}
@@ -314,7 +322,7 @@ public class Nav extends Bot {
 		return false;
 	}
 
-/*	public static void fleeNumerical(RobotInfo[]unfriendly){
+	/*	public static void fleeNumerical(RobotInfo[]unfriendly){
 		Direction bestRetreatDir = chooseNumericalyRetreat(unfriendly);
 		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
 			rc.move(bestRetreatDir);
