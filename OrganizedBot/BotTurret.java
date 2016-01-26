@@ -81,17 +81,17 @@ public class BotTurret extends Bot {
 			if (!isTTM) {
 				// shoot anything in range and use scout
 				attackIfApplicable(signals);
-				if (enemies.length == 0 && rc.getType().attackRadiusSquared < here.distanceSquaredTo(targetLoc)) {
+				if (enemies.length == 0 && type.sensorRadiusSquared < here.distanceSquaredTo(targetLoc)) {
 					rc.pack();
 					isTTM = true;
 				}
 			} else {
 				if (rc.isCoreReady()) {
-					if (RobotType.TURRET.attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
+					if (RobotType.TURRET.sensorRadiusSquared > here.distanceSquaredTo(targetLoc)) {
 						rc.unpack();
 						isTTM = false;
 					} else {
-						rc.setIndicatorString(2, "moving my butt");
+						//rc.setIndicatorString(2, "moving my butt");
 						Nav.goTo(targetLoc, theSafety);
 					}
 				}
