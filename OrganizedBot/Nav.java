@@ -346,9 +346,13 @@ public class Nav extends Bot {
 		Direction bestRetreatDir = null;
 		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
 		double bestDistSq = -10000;
+		boolean spotToClear = false;
 		for (Direction dir : Direction.values()) {
-			if (!rc.canMove(dir))
+			if (!rc.canMove(dir)){
+				if(rc.senseRubble(here.add(dir))>GameConstants.RUBBLE_OBSTRUCTION_THRESH)
+					spotToClear = true;
 				continue;
+			}
 			MapLocation retreatLoc = here.add(dir);
 			if(isInRangeOfTurrets(retreatLoc))
 				continue;
@@ -365,9 +369,30 @@ public class Nav extends Bot {
 		}
 		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
 			rc.move(bestRetreatDir);
+		}else if(rc.isCoreReady() && spotToClear){
+			bestDistSq = -10000;
+			for (Direction dir : Direction.values()) {
+				if (!rc.canMove(dir) && rc.senseRubble(here.add(dir))<1)
+					continue;
+				MapLocation retreatLoc = here.add(dir);
+				if(isInRangeOfTurrets(retreatLoc))
+					continue;
+				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
+				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
+				double rubble = rc.senseRubble(retreatLoc);
+				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+				double wallMod = wallModCalc(retreatLoc,dir);
+				if (distSq-rubbleMod+wallMod > bestDistSq) {
+					bestDistSq = distSq-rubbleMod+wallMod;
+					bestRetreatDir = dir;
+				}
+			}
+			Util.checkRubbleAndClear(bestRetreatDir,true);
 		}
 	}
-
+private static Direction bestRetreatDirection(){
+	
+}
 	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
 		double mod = 0;
 		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)){
