@@ -519,4 +519,11 @@ public class Nav extends Bot {
 		if(bestLoc != null)
 			Nav.goTo(bestLoc, theSafety);
 	}
+
+	public static void followFriends(RobotInfo[] friends, RobotInfo[] enemies) throws GameActionException {
+		 NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+		if(friends.length > 0){
+			Nav.goTo(Util.centroidOfUnits(friends), theSafety);
+		}
+	}
 }
