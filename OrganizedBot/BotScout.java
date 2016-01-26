@@ -181,8 +181,7 @@ public class BotScout extends Bot {
 			circlingTime+=1;
 		else circlingTime = 0;
 		if (circlingTime > 100 && circlingLoc != null
-				&& canWeBeatTheTurrets(allies)
-		        && areEnoughAlliesEngaged(enemiesInSight,allies)
+		        && areEnoughAlliesEngagedToBeatTheTurrets(enemiesInSight,allies)
 		        && rc.getRoundNum() - lastCrunchRound > 25){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
@@ -191,8 +190,10 @@ public class BotScout extends Bot {
 		// rc.setIndicatorString(2, "...");
 
 	}
-
-	private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
+	private static boolean areEnoughAlliesEngagedToBeatTheTurrets(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
+		int numEnemiesInTurtle = enemiesInSight.length;
+		int numAlliesAttackingCrunch = allies.length;
+		boolean alliesEngaged =  numAlliesAttackingCrunch >= numEnemiesInTurtle;
 		int numVipers = 0;
 		int numSoldiers =0;
 		for(RobotInfo bot: allies){
@@ -202,13 +203,9 @@ public class BotScout extends Bot {
 				numVipers+=1;
 		}
 		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 1000) / 1500);
-		return numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
-	}
-
-	private static boolean areEnoughAlliesEngaged(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
-		int numEnemiesInTurtle = enemiesInSight.length;
-		int numAlliesAttackingCrunch = allies.length;
-		return numAlliesAttackingCrunch >= numEnemiesInTurtle;
+		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
+		return canWeBeat && alliesEngaged;
+		
 	}
 	
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
