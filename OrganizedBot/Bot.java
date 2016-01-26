@@ -33,7 +33,7 @@ public class Bot {
 		turnCreated = rc.getRoundNum();
 		us = rc.getTeam();
 		them = us.opponent();
-		initialEnemyArchonLocs = rc.getInitialArchonLocations(them);
+		//initialEnemyArchonLocs = rc.getInitialArchonLocations(them); Set in MapAnalysis
 		here = rc.getLocation();
 		rand = new Random(rc.getID());
 		type = rc.getType();
