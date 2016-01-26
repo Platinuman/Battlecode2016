@@ -20,35 +20,41 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 	
 	public static boolean checkRubbleAndClear(Direction dir,boolean clearToughRubble) throws GameActionException { // NEW Now checks all directions
 		int toughRubble = (int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH*2);
-		if (rc.senseRubble(here.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
+		double rubble = rc.senseRubble(here.add(dir));
+//		if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rubble <= toughRubble)) {
+//			rc.clearRubble(dir);
+//			return true;
+//		}
+//		Direction dirLeft = dir.rotateLeft();
+//		Direction dirRight = dir.rotateRight();
+//		for (int i = 0; i <= 4; i++) {
+//
+//			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
+//				rc.clearRubble(dirLeft);
+//				return true;
+//			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
+//				rc.clearRubble(dirRight);
+//				return true;
+//			}
+//			dirLeft = dirLeft.rotateLeft();
+//			dirRight = dirRight.rotateRight();
+//		}
+		if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)){
 			rc.clearRubble(dir);
 			return true;
 		}
 		Direction dirLeft = dir.rotateLeft();
 		Direction dirRight = dir.rotateRight();
-		for (int i = 0; i <= 4; i++) {
-
-			if (rc.senseRubble(here.add(dirLeft)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
-				rc.clearRubble(dirLeft);
-				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
-				rc.clearRubble(dirRight);
-				return true;
-			}
-			dirLeft = dirLeft.rotateLeft();
-			dirRight = dirRight.rotateRight();
-		}
-		if (rc.senseRubble(here.add(dir)) > 0) {
-			rc.clearRubble(dir);
-			return true;
-		}
 		dirLeft = dir.rotateLeft();
 		dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
-			if (rc.senseRubble(here.add(dirLeft)) > 0 && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
+			rubble = rc.senseRubble(here.add(dirLeft));
+			if ( rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
 				rc.clearRubble(dirLeft);
 				return true;
-			} else if (rc.senseRubble(here.add(dirRight)) > 0 && (clearToughRubble || rc.senseRubble(here.add(dir)) <= toughRubble)) {
+			}
+			rubble = rc.senseRubble(here.add(dirRight));
+			if (rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
 				rc.clearRubble(dirRight);
 				return true;
 			}
@@ -171,7 +177,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
     	case ARCHON:
     		return false;
     	case ZOMBIEDEN:
-    		if(getRoundsUntilNextZombieSpawn() < 20) break;
+    		if(getRoundsUntilNextZombieSpawn() < 20) return true;
     		return false;
     	case SCOUT:
     		return false;
@@ -182,14 +188,15 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 
     private static int getRoundsUntilNextZombieSpawn() {
     	// TODO Auto-generated method stub
-    	int[] schedule = rc.getZombieSpawnSchedule().getRounds();
+    	int[] schedule = MapAnalysis.zombieRounds;
     	int nextRound = 9999;
+    	int currentRound = rc.getRoundNum();
     	for(int i = 0; i < schedule.length; i++)
-    		if(rc.getRoundNum() < schedule[i]){
+    		if(currentRound < schedule[i]){
     			nextRound = schedule[i];
     		break;
     	}
-    	return nextRound - rc.getRoundNum();
+    	return nextRound - currentRound;
     }
 
     public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
@@ -283,17 +290,15 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 
 	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
 		int newlength = 0;
+		int[] inds = new int[hostiles.length];
 		for (int i = 0; i < hostiles.length; i++){
 			if(isDangerous(hostiles[i].type)){
-				newlength++;
+				inds[newlength++] = i;
 			}
 		}
 		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
-		int count = 0;
-		for (int j = 0; j < hostiles.length; j++){
-			if(isDangerous(hostiles[j].type)){
-				harmfulUnits[count++] = hostiles[j];
-			}
+		for (int j = 0; j < newlength; j++){
+			harmfulUnits[j] = hostiles[j];
 		}
 		return harmfulUnits;
 	}

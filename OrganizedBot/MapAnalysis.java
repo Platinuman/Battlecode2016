@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class MapAnalysis extends Bot {
 	enum MapSymmetry {
-		ROTATION, REFLECTION, UNKNOWN
+		ROTATION, VERTICAL, HORIZONTAL, UNKNOWN
 	}
 
 	protected static MapSymmetry mapSymmetry = null;
@@ -12,7 +12,7 @@ public class MapAnalysis extends Bot {
 	protected static int mapDifficulty = 1; //0 = can turtle, 1 = cannot turtle
 
 	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
-		mapSymmetry = null;// lol this needs to be fixed
+		mapSymmetry = MapSymmetry.UNKNOWN;// lol this needs to be fixed
 	}
 
 	private static void setCenter(MapLocation[] ourArchons, MapLocation[] theirArchons) {

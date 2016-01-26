@@ -21,12 +21,12 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 				break;
 			case ZOMBIEDEN:
 				if (enemy.type.attackRadiusSquared + 2 >= loc.distanceSquaredTo(enemy.location)
-				- ((type == RobotType.ARCHON) ? 20 : 0))// hardcoded 
-			return false;
-		break;
+						- ((type == RobotType.ARCHON) ? 24 : 0))// hardcoded
+					return false;
+				break;
 			default:
-				if (enemy.type.attackRadiusSquared + ((enemy.type == RobotType.TURRET && type != RobotType.SCOUT) ? 10 : 0) >= loc.distanceSquaredTo(enemy.location)
-						- ((type == RobotType.ARCHON) ? 20 : 0))// hardcoded 
+				if (enemy.type.attackRadiusSquared + ((enemy.type == RobotType.TURRET && type != RobotType.SCOUT)
+						? 10 + ((type == RobotType.ARCHON) ? 30 : 0) : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
 					return false;
 				break;
 			}
@@ -49,7 +49,7 @@ public class Nav extends Bot {
 	}
 
 	private static BugState bugState;
-	public static WallSide bugWallSide = WallSide.LEFT;
+	public static WallSide bugWallSide = null;
 	private static int bugStartDistSq;
 	private static Direction bugLastMoveDir;
 	private static Direction bugLookStartDir;
@@ -58,7 +58,12 @@ public class Nav extends Bot {
 	private static int bugMovesSinceMadeProgress = 0;
 	private static boolean move(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
+			if(type == RobotType.SCOUT || type == RobotType.TTM || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
 			rc.move(dir);
+			}
+			else{
+				rc.clearRubble(dir);
+			}
 			return true;
 		}
 		return false;
@@ -69,7 +74,7 @@ public class Nav extends Bot {
 			return false;
 		}
 		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
-		return rubbleCount <= threshold; // hard-coded
+		return rubbleCount <= threshold;
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -110,27 +115,29 @@ public class Nav extends Bot {
 		bugRotationCount = 0;
 		bugMovesSinceSeenObstacle = 0;
 		bugMovesSinceMadeProgress = 0;
+		if (bugWallSide == null) {
+			// try to intelligently choose on which side we will keep the wall
+			Direction leftTryDir = bugLastMoveDir.rotateLeft();
+			for (int i = 0; i < 3; i++) {
+				if (!canMove(leftTryDir))
+					leftTryDir = leftTryDir.rotateLeft();
+				else
+					break;
+			}
+			Direction rightTryDir = bugLastMoveDir.rotateRight();
+			for (int i = 0; i < 3; i++) {
+				if (!canMove(rightTryDir))
+					rightTryDir = rightTryDir.rotateRight();
+				else
+					break;
+			}
+			if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
+				bugWallSide = WallSide.RIGHT;
+			} else {
+				bugWallSide = WallSide.LEFT;
+			}
+		}
 
-		// try to intelligently choose on which side we will keep the wall
-		Direction leftTryDir = bugLastMoveDir.rotateLeft();
-		for (int i = 0; i < 3; i++) {
-			if (!canMove(leftTryDir))
-				leftTryDir = leftTryDir.rotateLeft();
-			else
-				break;
-		}
-		Direction rightTryDir = bugLastMoveDir.rotateRight();
-		for (int i = 0; i < 3; i++) {
-			if (!canMove(rightTryDir))
-				rightTryDir = rightTryDir.rotateRight();
-			else
-				break;
-		}
-		if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
-			bugWallSide = WallSide.RIGHT;
-		} else {
-			bugWallSide = WallSide.LEFT;
-		}
 	}
 
 	private static Direction findBugMoveDir() throws GameActionException {
@@ -236,14 +243,10 @@ public class Nav extends Bot {
 		}
 		if (rc.isCoreReady()) {
 			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
-				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
-					rc.clearRubble(here.directionTo(dest));
-				}
+				Util.checkRubbleAndClear(here.directionTo(dest), true);
 				return;
 			} else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20) {
-				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
-					rc.clearRubble(here.directionTo(dest));
-
+				if (Util.checkRubbleAndClear(here.directionTo(dest), true)) {
 					return;
 				}
 			}
@@ -282,9 +285,6 @@ public class Nav extends Bot {
 		safety = theSafety;
 
 		bugMove();
-		// if (false && type==RobotType.ARCHON && rc.isCoreReady()) {
-		// runAway();
-		// }
 	}
 
 	private static boolean tryMoveDirectScout(Direction toDest) throws GameActionException {
