@@ -98,7 +98,9 @@ public class Harass extends Bot {
 				continue;
 
 			MapLocation retreatLoc = here.add(dir);
-
+			if(Util.isInRangeOfTurrets(retreatLoc)){
+				continue;
+			}
 			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc); TODO: put this back in, maybe only if there aren't tons of enemies?
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);

@@ -196,8 +196,8 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
     	for(int i = 0; i < schedule.length; i++)
     		if(currentRound < schedule[i]){
     			nextRound = schedule[i];
-    		break;
-    	}
+    			break;
+    		}
     	return nextRound - currentRound;
     }
 
@@ -303,5 +303,12 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 			harmfulUnits[j] = hostiles[inds[j]];
 		}
 		return harmfulUnits;
+	}
+	
+	public static MapLocation getLocationOfType(RobotInfo[] array, RobotType t){
+		for(RobotInfo ri : array)
+			if(ri.type == t)
+				return ri.location;
+		return null;
 	}
 }
