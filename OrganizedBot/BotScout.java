@@ -249,7 +249,7 @@ public class BotScout extends Bot {
 					dens[denSize] = hostileUnit.location;
 					denSize++;
 					MapLocation hostileLoc = hostileUnit.location;
-					int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
+					int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { hostileLoc.x, hostileLoc.y, 1});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 				}
 				return true;
@@ -312,7 +312,7 @@ public class BotScout extends Bot {
 	 * mobileLoc.y}); //
 	 * rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc)
 	 * ); } else{ int type = partsOrNeutrals[bestIndex]; int[] msg =
-	 * MessageEncode.DIRECT_MOBILE_ARCHON.encode(new
+	 * MessageEncode.DEN_NOTIF.encode(new
 	 * int[]{closestPartOrNeutral.x, closestPartOrNeutral.y});
 	 * rc.broadcastMessageSignal(msg[0],msg[1],here.distanceSquaredTo(mobileLoc)
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }

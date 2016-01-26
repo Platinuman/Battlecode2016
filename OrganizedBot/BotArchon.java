@@ -259,14 +259,25 @@ public class BotArchon extends Bot {
 				if (message != null) {
 					MapLocation senderLoc = signal.getLocation();
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.DIRECT_MOBILE_ARCHON) {
+					if (purpose == MessageEncode.DEN_NOTIF) {
 						int[] data = purpose.decode(senderLoc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
-						if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-								&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-							targetDens[targetDenSize] = denLoc;
-							targetDenSize++;
-							numDensToHunt++;
+						if(data[2] == 1){
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+								targetDens[targetDenSize] = denLoc;
+								targetDenSize++;
+								numDensToHunt++;
+							}
+						} else {
+							if(!Util.containsMapLocation(killedDens, denLoc, targetDenSize)){
+								killedDens[killedDenSize] = targetDens[bestIndex];
+								killedDenSize++;
+							}
+							if(Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+								targetDens[bestIndex] = null;
+								numDensToHunt--;
+							}
 						}
 						/*
 						 * int[] data = purpose.decode(senderloc, message);
@@ -355,7 +366,7 @@ public class BotArchon extends Bot {
 				continue;
 			if(rc.getMessageSignalCount() == 19)
 				break;
-			int[] msg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { den.x, den.y });
+			int[] msg = MessageEncode.DEN_NOTIF.encode(new int[] { den.x, den.y , 1});
 			rc.broadcastMessageSignal(msg[0], msg[1], 2);
 		}
 	}
