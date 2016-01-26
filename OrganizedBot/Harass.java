@@ -145,7 +145,7 @@ public class Harass extends Bot {
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
 		if (willDieFromViper && rc.isCoreReady()) {
 			// CHARGE blindly
-			Nav.goTo(Util.closest(enemiesInSight, here).location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
+			Nav.goTo(Util.closest(rc.senseNearbyRobots(type.sensorRadiusSquared, them), here).location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 		}
 
 		int numEnemiesAttackingUs = 0;
@@ -436,7 +436,7 @@ public class Harass extends Bot {
 	public static int numOtherAlliesInAttackRange(MapLocation loc, RobotInfo[] allies) {
 		int ret = 0;
 		for (RobotInfo ally : allies) {
-			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location))
+			if (ally.type.attackRadiusSquared >= loc.distanceSquaredTo(ally.location) && ally.type!=RobotType.ARCHON)
 				ret++;
 		}
 		return ret;

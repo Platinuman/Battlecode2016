@@ -118,7 +118,7 @@ public class BotArchon extends Bot {
 		if (rc.isCoreReady()) {
 			if (hostiles.length > 0){
 				//rc.setIndicatorDot(here, 255, 0, 0);
-				Nav.flee(hostiles);
+				Nav.flee(hostiles,allies);
 				lastSeenHostile = rc.getRoundNum();
 			}
 			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 15 && rc.getRoundNum() % 50 == 0){
