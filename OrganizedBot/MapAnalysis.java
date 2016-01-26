@@ -10,15 +10,35 @@ public class MapAnalysis extends Bot {
 	protected static MapSymmetry mapSymmetry = null;
 	protected static int[] zombieRounds = null;
 	protected static int mapDifficulty = 1; //0 = can turtle, 1 = cannot turtle
+	protected static int mapSize = 0;
 
 	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
 		mapSymmetry = MapSymmetry.UNKNOWN;// lol this needs to be fixed
+		if(true){
+			return;
+		}
 		switch (ourArchons.length) {
 		case 1:
 			if (ourArchons[0].x == theirArchons[0].x || ourArchons[0].y == theirArchons[0].y) {
 				return;
 			}
 		default:
+			boolean possiblyRotation = true;
+			for (int i = 0; i < ourArchons.length; i++){
+				MapLocation testCenter = new MapLocation(Math.round((ourArchons[i].x + theirArchons[theirArchons.length-1-i].x)/2),Math.round((ourArchons[i].y + theirArchons[theirArchons.length-1-i].y)/2));
+				System.out.println("testCenter = " + testCenter);
+				System.out.println("Center = " + center);
+				if (testCenter.equals(center)){
+					continue;
+				}else{
+					possiblyRotation = false;
+				}
+			}
+			if (possiblyRotation){
+				mapSymmetry = MapSymmetry.ROTATION;
+			}else{
+				return;
+			}
 			return;
 		}
 	}
@@ -40,7 +60,7 @@ public class MapAnalysis extends Bot {
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;
 		int bigZombieCount = 0;
-		if (false){
+		if (true){
 		return; // for now
 		}
 		ZombieSpawnSchedule spawnSchedule = rc.getZombieSpawnSchedule();
@@ -65,12 +85,17 @@ public class MapAnalysis extends Bot {
 			mapDifficulty = 1;
 		}
 	}
+	private static void guessMapSize(MapLocation[] ourArchons, MapLocation[] theirArchons){
+		mapSize = ourArchons[0].distanceSquaredTo(theirArchons[theirArchons.length-1]);
+	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);
 		MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
 		Bot.initialEnemyArchonLocs = theirArchons;
-		determineMapSymmetry(ourArchons, theirArchons);
 		setCenter(ourArchons,theirArchons);
+		guessMapSize(ourArchons,theirArchons);
+		determineMapSymmetry(ourArchons, theirArchons);
+		//System.out.println(mapSymmetry + "");
 		zombieRounds = rc.getZombieSpawnSchedule().getRounds();
 		determineMapDifficulty();
 		return;
