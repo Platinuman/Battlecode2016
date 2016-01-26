@@ -162,7 +162,7 @@ public class BotScout extends Bot {
 		if (circlingTime > 100 && circlingLoc != null
 				&& canWeBeatTheTurrets(allies)
 		        && areEnoughAlliesEngaged(enemiesInSight,allies)
-		        && rc.getRoundNum() - lastCrunchRound > 20){
+		        && rc.getRoundNum() - lastCrunchRound > 25){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 			lastCrunchRound = rc.getRoundNum();
