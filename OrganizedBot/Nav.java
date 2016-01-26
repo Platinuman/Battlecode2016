@@ -61,6 +61,7 @@ public class Nav extends Bot {
 	private static int bugRotationCount;
 	private static int bugMovesSinceSeenObstacle = 0;
 	private static int bugMovesSinceMadeProgress = 0;
+	private static Direction lastRetreatDir;
 	private static boolean move(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
 			if(type == RobotType.SCOUT || type == RobotType.TTM || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
@@ -377,7 +378,7 @@ public class Nav extends Bot {
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 			double wallMod = wallModCalc(retreatLoc,dir);
 			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-			rc.setIndicatorString(2, ""+rubbleMod);
+			double constantMoveMod = ((rc.getRoundNum() - lastTurnFled)>10)?1:0;
 			if (distSq-rubbleMod+wallMod+allyMod > bestDistSq) {
 				bestDistSq = distSq-rubbleMod+wallMod+allyMod;
 				bestRetreatDir = dir;
@@ -385,6 +386,8 @@ public class Nav extends Bot {
 		}
 		if (bestRetreatDir != null) {
 			rc.move(bestRetreatDir);
+			lastRetreatDir = bestRetreatDir;
+			lastTurnFled = rc.getRoundNum();
 		}else if(spotToClear){
 			bestDistSq = -10000;
 			for (Direction dir : Direction.values()) {
@@ -399,6 +402,7 @@ public class Nav extends Bot {
 				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 				double wallMod = wallModCalc(retreatLoc,dir);
 				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
+				double constantMoveMod = ((rc.getRoundNum() - lastTurnFled)>10)?1:0;
 				if (distSq-rubbleMod+wallMod+allyMod> bestDistSq) {
 					bestDistSq = distSq-rubbleMod+wallMod+allyMod;
 					bestRetreatDir = dir;
@@ -406,12 +410,17 @@ public class Nav extends Bot {
 			}
 			if(rc.isCoreReady() && bestRetreatDir!=null )
 				Util.checkRubbleAndClear(bestRetreatDir,true);
+			    lastRetreatDir = bestRetreatDir;
+			    lastTurnFled = rc.getRoundNum();
+
 		}
 		if(bestRetreatDir==null && rc.isCoreReady()){
 			bestRetreatDir = Util.closest(unfriendly, here).location.directionTo(here);
 			if(rc.canMove(bestRetreatDir)){
 			System.out.println("had to do a simple run");
 				rc.move(bestRetreatDir);
+				lastRetreatDir = bestRetreatDir;
+			    lastTurnFled = rc.getRoundNum();
 			}
 		}
 	}
