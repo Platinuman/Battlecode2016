@@ -21,6 +21,7 @@ public class BotScout extends Bot {
 	static int denSize;
 	static MapLocation circlingLoc;
 	static int circlingTime;
+	static String test;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -75,6 +76,7 @@ public class BotScout extends Bot {
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
 		String s = "";
+		test = "";
 		for (int i = 0; i < turretSize; i++) {
 			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
 		}
@@ -119,6 +121,8 @@ public class BotScout extends Bot {
 		default:
 			break;
 		}
+		rc.setIndicatorString(2,test);
+
 		return;
 		/*
 		 * This should all be moved to Harass if(!isMobile){ if
@@ -184,6 +188,7 @@ public class BotScout extends Bot {
 					removeLocFromTurretArray(t);
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
 							new int[] { t.x, t.y });
+					test += "ENEMY_TURRET_DEATH";
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					i--;
 					updated = true;
@@ -199,6 +204,7 @@ public class BotScout extends Bot {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
+					test += ","+ myMsg.toString();
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					updated = true;
 				}
@@ -215,6 +221,7 @@ public class BotScout extends Bot {
 				&& canWeBeatTheTurrets(allies)
 		        &&areEnoughAlliesEngaged(enemiesInSight,allies)){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
+			test += ","+ myMsg.toString();
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
 		// rc.setIndicatorString(2, "...");
@@ -241,6 +248,7 @@ private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
 		if (enemies.length > 1) {
 			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
 					.encode(new int[] { enemies[0].location.x, enemies[0].location.y, 0 });
+			test += ","+ myMsg.toString();
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
 		}
 	}
@@ -258,6 +266,7 @@ private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
 		if (partOrNeutralLoc != null) {
 			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
 					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
+			test += ","+ myMsg.toString();
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
 		}
 	}
@@ -332,6 +341,7 @@ private static boolean canWeBeatTheTurrets(RobotInfo[] allies){
 					denSize++;
 					MapLocation hostileLoc = hostileUnit.location;
 					int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
+					test += ","+ myMsg.toString();
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 				}
 				return true;
