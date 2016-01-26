@@ -21,6 +21,7 @@ public class BotScout extends Bot {
 	static int denSize;
 	static MapLocation circlingLoc;
 	static int circlingTime, lastRoundNotifiedOfArmy, lastRoundNotifiedOfPN;
+	static int lastCrunchRound;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -48,18 +49,20 @@ public class BotScout extends Bot {
 		dens = new MapLocation[10000];
 		lastRoundNotifiedOfArmy = 0;
 		lastRoundNotifiedOfPN = 0;
+		lastCrunchRound = 0;
 	}
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		rc.setIndicatorDot(here, 255, 255, 255);
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
-		String s = "";
-		for (int i = 0; i < turretSize; i++) {
-			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
-		}
-		rc.setIndicatorString(0, s + " " + turretSize);
+//		String s = "";
+//		for (int i = 0; i < turretSize; i++) {
+//			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
+//		}
+//		rc.setIndicatorString(0, s + " " + turretSize);
 		switch (scoutType) {
 		case 0:// exploring
 			RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.ZOMBIE);
@@ -67,6 +70,7 @@ public class BotScout extends Bot {
 			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
+			if(circlingLoc != null) rc.setIndicatorString(0, circlingLoc.toString());
 			MapLocation enemyArchonLocation = Util.getLocationOfType(enemies, RobotType.ARCHON);
 			boolean seeEnemyArchon = enemyArchonLocation != null;
 			if(seeEnemyArchon)
@@ -76,8 +80,6 @@ public class BotScout extends Bot {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles)));
 					if(rc.isCoreReady() && hostiles.length > 0)
 						Nav.flee(hostiles,allies);
-					// rc.setIndicatorString(2,""+rc.senseNearbyRobots(here,RobotType.SCOUT.sensorRadiusSquared,
-					// us).length);
 				} else{
 					Nav.explore(hostiles, allies);
 				}
@@ -105,6 +107,7 @@ public class BotScout extends Bot {
 		default:
 			break;
 		}
+		rc.setIndicatorLine(here, here.add(directionIAmMoving), 255, 255, 255);
 		return;
 	}
 
@@ -116,6 +119,7 @@ public class BotScout extends Bot {
 	 */
 	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = Bot.updateTurretList(signals);
+		String s = "";
 		for (int i = 0; i < turretSize; i++) {
 			MapLocation t = enemyTurrets[i].location;
 			if (rc.canSenseLocation(t)) {
@@ -125,6 +129,7 @@ public class BotScout extends Bot {
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
 							new int[] { t.x, t.y });
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					s += "tDEATH, ";
 					i--;
 					updated = true;
 				}
@@ -140,21 +145,26 @@ public class BotScout extends Bot {
 					turretSize++;
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+					s += "tLIFE, ";
 					updated = true;
 				}
 			}
 		if (turretSize == 0)
 			circlingLoc = null;
+		rc.setIndicatorString(1, "messages sent about turrets: " + s);
 		return updated;
 	}
 
 	private static void updateCrunchTime(RobotInfo[] enemiesInSight,RobotInfo[] allies) throws GameActionException {
 		if(circlingLoc!=null)
 			circlingTime+=1;
-		if (circlingTime>100&&circlingLoc != null
-				&& areEnoughAlliesEngagedToBeatTheTurrets(enemiesInSight,allies)){
+		else circlingTime = 0;
+		if (circlingTime > 100 && circlingLoc != null
+		        && areEnoughAlliesEngagedToBeatTheTurrets(enemiesInSight,allies)
+		        && rc.getRoundNum() - lastCrunchRound > 25){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+			lastCrunchRound = rc.getRoundNum();
 		}
 		// rc.setIndicatorString(2, "...");
 
@@ -176,6 +186,7 @@ public class BotScout extends Bot {
 		return canWeBeat && alliesEngaged;
 		
 	}
+	
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
 		int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
 				.encode(new int[] { enemies[0].location.x, enemies[0].location.y, seeEnemyArchon ? 1 : 0 });

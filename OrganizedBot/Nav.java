@@ -443,7 +443,7 @@ public class Nav extends Bot {
 		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
-		} else if(scouts.length > 0){
+		} else if(scouts.length > 0 && rc.getRoundNum() - turnCreated > 15){
 			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
 			directionIAmMoving = (new Direction[] {
 					tempDirection.rotateLeft(),
