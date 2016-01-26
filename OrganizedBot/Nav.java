@@ -295,13 +295,15 @@ public class Nav extends Bot {
 			return true;
 		}
 
-		Direction[] dirs = new Direction[2];
+		Direction[] dirs = new Direction[((BotScout.patience > BotScout.PATIENCESTART / 2) ? 4 : 2)];
 		Direction dirLeft = toDest.rotateLeft();
 		Direction dirRight = toDest.rotateRight();
 		dirs[0] = dirLeft;
 		dirs[1] = dirRight;
-		//dirs[2] = dirLeft.rotateLeft();
-		//dirs[3] = dirRight.rotateRight();
+		if(BotScout.patience > BotScout.PATIENCESTART / 2){
+			dirs[2] = dirLeft.rotateLeft();
+			dirs[3] = dirRight.rotateRight();
+		}
 		for (Direction dir : dirs) {
 			if (canMove(dir)
 					&& rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
@@ -443,24 +445,36 @@ public class Nav extends Bot {
 		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
+			BotScout.patience = BotScout.PATIENCESTART; 
+			BotScout.farthestLoc = here;
 		} else if(scouts.length > 0 && rc.getRoundNum() - turnCreated > 15){
 			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
 			directionIAmMoving = (new Direction[] {
 					tempDirection.rotateLeft(),
 					tempDirection,
 					tempDirection.rotateRight() })[rand.nextInt(3)];
-		}
+			BotScout.patience = BotScout.PATIENCESTART; 
+			BotScout.farthestLoc = here;
+		} else if (BotScout.patience < 1)
+			scrambleDirectionIAmMoving();
 		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
 		//			directionIAmMoving = directionIAmMoving.rotateRight();
 		if(tryMoveDirectScout(directionIAmMoving))return;
-		else
-			directionIAmMoving = (new Direction[] {
-					directionIAmMoving.opposite().rotateLeft(),
-					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
+		else{
+			scrambleDirectionIAmMoving();
+		}
 		if( tryMoveDirectScout(directionIAmMoving)) return;
 		if(hostileRobots.length > 0)
 			flee(hostileRobots,allies);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
+	}
+
+	private static void scrambleDirectionIAmMoving() {
+		directionIAmMoving = (new Direction[] {
+				directionIAmMoving.opposite().rotateLeft(),
+				directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
+		BotScout.patience = BotScout.PATIENCESTART; 
+		BotScout.farthestLoc = here;
 	}
 
 	public static void goAwayFrom(MapLocation loc, NavSafetyPolicy theSafety) throws GameActionException{

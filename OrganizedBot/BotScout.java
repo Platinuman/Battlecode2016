@@ -19,9 +19,10 @@ public class BotScout extends Bot {
 	 */
 	static MapLocation[] dens;
 	static int denSize;
-	static MapLocation circlingLoc;
+	static MapLocation circlingLoc, farthestLoc;
 	static int circlingTime, lastRoundNotifiedOfArmy, lastRoundNotifiedOfPN;
 	static int lastCrunchRound;
+	static int patience, PATIENCESTART;
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -50,6 +51,10 @@ public class BotScout extends Bot {
 		lastRoundNotifiedOfArmy = 0;
 		lastRoundNotifiedOfPN = 0;
 		lastCrunchRound = 0;
+		PATIENCESTART = 20;
+		patience = PATIENCESTART; 
+		farthestLoc = here;
+		directionIAmMoving = center.directionTo(here);
 	}
 
 	private static void turn() throws GameActionException {
@@ -57,7 +62,7 @@ public class BotScout extends Bot {
 		rc.setIndicatorDot(here, 255, 255, 255);
 		rc.setIndicatorString(0, "");
 		rc.setIndicatorString(1, "");
-		rc.setIndicatorString(2, "");
+		rc.setIndicatorString(2, "patience " + patience);
 //		String s = "";
 //		for (int i = 0; i < turretSize; i++) {
 //			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
@@ -69,12 +74,20 @@ public class BotScout extends Bot {
 			RobotInfo[] enemies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, them);
 			RobotInfo[] allies = rc.senseNearbyRobots(here, RobotType.SCOUT.sensorRadiusSquared, us);
 			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
+			patience--;
 			boolean turretsUpdated = updateTurretList(rc.emptySignalQueue(), enemies);
-			if(circlingLoc != null) rc.setIndicatorString(0, circlingLoc.toString());
+			updateProgress();
+			if(circlingLoc != null){
+				rc.setIndicatorString(0, circlingLoc.toString());
+				patience = PATIENCESTART;
+			}
 			MapLocation enemyArchonLocation = Util.getLocationOfType(enemies, RobotType.ARCHON);
 			boolean seeEnemyArchon = enemyArchonLocation != null;
-			if(seeEnemyArchon)
+			if(seeEnemyArchon){
 				directionIAmMoving = here.directionTo(enemyArchonLocation);
+				patience = PATIENCESTART;
+				farthestLoc = here;
+			}
 			if (rc.isCoreReady()) {
 				if (circlingLoc != null) {
 					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles)));
@@ -109,6 +122,14 @@ public class BotScout extends Bot {
 		}
 		rc.setIndicatorLine(here, here.add(directionIAmMoving), 255, 255, 255);
 		return;
+	}
+
+	private static void updateProgress() {
+		//see if we are making headway
+		Direction dirFromBest = farthestLoc.directionTo(here);
+		if(dirFromBest == directionIAmMoving || dirFromBest == directionIAmMoving.rotateLeft() || dirFromBest == directionIAmMoving.rotateRight())
+		patience = PATIENCESTART; 
+		farthestLoc = here;
 	}
 
 	/*
