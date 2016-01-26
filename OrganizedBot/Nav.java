@@ -1,7 +1,5 @@
 package OrganizedBot;
 
-import constantFlee.Harass;
-import constantFlee.Util;
 import battlecode.common.*;
 
 interface NavSafetyPolicy {
