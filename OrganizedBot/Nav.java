@@ -1,7 +1,5 @@
 package OrganizedBot;
 
-import constantFlee.Harass;
-import constantFlee.Util;
 import battlecode.common.*;
 
 interface NavSafetyPolicy {
@@ -386,11 +384,9 @@ public class Nav extends Bot {
 			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 			double wallMod = wallModCalc(retreatLoc,dir);
 			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-			double constantFlee = (rc.getRoundNum()-lastTurnFled<10)?1:0;
-			double cfMod = constantFlee*((lastRetreatDir == dir)?0.5:0);
 			//rc.setIndicatorString(2, ""+rubbleMod);
-			if (distSq-rubbleMod-turretMod+wallMod+allyMod+cfMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod+wallMod+allyMod+cfMod;
+			if (distSq-rubbleMod-turretMod+wallMod+allyMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod+wallMod+allyMod-turretMod;
 				bestRetreatDir = dir;
 			}
 		}
@@ -413,10 +409,8 @@ public class Nav extends Bot {
 				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
 				double wallMod = wallModCalc(retreatLoc,dir);
 				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-				double constantFlee = (rc.getRoundNum()-lastTurnFled<10)?1:0;
-				double cfMod = constantFlee*((lastRetreatDir == dir)?.5:0);
-				if (distSq-rubbleMod-turretMod+wallMod+allyMod+cfMod> bestDistSq) {
-					bestDistSq = distSq-rubbleMod+wallMod+allyMod+cfMod;
+				if (distSq-rubbleMod-turretMod+wallMod+allyMod> bestDistSq) {
+					bestDistSq = distSq-rubbleMod+wallMod+allyMod-turretMod;
 					bestRetreatDir = dir;
 				}
 			}
@@ -439,6 +433,7 @@ public class Nav extends Bot {
 		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)&&rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH){
 			retreatLoc = retreatLoc.add(dir);
 			mod+=1.0;
+
 		}
 		return mod;
 
@@ -509,12 +504,8 @@ public class Nav extends Bot {
 
 	private static void scrambleDirectionIAmMoving() {
 		directionIAmMoving = (new Direction[] {
-				directionIAmMoving.opposite(),
 				directionIAmMoving.opposite().rotateLeft(),
-				directionIAmMoving.opposite().rotateRight(),
-				directionIAmMoving.opposite().rotateLeft(),
-				directionIAmMoving.opposite().rotateRight(),
-				here.directionTo(center)})[rand.nextInt(6)];
+				directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
 		BotScout.patience = BotScout.PATIENCESTART; 
 		BotScout.farthestLoc = here;
 	}
