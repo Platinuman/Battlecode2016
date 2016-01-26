@@ -13,9 +13,11 @@ public class BotArchon extends Bot {
 	static int numVipersCreated = 0;
 	static int numSoldiersCreated = 0;
 	static int numGuardsCreated = 0;
+	static int lastEnemyRound;
 	static boolean targetIsNeutral;//false if chasing neutral
 	static RobotType typeToBuild;
 	static int lastSeenHostile;
+	static MapLocation lastEnemyLoc;
 	// static int numTurretsCreated = 0;
 
 	// -----mobile archon fields here-----
@@ -302,6 +304,14 @@ public class BotArchon extends Bot {
 							runAwayRound = rc.getRoundNum();
 						}
 					}
+					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
+						int[] data = purpose.decode(senderLoc, message);
+						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+						if(here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
+							lastEnemyRound = rc.getRoundNum();
+							lastEnemyLoc = enemyLoc;
+						}
+					}
 				} else {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);
@@ -489,6 +499,10 @@ public class BotArchon extends Bot {
 		//}
 		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
+		else{
+			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 0);
+		}
 		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
 			notifySoldierTheyShouldGuard();
 		// now notify them of turrets
