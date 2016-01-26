@@ -12,8 +12,10 @@ public class BotArchon extends Bot {
 	static int numScoutsCreated = 0;
 	static int numVipersCreated = 0;
 	static int numSoldiersCreated = 0;
+	static int numGuardsCreated = 0;
 	static boolean targetIsNeutral;//false if chasing neutral
 	static RobotType typeToBuild;
+	static int lastSeenHostile;
 	// static int numTurretsCreated = 0;
 
 	// -----mobile archon fields here-----
@@ -55,6 +57,7 @@ public class BotArchon extends Bot {
 		isMobileArchon = true;
 		targetDen = null;
 		typeToBuild = null;
+		lastSeenHostile = -100;
 		//// MessageEncode.setArchonTypes(signals); //NEW This should be a
 		//// method
 		// analyzeMap();
@@ -107,6 +110,7 @@ public class BotArchon extends Bot {
 
 	private static void beMobileArchon(RobotInfo[] enemies) throws GameActionException {
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, RobotType.ARCHON.sensorRadiusSquared);
+		RobotInfo[] allies = rc.senseNearbyRobots(type.sensorRadiusSquared, us);
 		updateInfoFromScouts(hostiles);
 		hostiles = Util.removeHarmlessUnits(hostiles);
 		rc.setIndicatorString(0, "targetIsNeutral " + targetIsNeutral);
@@ -114,9 +118,13 @@ public class BotArchon extends Bot {
 		if (rc.isCoreReady()) {
 			if (hostiles.length > 0){
 				//rc.setIndicatorDot(here, 255, 0, 0);
-				Nav.flee(hostiles);
+				Nav.flee(hostiles,allies);
+				lastSeenHostile = rc.getRoundNum();
 			}
-			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
+			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
+				int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
+				rc.broadcastMessageSignal(msg[0], msg[1], 2000);
+			}
 			//RobotInfo[] zombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			// if i can see enemies run away
 			// if(inDanger(allies, enemies, zombies)){
@@ -137,7 +145,7 @@ public class BotArchon extends Bot {
 				return;
 			}
 			if(typeToBuild == null)
-				determineTypeToBuild();
+				determineTypeToBuild(hostiles, allies);
 			//rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
 			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
@@ -156,7 +164,11 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void determineTypeToBuild() {
+	private static void determineTypeToBuild(RobotInfo[] hostiles, RobotInfo[] allies) {
+		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated || rc.getRoundNum() - lastSeenHostile < 15){
+			typeToBuild = RobotType.SOLDIER;
+			return;
+		}
 		if(numScoutsCreated * 10 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
 		else if((numVipersCreated) * 10 < numSoldiersCreated )//optimize with MapAnalysis and Team Memory
@@ -174,7 +186,7 @@ public class BotArchon extends Bot {
 		// TODO moves toward closest safe parts or neutral
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles));
 		if(runAwayFromThisLoc != null){
-			if(rc.getRoundNum() - runAwayRound > 75)
+			if(rc.getRoundNum() - runAwayRound > 125)
 				runAwayFromThisLoc = null;
 			else{
 				//MapLocation goToThisLoc = here.add(runAwayFromThisLoc.directionTo(here), 5);
@@ -218,20 +230,6 @@ public class BotArchon extends Bot {
 			targetIsNeutral = false;
 		}
 		return false;
-	}
-
-	private static boolean isSurrounded() throws GameActionException {// NEW move to Util
-		Direction dir = Direction.NORTH;
-		Boolean surrounded = true;
-		for (int i = 0; i < 8; i++) {
-			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
-				surrounded = false;
-				break;
-			}
-			dir = dir.rotateLeft();
-		}
-		return surrounded;
 	}
 
 	private static void chooseMoveLocAndDir(MapLocation loc) {
@@ -419,7 +417,7 @@ public class BotArchon extends Bot {
 		for (RobotInfo a : allies)
 			if (a.type == RobotType.GUARD || a.type == RobotType.SOLDIER)
 				fighters++;
-		return fighters >= 7;
+		return fighters >= 5;
 	}
 
 	// private static boolean inDanger(RobotInfo[] allies, RobotInfo[] enemies,
@@ -456,7 +454,7 @@ public class BotArchon extends Bot {
 			if (rc.canBuild(Direction.values()[(dir.ordinal()+i+8)%8], r) && rc.isCoreReady()) {
 				rc.build(Direction.values()[(dir.ordinal()+i+8)%8], r);
 				sendNewUnitImportantData(allies);
-				incrementTypeCount(r);
+				incrementTypeCount(r, allies);
 				typeToBuild = null;
 				return true;
 			}
@@ -464,13 +462,16 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void incrementTypeCount(RobotType r) {
+	private static void incrementTypeCount(RobotType r, RobotInfo[] allies) {
 		switch (r){
 		case SCOUT:
 			numScoutsCreated++;
 			break;
 		case SOLDIER:
-			numSoldiersCreated++;
+			if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
+				numGuardsCreated++;
+			else
+				numSoldiersCreated++;
 			break;
 		case VIPER:
 			numVipersCreated++;
@@ -488,7 +489,8 @@ public class BotArchon extends Bot {
 		//}
 		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
-		
+		if(!haveEnoughFighters(allies) && (numGuardsCreated + 1) * 7 < numSoldiersCreated)
+			notifySoldierTheyShouldGuard();
 		// now notify them of turrets
 		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
 		MapLocation t;
@@ -508,6 +510,11 @@ public class BotArchon extends Bot {
 		//send the extras
 		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+	}
+
+	private static void notifySoldierTheyShouldGuard() throws GameActionException{
+		int[] msg = MessageEncode.BE_MY_GUARD.encode(new int[]{});
+		rc.broadcastMessageSignal(msg[0], msg[1], 2);
 	}
 
 	private static void aarons_shitty_strat() throws GameActionException {

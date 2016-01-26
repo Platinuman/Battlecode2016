@@ -19,9 +19,14 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			switch (enemy.type) {
 			case ARCHON:
 				break;
+			case ZOMBIEDEN:
+				if (enemy.type.attackRadiusSquared + 2 >= loc.distanceSquaredTo(enemy.location)
+						- ((type == RobotType.ARCHON) ? 24 : 0))// hardcoded
+					return false;
+				break;
 			default:
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
-						- ((type == RobotType.ARCHON) ? 40 : 0))// hardcoded 
+				if (enemy.type.attackRadiusSquared + ((enemy.type == RobotType.TURRET && type != RobotType.SCOUT)
+						? 10 + ((type == RobotType.ARCHON) ? 30 : 0) : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
 					return false;
 				break;
 			}
@@ -44,7 +49,7 @@ public class Nav extends Bot {
 	}
 
 	private static BugState bugState;
-	public static WallSide bugWallSide = WallSide.LEFT;
+	public static WallSide bugWallSide = null;
 	private static int bugStartDistSq;
 	private static Direction bugLastMoveDir;
 	private static Direction bugLookStartDir;
@@ -53,7 +58,12 @@ public class Nav extends Bot {
 	private static int bugMovesSinceMadeProgress = 0;
 	private static boolean move(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
+			if(type == RobotType.SCOUT || type == RobotType.TTM || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
 			rc.move(dir);
+			}
+			else{
+				rc.clearRubble(dir);
+			}
 			return true;
 		}
 		return false;
@@ -64,7 +74,7 @@ public class Nav extends Bot {
 			return false;
 		}
 		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
-		return rubbleCount <= threshold; // hard-coded
+		return rubbleCount <= threshold;
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -105,27 +115,29 @@ public class Nav extends Bot {
 		bugRotationCount = 0;
 		bugMovesSinceSeenObstacle = 0;
 		bugMovesSinceMadeProgress = 0;
+		if (bugWallSide == null) {
+			// try to intelligently choose on which side we will keep the wall
+			Direction leftTryDir = bugLastMoveDir.rotateLeft();
+			for (int i = 0; i < 3; i++) {
+				if (!canMove(leftTryDir))
+					leftTryDir = leftTryDir.rotateLeft();
+				else
+					break;
+			}
+			Direction rightTryDir = bugLastMoveDir.rotateRight();
+			for (int i = 0; i < 3; i++) {
+				if (!canMove(rightTryDir))
+					rightTryDir = rightTryDir.rotateRight();
+				else
+					break;
+			}
+			if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
+				bugWallSide = WallSide.RIGHT;
+			} else {
+				bugWallSide = WallSide.LEFT;
+			}
+		}
 
-		// try to intelligently choose on which side we will keep the wall
-		Direction leftTryDir = bugLastMoveDir.rotateLeft();
-		for (int i = 0; i < 3; i++) {
-			if (!canMove(leftTryDir))
-				leftTryDir = leftTryDir.rotateLeft();
-			else
-				break;
-		}
-		Direction rightTryDir = bugLastMoveDir.rotateRight();
-		for (int i = 0; i < 3; i++) {
-			if (!canMove(rightTryDir))
-				rightTryDir = rightTryDir.rotateRight();
-			else
-				break;
-		}
-		if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
-			bugWallSide = WallSide.RIGHT;
-		} else {
-			bugWallSide = WallSide.LEFT;
-		}
 	}
 
 	private static Direction findBugMoveDir() throws GameActionException {
@@ -219,7 +231,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -229,16 +241,12 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-		if (rc.isCoreReady()) {
+		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM) {
 			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
-				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
-					rc.clearRubble(here.directionTo(dest));
-				}
+				Util.checkRubbleAndClear(here.directionTo(dest), true);
 				return;
 			} else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20) {
-				if (rc.senseRubble(here.add(here.directionTo(dest))) > 0) {
-					rc.clearRubble(here.directionTo(dest));
-
+				if (Util.checkRubbleAndClear(here.directionTo(dest), true)) {
 					return;
 				}
 			}
@@ -277,9 +285,6 @@ public class Nav extends Bot {
 		safety = theSafety;
 
 		bugMove();
-		// if (false && type==RobotType.ARCHON && rc.isCoreReady()) {
-		// runAway();
-		// }
 	}
 
 	private static boolean tryMoveDirectScout(Direction toDest) throws GameActionException {
@@ -290,16 +295,26 @@ public class Nav extends Bot {
 			return true;
 		}
 
-		Direction[] dirs = new Direction[2];
+		Direction[] dirs = new Direction[((BotScout.patience > BotScout.PATIENCESTART / 2) ? 4 : 2)];
 		Direction dirLeft = toDest.rotateLeft();
 		Direction dirRight = toDest.rotateRight();
 		dirs[0] = dirLeft;
 		dirs[1] = dirRight;
-		//dirs[2] = dirLeft.rotateLeft();
-		//dirs[3] = dirRight.rotateRight();
+		if(BotScout.patience > BotScout.PATIENCESTART / 2){
+			dirs[2] = dirLeft.rotateLeft();
+			dirs[3] = dirRight.rotateRight();
+		}
+		boolean notSafeToMoveAhead = false;
 		for (Direction dir : dirs) {
-			if (canMove(dir)
-					&& rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
+			if(dir == directionIAmMoving){
+				if (canMove(dir) )
+					if( rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
+						move(dir);
+						return true;
+					}
+					else notSafeToMoveAhead = true;
+			}else if (canMove(dir)
+					&& (notSafeToMoveAhead || rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0)))))) {
 				move(dir);
 				return true;
 			}
@@ -307,30 +322,97 @@ public class Nav extends Bot {
 		return false;
 	}
 
-	public static void flee(RobotInfo[] unfriendly) throws GameActionException {
+	/*	public static void fleeNumerical(RobotInfo[]unfriendly){
+		Direction bestRetreatDir = chooseNumericalyRetreat(unfriendly);
+		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
+			rc.move(bestRetreatDir);
+		}
+		}
+	private static Direction chooseNumericalyRetreat(RobotInfo[] unfriendly) {
+		Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
+		int[] directionWeights = {0,0,0,0,0,0,0,0};
+		for(int i =0;i<directionWeights.length;i++){
+		directionWeights[i] =
+				+ // #enemies that can shoot this spot
+				+ // rubble level
+				+ // how soon you will run into wall
+				+ //
+				+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);
+		}
+		return bestWeight(directions,directionWeights);
+	}
+	private static Direction bestWeight(Direction[] directions,int[] directionWeights){
+		int bestIndex = Integer.MIN_VALUE;
+		for(int i = 0; i < directionWeights.length; i++) {
+			if(directionWeights[i] > directionWeights[bestIndex]) {
+				bestIndex = i;
+			}
+		}
+		return directions[bestIndex];
+	}
+	*/
+	public static void flee(RobotInfo[] unfriendly,RobotInfo[] allies) throws GameActionException {
 		Direction bestRetreatDir = null;
 		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
 		double bestDistSq = -10000;
+		boolean spotToClear = false;
 		for (Direction dir : Direction.values()) {
-			if (!rc.canMove(dir))
-				continue;
 			MapLocation retreatLoc = here.add(dir);
+			if (!rc.canMove(dir)){
+				if(rc.senseRubble(retreatLoc)>GameConstants.RUBBLE_OBSTRUCTION_THRESH && !rc.isLocationOccupied(retreatLoc))
+					spotToClear = true;
+				continue;
+			}
 			if(isInRangeOfTurrets(retreatLoc))
 				continue;
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
-			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.5/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
-			if (distSq-rubbleMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod;
+			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			double wallMod = wallModCalc(retreatLoc,dir);
+			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
+			rc.setIndicatorString(2, ""+rubbleMod);
+			if (distSq-rubbleMod+wallMod+allyMod > bestDistSq) {
+				bestDistSq = distSq-rubbleMod+wallMod+allyMod;
 				bestRetreatDir = dir;
 			}
 		}
-		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
+		if (bestRetreatDir != null) {
 			rc.move(bestRetreatDir);
+		}else if(spotToClear){
+			bestDistSq = -10000;
+			for (Direction dir : Direction.values()) {
+				if (!rc.canMove(dir) && rc.senseRubble(here.add(dir))<GameConstants.RUBBLE_OBSTRUCTION_THRESH )
+					continue;
+				MapLocation retreatLoc = here.add(dir);
+				if(isInRangeOfTurrets(retreatLoc))
+					continue;
+				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
+				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
+				double rubble = rc.senseRubble(retreatLoc);
+				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+				double wallMod = wallModCalc(retreatLoc,dir);
+				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
+				if (distSq-rubbleMod+wallMod+allyMod> bestDistSq) {
+					bestDistSq = distSq-rubbleMod+wallMod+allyMod;
+					bestRetreatDir = dir;
+				}
+			}
+			if(rc.isCoreReady() && bestRetreatDir!=null )
+				Util.checkRubbleAndClear(bestRetreatDir,true);
 		}
 	}
+	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
+		double mod = 0;
+		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)){
+			retreatLoc = retreatLoc.add(dir);
+			mod+=1.0;
 
+		}
+		return mod;
+
+	}
 	// public static void explore() throws GameActionException { // NEW INTO
 	// HARASS
 	// // explore
@@ -371,24 +453,36 @@ public class Nav extends Bot {
 		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
-		} else if(scouts.length > 0){
+			BotScout.patience = BotScout.PATIENCESTART; 
+			BotScout.farthestLoc = here;
+		} else if(scouts.length > 0 && rc.getRoundNum() - turnCreated > 15){
 			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
 			directionIAmMoving = (new Direction[] {
 					tempDirection.rotateLeft(),
 					tempDirection,
 					tempDirection.rotateRight() })[rand.nextInt(3)];
-		}
+			BotScout.patience = BotScout.PATIENCESTART; 
+			BotScout.farthestLoc = here;
+		} else if (BotScout.patience < 1)
+			scrambleDirectionIAmMoving();
 		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
 		//			directionIAmMoving = directionIAmMoving.rotateRight();
 		if(tryMoveDirectScout(directionIAmMoving))return;
-		else
-			directionIAmMoving = (new Direction[] {
-					directionIAmMoving.opposite().rotateLeft(),
-					directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
+		else{
+			scrambleDirectionIAmMoving();
+		}
 		if( tryMoveDirectScout(directionIAmMoving)) return;
 		if(hostileRobots.length > 0)
-			flee(hostileRobots);
+			flee(hostileRobots,allies);
 		// Combat.retreat(Util.closest(hostileRobots, here).location);
+	}
+
+	private static void scrambleDirectionIAmMoving() {
+		directionIAmMoving = (new Direction[] {
+				directionIAmMoving.opposite().rotateLeft(),
+				directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
+		BotScout.patience = BotScout.PATIENCESTART; 
+		BotScout.farthestLoc = here;
 	}
 
 	public static void goAwayFrom(MapLocation loc, NavSafetyPolicy theSafety) throws GameActionException{
@@ -398,7 +492,7 @@ public class Nav extends Bot {
 			if(!rc.canMove(dir))
 				continue;
 			MapLocation newLoc = here.add(dir);
-			if(loc.distanceSquaredTo(newLoc) > farthestDist){
+			if(rc.onTheMap(newLoc) && loc.distanceSquaredTo(newLoc) > farthestDist){
 				bestLoc = newLoc;
 				farthestDist = loc.distanceSquaredTo(newLoc);
 			}

@@ -8,8 +8,8 @@ public enum MessageEncode {
 	PROXIMITY_NOTIFICATION(1, new int[]{4}, 0),	// radius squared
 	ALPHA_ARCHON_LOCATION (2, new int[]{1,2},0),// xloc , yloc
 	MOBILE_ARCHON_LOCATION(3, new int[]{1,2},0),// xloc , yloc
-	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),//den locations
-	STOP_BEING_MOBILE	  (5, new int[]{1,2},0),
+	DIRECT_MOBILE_ARCHON  (4, new int[]{1,2},0),// den locations
+	BE_MY_GUARD	          (5, new int[]{},0),   // no data 
 	MULTIPLE_TARGETS	  (6, new int[]{7,8,7,8,7,8,7,8,7,8}, 5),// 5 map locations (as ints) **x and y offset from sender must be <16
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	WARN_ABOUT_TURRETS    (7, new int[]{7,8}, 0),// map location of enemy turrets -- (here.x,here.y) if fewer than 5
@@ -39,7 +39,7 @@ public enum MessageEncode {
 	 * 2 - notify a unit of the alpha archon location
 	 * 3 - notify a unit of the hunter archon loc
 	 * 4 - tell the archon where to go
-	 * 5 - tell the mobile archon to turtle (and where to do so)
+	 * 5 - tell the soldier i just made to be my guard
 	 * 6 - give turrets more than one target
 	 * 7 - warn soldiers to avoid turrets they can't see -- (here.x,here.y) if fewer than 5
 	 * 8 - scouts to tell archons about parts or neutrals to be interested in
@@ -199,7 +199,7 @@ public enum MessageEncode {
 		case 2: return ALPHA_ARCHON_LOCATION;
 		case 3: return MOBILE_ARCHON_LOCATION;
 		case 4: return DIRECT_MOBILE_ARCHON;
-		case 5: return STOP_BEING_MOBILE;
+		case 5: return BE_MY_GUARD;
 		case 6: return MULTIPLE_TARGETS;
 		case 7: return WARN_ABOUT_TURRETS;
 		case 8: return PART_OR_NEUTRAL_NOTIF;
@@ -219,7 +219,7 @@ public enum MessageEncode {
 		case 2: return "ALPHA_ARCHON_LOCATION";
 		case 3: return "MOBILE_ARCHON_LOCATION";
 		case 4: return "DIRECT_MOBILE_ARCHON";
-		case 5: return "STOP_BEING_MOBILE";
+		case 5: return "BE_MY_GUARD";
 		case 6: return "MULTIPLE_TARGETS";
 		case 7: return "WARN_ABOUT_TURRETS";
 		case 8: return "PART_OR_NEUTRAL_NOTIF";
