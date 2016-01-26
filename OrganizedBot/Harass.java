@@ -98,7 +98,9 @@ public class Harass extends Bot {
 				continue;
 
 			MapLocation retreatLoc = here.add(dir);
-
+			if(Util.isInRangeOfTurrets(retreatLoc)){
+				continue;
+			}
 			RobotInfo closestEnemy = currentClosestEnemy ;//Util.closest(enemies, retreatLoc); TODO: put this back in, maybe only if there aren't tons of enemies?
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
@@ -145,7 +147,9 @@ public class Harass extends Bot {
 		boolean willDieFromViper = (rc.isInfected() && rc.getHealth() - rc.getViperInfectedTurns() * GameConstants.VIPER_INFECTION_DAMAGE < 0);
 		if (willDieFromViper && rc.isCoreReady()) {
 			// CHARGE blindly
-			Nav.goTo(Util.closest(rc.senseNearbyRobots(type.sensorRadiusSquared, them), here).location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
+			RobotInfo[] enemiesICanSee = rc.senseNearbyRobots(type.sensorRadiusSquared, them);
+			if(enemiesICanSee.length > 0)
+				Nav.goTo(Util.closest(enemiesICanSee, here).location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 		}
 
 		int numEnemiesAttackingUs = 0;
@@ -160,12 +164,10 @@ public class Harass extends Bot {
 			// we are in combat
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
-				boolean dontShoot = false;
-				dontShoot = (type == RobotType.VIPER && enemiesInSight.length == 1 && enemiesInSight[0].zombieInfectedTurns == 0 && enemiesInSight[0].viperInfectedTurns == 0 && allies.length > 3);
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)&&rc.isLocationOccupied(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (!dontShoot && (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker))) {
+					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
 						// we can beat the other guy 1v1. fire away!
 						rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
@@ -175,7 +177,7 @@ public class Harass extends Bot {
 							tryToRetreat(enemiesInSight);
 					} else {
 						// check if we actually have some allied support. if so, we can keep fighting
-						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0 && !dontShoot) {
+						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0) {
 							// an ally is helping us, so keep fighting the lone enemy
 							rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
 							// TODO: archon test shooting zombies first instead (comment out two lines below)
@@ -187,7 +189,7 @@ public class Harass extends Bot {
 						} else {
 							// we can't win the 1v1.
 							if (type.cooldownDelay <= 1 && loneAttacker.weaponDelay >= 2
-									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1 && !dontShoot) {
+									&& rc.getWeaponDelay() <= loneAttacker.weaponDelay - 1) {
 								// we can get a shot off and retreat before the enemy can fire at us again, so do that
 								rc.setIndicatorString(1, "can't win 1v1, but can shoot and run");
 								attackIfReady(loneAttacker.location);
@@ -201,12 +203,12 @@ public class Harass extends Bot {
 									if (tryToRetreat(enemiesInSight)) {
 										// we moved away
 										return true;
-									} else if (!dontShoot){
+									} else{
 										// we couldn't find anywhere to retreat to. fire a desperate shot if possible
 										attackIfReady(loneAttacker.location);
 										return true;
 									}
-								} else if(!dontShoot){
+								} else{
 									// we can't move this turn. if it won't delay retreating, shoot instead
 									if (type.cooldownDelay <= 1) {
 										rc.setIndicatorString(1, "can't win 1v1 or move, trying to shoot");
