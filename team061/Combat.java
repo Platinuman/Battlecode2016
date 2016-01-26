@@ -82,6 +82,9 @@ public class Combat extends Bot { //NEW up to you guys what to do here, but plea
 			return false;
 		RobotInfo[] potentialAttackers = rc.senseNearbyRobots(loc, type.sensorRadiusSquared, them);
 		for (RobotInfo enemy : potentialAttackers) {
+			if(enemy.type == RobotType.ARCHON){
+				continue;
+			}
 			if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
 				return false;
 			}
