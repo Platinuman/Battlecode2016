@@ -191,6 +191,8 @@ public class BotScout extends Bot {
 
 	}
 	private static boolean areEnoughAlliesEngagedToBeatTheTurrets(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
+		if(rc.getRoundNum()>2900)
+			return true;
 		int numEnemiesInTurtle = enemiesInSight.length;
 		int numAlliesAttackingCrunch = allies.length;
 		boolean alliesEngaged =  numAlliesAttackingCrunch >= numEnemiesInTurtle;
@@ -202,8 +204,8 @@ public class BotScout extends Bot {
 			else if(bot.type == RobotType.VIPER)
 				numVipers+=1;
 		}
-		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 1000) / 1500);
-		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/2.9 + viperPower;
+		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.2) + 750) / 1500);
+		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/3 + viperPower;
 		return canWeBeat && alliesEngaged;
 		
 	}
