@@ -481,7 +481,7 @@ public class Nav extends Bot {
 			directionIAmMoving = center.directionTo(here);
 			BotScout.patience = BotScout.PATIENCESTART; 
 			BotScout.farthestLoc = here;
-		} else if(scouts.length > 0 && rc.getRoundNum() - turnCreated > 15){
+		} else if(scouts.length > 0){
 			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
 			directionIAmMoving = (new Direction[] {
 					tempDirection.rotateLeft(),
