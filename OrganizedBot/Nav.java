@@ -283,6 +283,7 @@ public class Nav extends Bot {
 		if (!theDest.equals(dest)) {
 			dest = theDest;
 			bugState = BugState.DIRECT;
+			bugMovesSinceMadeProgress = 0;
 		}
 
 		if (here.equals(dest))
