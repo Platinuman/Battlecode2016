@@ -828,9 +828,9 @@ public class Harass extends Bot {
 		}
 		if(wantToMove && rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
-//			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < type.TURRET.attackRadiusSquared + 4) {
-//				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee));
+			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 4)
+				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
 			if (targetLoc != null) {
 				if(targetLoc == archonLoc && Util.isSurrounded(archonLoc))
 					Nav.goAwayFrom(archonLoc, theSafety);
