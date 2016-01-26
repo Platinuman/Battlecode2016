@@ -20,12 +20,7 @@ public class BotScout extends Bot {
 	static MapLocation[] dens;
 	static int denSize;
 	static MapLocation circlingLoc;
-<<<<<<< HEAD
-	static int circlingTime;
-	static String test;
-=======
 	static int circlingTime, lastRoundNotifiedOfArmy, lastRoundNotifiedOfPN;
->>>>>>> e565c1fbf28b1417661c0f7ffb010c3f7da33451
 
 	public static void loop(RobotController theRC) throws GameActionException {
 		Bot.init(theRC);
@@ -61,7 +56,6 @@ public class BotScout extends Bot {
 		rc.setIndicatorString(1, "");
 		rc.setIndicatorString(2, "");
 		String s = "";
-		test = "";
 		for (int i = 0; i < turretSize; i++) {
 			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
 		}
@@ -111,8 +105,6 @@ public class BotScout extends Bot {
 		default:
 			break;
 		}
-		rc.setIndicatorString(2,test);
-
 		return;
 	}
 
@@ -132,7 +124,6 @@ public class BotScout extends Bot {
 					removeLocFromTurretArray(t);
 					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
 							new int[] { t.x, t.y });
-					test += "ENEMY_TURRET_DEATH";
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					i--;
 					updated = true;
@@ -148,7 +139,6 @@ public class BotScout extends Bot {
 					enemyTurrets[turretSize] = e;
 					turretSize++;
 					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
-					test += ","+ myMsg.toString();
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 					updated = true;
 				}
@@ -165,7 +155,6 @@ public class BotScout extends Bot {
 				&& canWeBeatTheTurrets(allies)
 		        &&areEnoughAlliesEngaged(enemiesInSight,allies)){
 			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
-			test += ","+ myMsg.toString();
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 		}
 		// rc.setIndicatorString(2, "...");
@@ -190,20 +179,10 @@ public class BotScout extends Bot {
 		int numAlliesAttackingCrunch = allies.length;
 		return numAlliesAttackingCrunch >= numEnemiesInTurtle;
 	}
-<<<<<<< HEAD
-	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies) throws GameActionException {
-		if (enemies.length > 1) {
-			int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
-					.encode(new int[] { enemies[0].location.x, enemies[0].location.y, 0 });
-			test += ","+ myMsg.toString();
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
-		}
-=======
 	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
 		int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
 				.encode(new int[] { enemies[0].location.x, enemies[0].location.y, seeEnemyArchon ? 1 : 0 });
 		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
->>>>>>> e565c1fbf28b1417661c0f7ffb010c3f7da33451
 	}
 
 	private static void notifyArchonOfPartOrNeutral() throws GameActionException {
@@ -219,7 +198,6 @@ public class BotScout extends Bot {
 		if (partOrNeutralLoc != null) {
 			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
 					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y });
-			test += ","+ myMsg.toString();
 			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
 		}
 	}
@@ -300,26 +278,6 @@ public class BotScout extends Bot {
 	 * ); lastBroadcasted = closestPartOrNeutral; lastBroadcastedType = type; }
 	 * }
 	 */
-<<<<<<< HEAD
-
-	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { // first
-		for (RobotInfo hostileUnit : hostileRobots) {
-			if (hostileUnit.type == RobotType.ZOMBIEDEN) {
-				if (!Util.containsMapLocation(dens, hostileUnit.location, denSize)) {
-					dens[denSize] = hostileUnit.location;
-					denSize++;
-					MapLocation hostileLoc = hostileUnit.location;
-					int[] myMsg = MessageEncode.DIRECT_MOBILE_ARCHON.encode(new int[] { hostileLoc.x, hostileLoc.y });
-					test += ","+ myMsg.toString();
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-				}
-				return true;
-			}
-		}
-		return false;
-	}
-=======
->>>>>>> e565c1fbf28b1417661c0f7ffb010c3f7da33451
 	/*
 	 * private static void moveToLocFartherThanAlphaIfPossible(MapLocation here)
 	 * throws GameActionException { Direction dir = Direction.NORTH; boolean
