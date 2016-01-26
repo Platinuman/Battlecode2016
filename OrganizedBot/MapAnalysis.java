@@ -59,7 +59,7 @@ public class MapAnalysis extends Bot {
 	}
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;
-		int bigZombieCount = 0;
+		//int bigZombieCount = 0;
 //		if (true){
 //		return; // for now
 //		}
@@ -70,15 +70,10 @@ public class MapAnalysis extends Bot {
 			}
 			ZombieCount countArray[] = spawnSchedule.getScheduleForRound(zombieRounds[i]);
 			for (int j = 0; j < countArray.length; j++){
-				if (countArray[j].getType() == RobotType.BIGZOMBIE){
-					bigZombieCount += countArray[j].getCount();
-				}
-				else{
 					weakZombieCount += countArray[j].getCount();
-				}
 			}
 		}
-		if (weakZombieCount <= 30 && bigZombieCount <= 2){
+		if (weakZombieCount <= 30){
 			mapDifficulty = 0;
 		}
 		else{
@@ -86,7 +81,7 @@ public class MapAnalysis extends Bot {
 		}
 	}
 	private static void guessMapSize(MapLocation[] ourArchons, MapLocation[] theirArchons){
-		mapSize = ourArchons[0].distanceSquaredTo(theirArchons[theirArchons.length-1]);
+		mapSize = (int)(ourArchons[0].distanceSquaredTo(theirArchons[theirArchons.length-1])/ourArchons.length);
 	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);

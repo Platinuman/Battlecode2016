@@ -124,7 +124,7 @@ public class BotArchon extends Bot {
 				Nav.flee(hostiles,allies);
 				lastSeenHostile = rc.getRoundNum();
 			}
-			else if(numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
+			else if(rc.getRoundNum() > 1000 && numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
 				int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
 				rc.broadcastMessageSignal(msg[0], msg[1], 2000);
 			}
@@ -172,9 +172,9 @@ public class BotArchon extends Bot {
 			typeToBuild = RobotType.SOLDIER;
 			return;
 		}
-		if(numScoutsCreated * 10 <= numSoldiersCreated)
+		if(numScoutsCreated * 8 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
-		else if((numVipersCreated) * 10 < numSoldiersCreated )//optimize with MapAnalysis and Team Memory
+		else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?5:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
 			typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
