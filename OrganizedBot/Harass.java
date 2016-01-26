@@ -868,6 +868,7 @@ public class Harass extends Bot {
 		boolean turretUpdated = updateTurretStuff(enemies);
 		if (turretLoc == null || enemiesWithoutZombies.length == 0 && here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150) {
 			crunching = false;
+			targetLoc = null;
 		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);

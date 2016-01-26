@@ -124,7 +124,7 @@ public class BotArchon extends Bot {
 				Nav.flee(hostiles,allies);
 				lastSeenHostile = rc.getRoundNum();
 			}
-			else if(rc.getRoundNum() > 1000 && numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
+			else if(rc.getRoundNum() > 500 && numDensToHunt == 0 && rc.getRoundNum() - lastSeenHostile > 25 && rc.getRoundNum() % 50 == 0){
 				int[] msg = MessageEncode.MOBILE_ARCHON_LOCATION.encode(new int[]{here.x, here.y});
 				rc.broadcastMessageSignal(msg[0], msg[1], 2000);
 			}
