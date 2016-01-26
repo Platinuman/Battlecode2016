@@ -226,10 +226,7 @@ public class Harass extends Bot {
 					// we are getting shot by someone who outranges us, CRUNCH!
 					rc.setIndicatorString(1, "outranged!");
 					if(rc.isCoreReady())
-						if(allies.length > 0 && loneAttacker.type != RobotType.TURRET)
-							tryToRetreat(enemiesInSight);
-						else
-							Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
+						Nav.goTo(loneAttacker.location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 					return true;
 				}
 			} else { // more than one enemy
