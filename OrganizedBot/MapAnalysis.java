@@ -60,9 +60,9 @@ public class MapAnalysis extends Bot {
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;
 		int bigZombieCount = 0;
-		if (true){
-		return; // for now
-		}
+//		if (true){
+//		return; // for now
+//		}
 		ZombieSpawnSchedule spawnSchedule = rc.getZombieSpawnSchedule();
 		for (int i = 0; i < zombieRounds.length; i++){
 			if(zombieRounds[i] > 500){
