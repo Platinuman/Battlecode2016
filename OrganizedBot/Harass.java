@@ -511,7 +511,7 @@ public class Harass extends Bot {
 			swarmingArchon = true;
 			huntingDen = false;
 		}
-		else if (huntingDen && rc.canSenseLocation(targetLoc) && rc.senseRobotAtLocation(targetLoc) == null) {
+		else if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
 			// tell people a den has been killed
 			if (targetLoc != null) {
 				rc.broadcastSignal(12800);
