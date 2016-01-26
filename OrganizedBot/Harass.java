@@ -161,7 +161,7 @@ public class Harass extends Bot {
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
 				boolean dontShoot = false;
-				dontShoot = (type == RobotType.VIPER && enemiesInSight.length == 1 && enemiesInSight[0].zombieInfectedTurns == 0 && enemiesInSight[0].viperInfectedTurns == 0 && allies.length > 3);
+			//	dontShoot = (type == RobotType.VIPER && enemiesInSight.length == 1 && enemiesInSight[0].zombieInfectedTurns == 0 && enemiesInSight[0].viperInfectedTurns == 0 && allies.length > 3);
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
 				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)&&rc.isLocationOccupied(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
@@ -238,6 +238,8 @@ public class Harass extends Bot {
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
 								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
+						//		+  enemy.attackPower/20
+						//		+  enemy.type.attackRadiusSquared/50
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -293,6 +295,8 @@ public class Harass extends Bot {
 					if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
 						double targetingMetric = numAlliesAttackingEnemy / enemy.health
 								+ (enemy.team == Team.ZOMBIE?0:0.2) // shoot zombies last
+							//	+  enemy.attackPower/20
+							//	+  enemy.type.attackRadiusSquared/50
 								+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
