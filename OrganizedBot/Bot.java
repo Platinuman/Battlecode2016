@@ -27,6 +27,7 @@ public class Bot {
 	protected static int[] directionOrder = {0,1,-1,2,-2,3,-3,4};
 	public static RobotInfo[] enemyTurrets;
 	public static int turretSize;
+	public static int lastTurnFled;
 	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
