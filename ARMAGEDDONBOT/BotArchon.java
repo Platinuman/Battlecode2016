@@ -168,14 +168,14 @@ public class BotArchon extends Bot {
 	}
 
 	private static void determineTypeToBuild(RobotInfo[] hostiles, RobotInfo[] allies) {
-		if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated)){
-			typeToBuild = RobotType.SOLDIER;
-			return;
-		}
-		if(numScoutsCreated * 8 <= numSoldiersCreated)
+//		if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated)){
+//			typeToBuild = RobotType.SOLDIER;
+//			return;
+//		}
+		if(numScoutsCreated * 15 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
-		else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?7:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
-			typeToBuild = RobotType.VIPER;
+		//else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?7:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
+		//	typeToBuild = RobotType.VIPER;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
@@ -435,11 +435,16 @@ public class BotArchon extends Bot {
 	}
 
 	private static boolean haveEnoughFighters(RobotInfo[] allies) {// NEW COMBAT
+		if(true){
+			return true;
+		}
 		int fighters = 0;
 		for (RobotInfo a : allies)
 			if (a.type == RobotType.GUARD || a.type == RobotType.SOLDIER)
 				fighters++;
+		
 		return fighters >= 5;
+		
 	}
 
 	// private static boolean inDanger(RobotInfo[] allies, RobotInfo[] enemies,
@@ -490,9 +495,9 @@ public class BotArchon extends Bot {
 			numScoutsCreated++;
 			break;
 		case SOLDIER:
-			if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated))
-				numGuardsCreated++;
-			else
+//			if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated))
+//				numGuardsCreated++;
+//			else
 				numSoldiersCreated++;
 			break;
 		case VIPER:
@@ -509,9 +514,10 @@ public class BotArchon extends Bot {
 		//	myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 		//	rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 		//}
-		if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated))
-			notifySoldierTheyShouldGuard();
-		else if (numDensToHunt > 0)
+//		if(!haveEnoughFighters(allies) && (rc.getRoundNum() - lastSeenHostile < 15 || (numGuardsCreated + 1) * 7 < numSoldiersCreated))
+//			notifySoldierTheyShouldGuard();
+//		else if (numDensToHunt > 0)
+		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
 		else if (lastEnemyLoc != null){
 			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });

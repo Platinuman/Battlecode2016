@@ -88,7 +88,7 @@ public class MapAnalysis extends Bot {
 		MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
 		Bot.initialEnemyArchonLocs = theirArchons;
 		setCenter(ourArchons,theirArchons);
-		guessMapSize(ourArchons,theirArchons);
+		//guessMapSize(ourArchons,theirArchons);
 		determineMapSymmetry(ourArchons, theirArchons);
 		//System.out.println(mapSymmetry + "");
 		zombieRounds = rc.getZombieSpawnSchedule().getRounds();

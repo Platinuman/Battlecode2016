@@ -117,8 +117,8 @@ public class BotArchon extends Bot {
 				if (neededUnit == RobotType.SCOUT) {
 					numScoutsCreated++;
 				}
-				int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
-				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
+//				int[] myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
+//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 3);
 				int[] message = MessageEncode.PROXIMITY_NOTIFICATION.encode(new int[] { maxRange });
 				rc.broadcastMessageSignal(message[0], message[1], 3);
 			}

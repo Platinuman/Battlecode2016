@@ -20,7 +20,7 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			case ARCHON:
 				break;
 			case ZOMBIEDEN:
-				if (enemy.type.attackRadiusSquared + 2 >= loc.distanceSquaredTo(enemy.location)
+				if (enemy.type.attackRadiusSquared + 0 >= loc.distanceSquaredTo(enemy.location)
 						- ((type == RobotType.ARCHON) ? 24 : 0))// hardcoded
 					return false;
 				break;
