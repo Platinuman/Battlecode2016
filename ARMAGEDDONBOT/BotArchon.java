@@ -153,7 +153,7 @@ public class BotArchon extends Bot {
 			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
 			updateTargetLocationMySelf(allies);
-			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLocation) > 16)) {
+			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLocation) > type.sensorRadiusSquared)) {
 					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
 				typeToBuild = null;
 				return;
