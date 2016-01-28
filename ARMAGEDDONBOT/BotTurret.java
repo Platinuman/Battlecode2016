@@ -57,7 +57,7 @@ public class BotTurret extends Bot {
 			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
 			// Harass.updateTargetLoc();
 			// this should set its target
-		}
+//		}
 	}
 
 	private static void turn() throws GameActionException {

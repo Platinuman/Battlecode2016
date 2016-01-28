@@ -150,21 +150,21 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
     }
     
-    public static boolean isDangerous(RobotType theType){
-    	switch(theType){
-    	case ARCHON:
-    		return false;
-    	case TTM:
-    		return false;
-    	case ZOMBIEDEN:
-    		if(getRoundsUntilNextZombieSpawn() < 20) return true;
-    		return false;
-    	case SCOUT:
-    		return false;
-    	default:
-    	}
-    	return true;
-    }
+//    public static boolean isDangerous(RobotType theType){
+//    	switch(theType){
+//    	case ARCHON:
+//    		return false;
+//    	case TTM:
+//    		return false;
+//    	case ZOMBIEDEN:
+//    		if(getRoundsUntilNextZombieSpawn() < 20) return true;
+//    		return false;
+//    	case SCOUT:
+//    		return false;
+//    	default:
+//    	}
+//    	return true;
+//    }
 
     private static int getRoundsUntilNextZombieSpawn() {
     	// TODO Auto-generated method stub
@@ -268,20 +268,20 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		return totalRubble;
 	}
 
-	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
-		int newlength = 0;
-		int[] inds = new int[hostiles.length];
-		for (int i = 0; i < hostiles.length; i++){
-			if(isDangerous(hostiles[i].type)){
-				inds[newlength++] = i;
-			}
-		}
-		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
-		for (int j = 0; j < newlength; j++){
-			harmfulUnits[j] = hostiles[inds[j]];
-		}
-		return harmfulUnits;
-	}
+//	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
+//		int newlength = 0;
+//		int[] inds = new int[hostiles.length];
+//		for (int i = 0; i < hostiles.length; i++){
+//			if(isDangerous(hostiles[i].type)){
+//				inds[newlength++] = i;
+//			}
+//		}
+//		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
+//		for (int j = 0; j < newlength; j++){
+//			harmfulUnits[j] = hostiles[inds[j]];
+//		}
+//		return harmfulUnits;
+//	}
 	
 	public static MapLocation getLocationOfType(RobotInfo[] array, RobotType t){
 		for(RobotInfo ri : array)

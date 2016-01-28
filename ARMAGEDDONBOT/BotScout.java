@@ -70,67 +70,68 @@ public class BotScout extends Bot {
 //			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y + "], ";
 //		}
 //		rc.setIndicatorString(0, s + " " + turretSize);
-		switch (scoutType) {
-		case 0:// exploring
+//		switch (scoutType) {
+//		case 0:// exploring
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
-			RobotInfo[] enemies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, them);
+			//RobotInfo[] enemies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, them);
 			RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
-			RobotInfo[] hostiles = Util.removeHarmlessUnits(Util.combineTwoRIArrays(zombies, enemies));
+			//RobotInfo[] hostiles = Util.removeHarmlessUnits();
 			RobotInfo[] neutrals = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.NEUTRAL);
 			patience--;
-			boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies, Util.getUnitsOfType(allies, RobotType.SCOUT) != null);
+			//boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies, Util.getUnitsOfType(allies, RobotType.SCOUT) != null);
 			updateProgress();
-			if(circlingLoc != null){
-				rc.setIndicatorString(0, circlingLoc.toString());
-				patience = PATIENCESTART;
-			}
-			MapLocation enemyArchonLocation = Util.getLocationOfType(enemies, RobotType.ARCHON);
+			//if(circlingLoc != null){
+			//	rc.setIndicatorString(0, circlingLoc.toString());
+			//	patience = PATIENCESTART;
+			//}
+			//MapLocation enemyArchonLocation = Util.getLocationOfType(enemies, RobotType.ARCHON);
 			MapLocation neutralArchonLoc = Util.getLocationOfType(neutrals, RobotType.ARCHON);
-			boolean seeEnemyArchon = enemyArchonLocation != null;
+			//boolean seeEnemyArchon = enemyArchonLocation != null;
 			boolean seeNeutralArchon = neutralArchonLoc != null;
-			if(seeEnemyArchon){
-				directionIAmMoving = here.directionTo(enemyArchonLocation);
-				patience = PATIENCESTART;
-				farthestLoc = here;
-			} else if(seeNeutralArchon){
+//			if(seeEnemyArchon){
+//				directionIAmMoving = here.directionTo(enemyArchonLocation);
+//				patience = PATIENCESTART;
+//				farthestLoc = here;
+//			} else if(seeNeutralArchon){
+			if(seeNeutralArchon){
 				directionIAmMoving = here.directionTo(neutralArchonLoc);
 				patience = PATIENCESTART;
 				farthestLoc = here;
 			}
 			if (rc.isCoreReady()) {
-				if (circlingLoc != null) {
-					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles)));
-					if(rc.isCoreReady() && hostiles.length > 0)
-						Nav.flee(hostiles,allies);
-				} else{
-					Nav.explore(hostiles, allies);
-				}
+//				if (circlingLoc != null) {
+//					Nav.goTo(circlingLoc, new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostiles)));
+//					if(rc.isCoreReady() && hostiles.length > 0)
+//						Nav.flee(hostiles,allies);
+//				} else{
+					Nav.explore(zombies, allies);
+//				}
 			}
 			// notifySoldiersOfTurtle(hostileRobots);
 			// rc.setIndicatorString(2, "found T");
 			notifySoldiersOfZombieDen(zombies);
 			// if (rc.getRoundNum() % 30 == 0) {
-			updateCrunchTime(enemies,allies);
+//			updateCrunchTime(enemies,allies);
 			// }
-			int round = rc.getRoundNum();
-			if (round - lastRoundNotifiedOfArmy > 25 && (seeEnemyArchon || enemies.length > 2)) {
-				notifySoldiersOfEnemyArmy(enemies, seeEnemyArchon);
-				lastRoundNotifiedOfArmy = round;
-			}
-			if (round - lastRoundNotifiedOfPN > 30 && (enemies.length == 0 || Util.closest(enemies, here).location.distanceSquaredTo(here) > 20)) {
-				notifyArchonOfPartOrNeutral(neutrals, seeNeutralArchon);
-				lastRoundNotifiedOfPN = round;
-			}
-			break;
-		case 1:
-			break;
-		case 2:
-			break;
-		default:
-			break;
-		}
-		rc.setIndicatorLine(here, here.add(directionIAmMoving), 255, 255, 255);
-		return;
+//			int round = rc.getRoundNum();
+//			if (round - lastRoundNotifiedOfArmy > 25 && (seeEnemyArchon || enemies.length > 2)) {
+//				notifySoldiersOfEnemyArmy(enemies, seeEnemyArchon);
+//				lastRoundNotifiedOfArmy = round;
+//			}
+//			if (round - lastRoundNotifiedOfPN > 30 && (enemies.length == 0 || Util.closest(enemies, here).location.distanceSquaredTo(here) > 20)) {
+//				notifyArchonOfPartOrNeutral(neutrals, seeNeutralArchon);
+//				lastRoundNotifiedOfPN = round;
+//			}
+//			break;
+//		case 1:
+//			break;
+//		case 2:
+//			break;
+//		default:
+//			break;
+//		}
+//		rc.setIndicatorLine(here, here.add(directionIAmMoving), 255, 255, 255);
+//		return;
 	}
 
 	private static void updateProgress() {
@@ -245,48 +246,48 @@ public class BotScout extends Bot {
 		return updated;
 	}
 
-	private static void updateCrunchTime(RobotInfo[] enemiesInSight,RobotInfo[] allies) throws GameActionException {
-		if(circlingLoc!=null)
-			circlingTime+=1;
-		else circlingTime = 0;
-		if (circlingTime > 100 && circlingLoc != null
-		        && areEnoughAlliesEngagedToBeatTheTurrets(enemiesInSight,allies)
-		        && rc.getRoundNum() - lastCrunchRound > 25){
-			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-			lastCrunchRound = rc.getRoundNum();
-		}
-		// rc.setIndicatorString(2, "...");
-
-	}
-	private static boolean areEnoughAlliesEngagedToBeatTheTurrets(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
-		if(rc.getRoundNum()>2900)
-			return true;
-		int numEnemiesInTurtle = enemiesInSight.length;
-		int numAlliesAttackingCrunch = allies.length;
-		boolean alliesEngaged =  numAlliesAttackingCrunch >= numEnemiesInTurtle;
-		int numVipers = 0;
-		int numSoldiers =0;
-		for(RobotInfo bot: allies){
-			if(bot.type == RobotType.SOLDIER)
-				numSoldiers+=1;
-			else if(bot.type == RobotType.VIPER)
-				numVipers+=1;
-		}
-		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.5) + 750) / 1500);
-		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/3 + viperPower;
-		return canWeBeat && alliesEngaged;
-		
-	}
-	
-	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
-		int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
-				.encode(new int[] { enemies[0].location.x, enemies[0].location.y, seeEnemyArchon ? 1 : 0 });
-		if(!seeEnemyArchon)
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
-		else
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
-	}
+//	private static void updateCrunchTime(RobotInfo[] enemiesInSight,RobotInfo[] allies) throws GameActionException {
+//		if(circlingLoc!=null)
+//			circlingTime+=1;
+//		else circlingTime = 0;
+//		if (circlingTime > 100 && circlingLoc != null
+//		        && areEnoughAlliesEngagedToBeatTheTurrets(enemiesInSight,allies)
+//		        && rc.getRoundNum() - lastCrunchRound > 25){
+//			int[] myMsg = MessageEncode.CRUNCH_TIME.encode(new int[] {circlingLoc.x,circlingLoc.y, numTurretsInRangeSquared(circlingLoc, 100) });
+//			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+//			lastCrunchRound = rc.getRoundNum();
+//		}
+//		// rc.setIndicatorString(2, "...");
+//
+//	}
+//	private static boolean areEnoughAlliesEngagedToBeatTheTurrets(RobotInfo[] enemiesInSight, RobotInfo[] allies) {
+//		if(rc.getRoundNum()>2900)
+//			return true;
+//		int numEnemiesInTurtle = enemiesInSight.length;
+//		int numAlliesAttackingCrunch = allies.length;
+//		boolean alliesEngaged =  numAlliesAttackingCrunch >= numEnemiesInTurtle;
+//		int numVipers = 0;
+//		int numSoldiers =0;
+//		for(RobotInfo bot: allies){
+//			if(bot.type == RobotType.SOLDIER)
+//				numSoldiers+=1;
+//			else if(bot.type == RobotType.VIPER)
+//				numVipers+=1;
+//		}
+//		int viperPower = numVipers*(((int)(rc.getRoundNum() * 1.5) + 750) / 1500);
+//		boolean canWeBeat = numTurretsInRangeSquared(circlingLoc, 200) < numSoldiers/3 + viperPower;
+//		return canWeBeat && alliesEngaged;
+//		
+//	}
+//	
+//	private static void notifySoldiersOfEnemyArmy(RobotInfo[] enemies, boolean seeEnemyArchon) throws GameActionException {
+//		int[] myMsg = MessageEncode.ENEMY_ARMY_NOTIF
+//				.encode(new int[] { enemies[0].location.x, enemies[0].location.y, seeEnemyArchon ? 1 : 0 });
+//		if(!seeEnemyArchon)
+//			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 5000);
+//		else
+//			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
+//	}
 
 	private static void notifyArchonOfPartOrNeutral(RobotInfo[] neutrals, boolean seeNeutralArchon) throws GameActionException {
 		MapLocation partOrNeutralLoc = null;

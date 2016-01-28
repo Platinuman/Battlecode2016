@@ -107,7 +107,7 @@ public class BotArchon extends Bot {
 		
 		if(typeToBuild == null)
 			determineTypeToBuild();
-		updatetargetLocationMySelf(hostiles);
+		updatetargetLocMySelf();
 		if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared)) {
 				buildUnitInDir(here.directionTo(center), typeToBuild);
 			typeToBuild = null;
@@ -395,7 +395,7 @@ public class BotArchon extends Bot {
 //		return updated;
 //	}
 
-	private static void broadcastTargetDen(RobotInfo[] allies) throws GameActionException { // New INTO MESSAGE ENCODE //AARON_IDENTIFIER idk if this is called anywhere, but it should be
+	private static void broadcastTargetDen() throws GameActionException { // New INTO MESSAGE ENCODE //AARON_IDENTIFIER idk if this is called anywhere, but it should be
 		/*if (!haveEnoughFighters(allies))
 			return;*/
 		int myMsg[];
@@ -450,7 +450,7 @@ public class BotArchon extends Bot {
 		int smallestDistance = Integer.MAX_VALUE;
 		for (RobotInfo ri : neutrals) {
 			int distanceToLoc = here.distanceSquaredTo(ri.location);
-			if (distanceToLoc < smallestDistance && Combat.isSafe(ri.location) && Util.rubbleBetweenHereAndThere(here, ri.location) < 400) {//AARON_IDENTIFIER might change 400 
+			if (distanceToLoc < smallestDistance && Util.rubbleBetweenHereAndThere(here, ri.location) < 400) {//AARON_IDENTIFIER might change 400 
 				closestLoc = ri.location;
 				smallestDistance = distanceToLoc;
 				targetIsNeutral = true;
@@ -460,7 +460,7 @@ public class BotArchon extends Bot {
 			MapLocation[] partLocations = rc.sensePartLocations(-1);
 			for (MapLocation loc : partLocations) {
 				int distanceToLoc = here.distanceSquaredTo(loc);
-				if (distanceToLoc < smallestDistance && Combat.isSafe(loc) && !rc.isLocationOccupied(loc) && Util.rubbleBetweenHereAndThere(here, loc) < rc.senseParts(loc)*10) {
+				if (distanceToLoc < smallestDistance  && !rc.isLocationOccupied(loc) && Util.rubbleBetweenHereAndThere(here, loc) < rc.senseParts(loc)*10) {
 					closestLoc = loc;
 					smallestDistance = distanceToLoc;
 					targetIsNeutral = false;
@@ -516,12 +516,12 @@ public class BotArchon extends Bot {
 //		}
 //	}
 
-	private static boolean buildUnitInDir(Direction dir, RobotType r, RobotInfo[] allies) throws GameActionException {// New Util
+	private static boolean buildUnitInDir(Direction dir, RobotType r) throws GameActionException {// New Util
 		for (int i : directionOrder) {
 			if (rc.canBuild(Direction.values()[(dir.ordinal()+i+8)%8], r)) {
 				rc.build(Direction.values()[(dir.ordinal()+i+8)%8], r);
-				sendNewUnitImportantData(allies);
-				incrementTypeCount(r, allies);
+				sendNewUnitImportantData();
+				incrementTypeCount(r);
 				typeToBuild = null;
 				return true;
 			}
@@ -529,7 +529,7 @@ public class BotArchon extends Bot {
 		return false;
 	}
 
-	private static void incrementTypeCount(RobotType r, RobotInfo[] allies) {
+	private static void incrementTypeCount(RobotType r) {
 		switch (r){
 		case SCOUT:
 			numScoutsCreated++;
@@ -548,7 +548,7 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
+	private static void sendNewUnitImportantData() throws GameActionException {// New																			// Util
 		//int[] myMsg;
 		//if(alpha != null){
 		//	myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
@@ -558,7 +558,7 @@ public class BotArchon extends Bot {
 //			notifySoldierTheyShouldGuard();
 //		else if (numDensToHunt > 0)
 		if (targetDenSize > 0)
-			broadcastTargetDen(allies);
+			broadcastTargetDen();
 //		else if (lastEnemyLoc != null){
 //			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });
 //			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 0);
