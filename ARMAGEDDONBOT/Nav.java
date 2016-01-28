@@ -58,7 +58,7 @@ public class Nav extends Bot {
 	private static Direction lastRetreatDir;
 	private static boolean move(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
-			if(type == RobotType.SCOUT || type == RobotType.TTM || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
+			if(type == RobotType.SCOUT || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
 			rc.move(dir);
 			}
 			else{
@@ -225,7 +225,8 @@ public class Nav extends Bot {
 
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
-				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  rc.onTheMap(here.add(here.directionTo(dest))) && !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				MapLocation rubbleLoc = here.add(here.directionTo(dest));
+				if (type != RobotType.SCOUT &&  type != RobotType.TURRET &&  rc.onTheMap(rubbleLoc) && !rc.isLocationOccupied(rubbleLoc)&&checkRubble((int) (GameConstants.RUBBLE_OBSTRUCTION_THRESH*2))) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -234,11 +235,12 @@ public class Nav extends Bot {
 			}
 			// checkRubbleAndClear(here.directionTo(dest));
 		}
-		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM) {
+		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET) {
 			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
 				Util.checkRubbleAndClear(here.directionTo(dest), true);
 				return;
-			} else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20) {
+			} 
+			else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20 && type != RobotType.TURRET) {
 				if (Util.checkRubbleAndClear(here.directionTo(dest), true)) {
 					return;
 				}
@@ -250,6 +252,9 @@ public class Nav extends Bot {
 		if (bugState == BugState.BUG) {
 			bugTurn();
 			bugMovesSinceMadeProgress++;
+		}
+		if(rc.isCoreReady() && type != RobotType.TURRET){
+			Util.checkRubbleAndClear(here.directionTo(dest), true);
 		}
 	}
 

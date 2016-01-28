@@ -486,7 +486,7 @@ public class Harass extends Bot {
 //			/swarmingArchon = true;
 //			huntingDen = false;
 //		}
-		else if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
+		if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
 			// tell people a den has been killed only if it's the closest one to me
 			int ind = Util.closestLocation(targetDens, here, targetDenSize);
 			if(ind != -1 && targetDens[ind].equals(targetLoc)){
