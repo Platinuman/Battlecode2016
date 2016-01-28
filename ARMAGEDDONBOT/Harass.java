@@ -700,6 +700,7 @@ public class Harass extends Bot {
 								if(!Util.containsMapLocation(targetDens, loc, targetDenSize)){
 									targetDens[targetDenSize]= loc;
 									targetDenSize++;
+									numDensToHunt++;
 									if (!isGuard
 											&& (!huntingDen || here.distanceSquaredTo(loc) < here.distanceSquaredTo(targetLoc)) //test this
 											&& type != RobotType.ARCHON) {
@@ -960,7 +961,8 @@ public class Harass extends Bot {
 			// bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
 			
 		}
-		//rc.setIndicatorString(0, "targetLoc = " + targetLoc);
+		if(targetLoc != null)
+			rc.setIndicatorString(1, "targetLoc = " + targetLoc.toString());
 		//rc.setIndicatorString(1, "isGuard = " + isGuard);
 		//rc.setIndicatorString(1, bytecodeIndicator);
 //		String s = "";
