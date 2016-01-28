@@ -81,7 +81,7 @@ public class Harass extends Bot {
 
 	private static boolean tryToRetreat(RobotInfo[] enemies) throws GameActionException {
 		wantToMove = false;
-		int bytecodechecker = Clock.getBytecodeNum();
+		//int bytecodechecker = Clock.getBytecodeNum();
 		Direction bestRetreatDir = null;
 		RobotInfo currentClosestEnemy = Util.closest(enemies, here);
 
@@ -155,14 +155,14 @@ public class Harass extends Bot {
 			if (numEnemiesAttackingUs == 1) {
 				// we are in a 1v1
 				RobotInfo loneAttacker = enemiesAttackingUs[0];
-				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)&&rc.isLocationOccupied(loneAttacker.location)) {
+				if (type.attackRadiusSquared >= here.distanceSquaredTo(loneAttacker.location)) {
 					// we can actually shoot at the enemy we are 1v1ing
-					if (loneAttacker.type == RobotType.ARCHON || canWin1v1(loneAttacker)) {
+					if (canWin1v1(loneAttacker)) {
 						// we can beat the other guy 1v1. fire away!
 						//rc.setIndicatorString(1, "can win 1v1");
 						attackIfReady(loneAttacker.location);
-						if (loneAttacker.type == RobotType.ARCHON && rc.isCoreReady())
-							shadowArchon(loneAttacker, enemiesInSight);
+//						if (loneAttacker.type == RobotType.ARCHON && rc.isCoreReady())
+//							shadowArchon(loneAttacker, enemiesInSight);
 						if(rc.isCoreReady())
 							tryToRetreat(enemiesInSight);
 					} else {
@@ -171,11 +171,11 @@ public class Harass extends Bot {
 							// an ally is helping us, so keep fighting the lone enemy
 							//rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
 							// TODO: archon test shooting zombies first instead (comment out two lines below)
-							if(rc.isCoreReady() && loneAttacker.team == Team.ZOMBIE)
-								tryToRetreat(enemiesInSight);
-							attackIfReady(loneAttacker.location);
 							if(rc.isCoreReady())
 								tryToRetreat(enemiesInSight);
+							attackIfReady(loneAttacker.location);
+//							if(rc.isCoreReady())
+//								tryToRetreat(enemiesInSight);
 						} else {
 							/*
 							if(loneAttacker.type != RobotType.VIPER && !inRangeOfZombieDen(rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE)))
@@ -357,13 +357,13 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	private static boolean inRangeOfZombieDen(RobotInfo[] zombies) {
-		for(RobotInfo zombie: zombies){
-			if(zombie.type == RobotType.ZOMBIEDEN)
-				return true;
-		}
-		return false;
-	}
+//	private static boolean inRangeOfZombieDen(RobotInfo[] zombies) {
+//		for(RobotInfo zombie: zombies){
+//			if(zombie.type == RobotType.ZOMBIEDEN)
+//				return true;
+//		}
+//		return false;
+//	}
 
 	private static boolean tryMoveToEngageEnemyAtLocationInOneTurnWithMaxEnemyExposure(MapLocation loc,
 			int maxEnemyExposure, RobotInfo[] enemies) throws GameActionException {
@@ -405,36 +405,36 @@ public class Harass extends Bot {
 		return false;
 	}
 
-	private static void shadowArchon(RobotInfo enemyToShadow, RobotInfo[] enemies) throws GameActionException {
-		Direction toEnemy = here.directionTo(enemyToShadow.location);
-		Direction[] dirs = new Direction[] { toEnemy, toEnemy.rotateRight(), toEnemy.rotateLeft(),
-				toEnemy.rotateRight().rotateRight(), toEnemy.rotateLeft().rotateLeft() };
-		for (Direction dir : dirs) {
-			if (!rc.canMove(dir))
-				continue;
-
-			MapLocation loc = here.add(dir);
-
-			boolean locIsSafe = true;
-
-			for (RobotInfo enemy : enemies) {
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
-						&& enemy.type != RobotType.ARCHON) {
-					locIsSafe = false;
-					break;
-				}
-			}
-
-			if (locIsSafe) {
-				rc.move(dir);
-				break;
-			}
-		}
-
-		if (rc.isCoreReady()) {
-			Util.checkRubbleAndClear(toEnemy, true);
-		}
-	}
+//	private static void shadowArchon(RobotInfo enemyToShadow, RobotInfo[] enemies) throws GameActionException {
+//		Direction toEnemy = here.directionTo(enemyToShadow.location);
+//		Direction[] dirs = new Direction[] { toEnemy, toEnemy.rotateRight(), toEnemy.rotateLeft(),
+//				toEnemy.rotateRight().rotateRight(), toEnemy.rotateLeft().rotateLeft() };
+//		for (Direction dir : dirs) {
+//			if (!rc.canMove(dir))
+//				continue;
+//
+//			MapLocation loc = here.add(dir);
+//
+//			boolean locIsSafe = true;
+//
+//			for (RobotInfo enemy : enemies) {
+//				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)
+//						&& enemy.type != RobotType.ARCHON) {
+//					locIsSafe = false;
+//					break;
+//				}
+//			}
+//
+//			if (locIsSafe) {
+//				rc.move(dir);
+//				break;
+//			}
+//		}
+//
+//		if (rc.isCoreReady()) {
+//			Util.checkRubbleAndClear(toEnemy, true);
+//		}
+//	}
 
 	private static int numEnemiesAttackingLocation(MapLocation loc, RobotInfo[] enemies) {
 		int ret = 0;
@@ -456,17 +456,17 @@ public class Harass extends Bot {
 		return ret;
 	}
 
-	private static boolean isHarasser(RobotType rt) {
-		switch (rt) {
-		case SOLDIER:
-		case VIPER:
-		case GUARD:
-			return true;
-
-		default:
-			return false;
-		}
-	}
+//	private static boolean isHarasser(RobotType rt) {
+//		switch (rt) {
+//		case SOLDIER:
+//		case VIPER:
+//		case GUARD:
+//			return true;
+//
+//		default:
+//			return false;
+//		}
+//	}
 
 	public static void updateTargetLocWithoutSignals() throws GameActionException {
 		/*if (type == RobotType.VIPER) {
@@ -516,53 +516,53 @@ public class Harass extends Bot {
 		}
 	}
 
-	private static void updateViperTargetLocWithoutSignals() {
-		if (targetLoc == null){
-			targetLoc = turretLoc;
-		}
-		if (targetLoc == null) {
-			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
-			do {
-				int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
-				if (locIndex == -1){
-					targetLoc = null;
-					break;
-				}
-				targetLoc = enemyArchonLocations[locIndex];
-				enemyArchonLocations[locIndex] = null;
-			} while (here.distanceSquaredTo(targetLoc) < 5);
-		}
-	}
+//	private static void updateViperTargetLocWithoutSignals() {
+//		if (targetLoc == null){
+//			targetLoc = turretLoc;
+//		}
+//		if (targetLoc == null) {
+//			MapLocation[] enemyArchonLocations = initialEnemyArchonLocs;
+//			do {
+//				int locIndex = Util.closestLocation(enemyArchonLocations, here, enemyArchonLocations.length);
+//				if (locIndex == -1){
+//					targetLoc = null;
+//					break;
+//				}
+//				targetLoc = enemyArchonLocations[locIndex];
+//				enemyArchonLocations[locIndex] = null;
+//			} while (here.distanceSquaredTo(targetLoc) < 5);
+//		}
+//	}
 
-	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
-		RobotInfo closestEnemy = Util.closest(enemies, here);
-		if (closestEnemy != null
-				&& here.distanceSquaredTo(closestEnemy.location) < closestEnemy.type.attackRadiusSquared)
-			return true;
-		return false;
-	}
+//	private static boolean nearEnemies(RobotInfo[] enemies, MapLocation here) {
+//		RobotInfo closestEnemy = Util.closest(enemies, here);
+//		if (closestEnemy != null
+//				&& here.distanceSquaredTo(closestEnemy.location) < closestEnemy.type.attackRadiusSquared)
+//			return true;
+//		return false;
+//	}
 
-	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
-		RobotInfo closestEnemy = Util.closest(enemies, here);
-		int range = closestEnemy.type.attackRadiusSquared - here.distanceSquaredTo(closestEnemy.location);
-		if (range > -1)
-			return true;
-		return false;
-	}
+//	private static boolean couldMoveOut(RobotInfo[] enemies, MapLocation here) {
+//		RobotInfo closestEnemy = Util.closest(enemies, here);
+//		int range = closestEnemy.type.attackRadiusSquared - here.distanceSquaredTo(closestEnemy.location);
+//		if (range > -1)
+//			return true;
+//		return false;
+//	}
 
-	private static boolean updateArchonLoc() {
-		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
-		for (RobotInfo ally : allies) {
-			if (ally.type == RobotType.ARCHON) {
-				archonLoc = ally.location;
-				archonUpdate = rc.getRoundNum();
-				return true;
-			}
-		}
-		if(rc.getRoundNum() - archonUpdate > 50)
-			archonLoc = null;
-		return false;
-	}
+//	private static boolean updateArchonLoc() {
+//		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+//		for (RobotInfo ally : allies) {
+//			if (ally.type == RobotType.ARCHON) {
+//				archonLoc = ally.location;
+//				archonUpdate = rc.getRoundNum();
+//				return true;
+//			}
+//		}
+//		if(rc.getRoundNum() - archonUpdate > 50)
+//			archonLoc = null;
+//		return false;
+//	}
 
 	private static void attackIfReady(MapLocation loc) throws GameActionException {
 		if (rc.isWeaponReady()) {
@@ -570,93 +570,92 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static boolean updateTurretStuff(RobotInfo[] enemies) throws GameActionException {
-		// then set turretTarget to closest one
-		turretLoc = null;
-		for(RobotInfo enemy:enemies){
-			if(enemy.type == RobotType.ARCHON){
-				turretLoc = enemy.location;
-				return true;
-			}
-		}
-		for (RobotInfo e : enemies)
-			if (e.type == RobotType.TURRET)
-				if(!isLocationInTurretArray(e.location)){
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-				}
-		if (turretSize > 0) {
-			int min = 999999;
-			int dist;
-			MapLocation t;
-			for (int i = 0; i < turretSize; i++) {
-				t = enemyTurrets[i].location;
-				if (rc.canSenseLocation(t)) {
-					RobotInfo bot = rc.senseRobotAtLocation(t);
-					if (bot == null || bot.type != RobotType.TURRET) {
-						removeLocFromTurretArray(t);
-						if(t.equals(targetLoc)) targetLoc = null;
-						i--;
-						continue;
-					}
-				}
-				dist = here.distanceSquaredTo(t);
-				if (dist < min) {
-					turretLoc = t;
-					min = dist;
-				}
-			}
-			return true;
-		}
-		return false;
-	}
+//	public static boolean updateTurretStuff(RobotInfo[] enemies) throws GameActionException {
+//		// then set turretTarget to closest one
+//		turretLoc = null;
+//		for(RobotInfo enemy:enemies){
+//			if(enemy.type == RobotType.ARCHON){
+//				turretLoc = enemy.location;
+//				return true;
+//			}
+//		}
+//		for (RobotInfo e : enemies)
+//			if (e.type == RobotType.TURRET)
+//				if(!isLocationInTurretArray(e.location)){
+//					enemyTurrets[turretSize] = e;
+//					turretSize++;
+//				}
+//		if (turretSize > 0) {
+//			int min = 999999;
+//			int dist;
+//			MapLocation t;
+//			for (int i = 0; i < turretSize; i++) {
+//				t = enemyTurrets[i].location;
+//				if (rc.canSenseLocation(t)) {
+//					RobotInfo bot = rc.senseRobotAtLocation(t);
+//					if (bot == null || bot.type != RobotType.TURRET) {
+//						removeLocFromTurretArray(t);
+//						if(t.equals(targetLoc)) targetLoc = null;
+//						i--;
+//						continue;
+//					}
+//				}
+//				dist = here.distanceSquaredTo(t);
+//				if (dist < min) {
+//					turretLoc = t;
+//					min = dist;
+//				}
+//			}
+//			return true;
+//		}
+//		return false;
+//	}
 
-	public static void crunch(RobotInfo[] enemies,RobotInfo[] allies) throws GameActionException {
-		if (turretLoc != null && rc.isCoreReady()) {
-			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(new RobotInfo[0]);
-			Nav.goTo(turretLoc, theSafety);
-		}
-		if (rc.isWeaponReady()) {
-			crunchShoot(rc.senseNearbyRobots(type.sensorRadiusSquared,them),allies);
-			return;
-		}
-	}
+//	public static void crunch(RobotInfo[] enemies,RobotInfo[] allies) throws GameActionException {
+//		if (turretLoc != null && rc.isCoreReady()) {
+//			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(new RobotInfo[0]);
+//			Nav.goTo(turretLoc, theSafety);
+//		}
+//		if (rc.isWeaponReady()) {
+//			crunchShoot(rc.senseNearbyRobots(type.sensorRadiusSquared,them),allies);
+//			return;
+//		}
+//	}
 
-	public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws GameActionException{
-		RobotInfo bestTarget = null;
-		double bestTargetingMetric = 0;
-		for (RobotInfo enemy : enemies) {
-			if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
-				double targetingMetric = allies.length/ 3 / enemy.health
-						//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
-						+  enemy.attackPower/300
-						+  enemy.type.attackRadiusSquared/2000
-						-  enemy.type.movementDelay/300;
-						//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
-				if (targetingMetric > bestTargetingMetric) {
-					bestTargetingMetric = targetingMetric;
-					bestTarget = enemy;
-				}
-			}
-		}
-		if(bestTarget!=null && rc.isWeaponReady()){
-			rc.attackLocation(bestTarget.location);
-		}
-	}
+//	public static void crunchShoot(RobotInfo [] enemies,RobotInfo[] allies) throws GameActionException{
+//		RobotInfo bestTarget = null;
+//		double bestTargetingMetric = 0;
+//		for (RobotInfo enemy : enemies) {
+//			if (type.attackRadiusSquared >= here.distanceSquaredTo(enemy.location)) {
+//				double targetingMetric = allies.length/ 3 / enemy.health
+//						//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
+//						+  enemy.attackPower/300
+//						+  enemy.type.attackRadiusSquared/2000
+//						-  enemy.type.movementDelay/300;
+//						//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE)?50:0);// shoot non-infected first if viper
+//				if (targetingMetric > bestTargetingMetric) {
+//					bestTargetingMetric = targetingMetric;
+//					bestTarget = enemy;
+//				}
+//			}
+//		}
+//		if(bestTarget!=null && rc.isWeaponReady()){
+//			rc.attackLocation(bestTarget.location);
+//		}
+//	}
 	
-	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
-		//rc.setIndicatorString(2, "staying out of range");
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-				Util.combineTwoRIArrays(enemyTurrets, turretSize, enemies));
-		if (here.distanceSquaredTo(turretLoc) < 64) {
-			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-		} else {
-			Nav.goTo(turretLoc, theSafety);
-		}
-	}
+//	public static void stayOutOfRange(RobotInfo[] enemies) throws GameActionException {
+//		//rc.setIndicatorString(2, "staying out of range");
+//		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
+//		if (here.distanceSquaredTo(turretLoc) < 64) {
+//			Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+//		} else {
+//			Nav.goTo(turretLoc, theSafety);
+//		}
+//	}
 
 	public static void updateInfoFromSignals(Signal[] signals) throws GameActionException{
-		prepTargetLoc();
+		//prepTargetLoc();
 		boolean isCreationTurn = rc.getRoundNum() == turnCreated;
 		for(Signal signal: signals){
 			if(signal.getTeam() == us){
@@ -846,19 +845,19 @@ public class Harass extends Bot {
 		}
 	}
 
-	public static void prepTargetLoc() {
-		updateArchonLoc();
-		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
-			 && !swarmingArchon) {
-			targetLoc = null;
-			huntingDen = false;
-			if (numDensToHunt > 0){// && type != RobotType.VIPER) {
-				huntingDen = true;
-				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-				targetLoc = targetDens[bestIndex];
-			}
-		}
-	}
+//	public static void prepTargetLoc() {
+//		updateArchonLoc();
+//		if (!huntingDen && targetLoc != null && here.distanceSquaredTo(targetLoc) < 5
+//			 && !swarmingArchon) {
+//			targetLoc = null;
+//			huntingDen = false;
+//			if (numDensToHunt > 0){// && type != RobotType.VIPER) {
+//				huntingDen = true;
+//				bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+//				targetLoc = targetDens[bestIndex];
+//			}
+//		}
+//	}
 
 	public static void doHarass() throws GameActionException {
 		wantToMove = true;

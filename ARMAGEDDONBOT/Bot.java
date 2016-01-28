@@ -97,8 +97,7 @@ public class Bot {
 //		return updated;
 //	}
 //	
-	//AARON_IDENTIFIER someone make methods to do this stuff for dens :P
-	
+//AARON_IDENTIFIER someone make methods to do this stuff for dens :P
 //	public static boolean removeLocFromTurretArray(MapLocation loc) {
 //		for(int i = 0 ; i < turretSize; i++){
 //			if( enemyTurrets[i].location.equals(loc)){

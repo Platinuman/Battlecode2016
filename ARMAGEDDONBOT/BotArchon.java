@@ -219,7 +219,7 @@ public class BotArchon extends Bot {
 //				return;
 //			}
 //		}
-		if (targetLocation != null && (targetLocation.equals(here) || !Combat.isSafe(targetLocation))){
+		if (targetLocation != null &&targetLocation.equals(here)){
 			targetLocation = null;
 			targetIsNeutral = false;
 		}
@@ -279,92 +279,92 @@ public class BotArchon extends Bot {
 		}
 	}
 
-	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { //AARON_IDENTIFIER make this work with multiple locations
-		Signal[] signals = rc.emptySignalQueue();
-		//updateTurretList(signals, enemies);
-		for (Signal signal : signals) {
-			if (signal.getTeam() == us) {
-				int[] message = signal.getMessage();
-				if (message != null) {
-					MapLocation senderLoc = signal.getLocation();
-					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
-					if (purpose == MessageEncode.DEN_NOTIF) {
-						int[] data = purpose.decode(senderLoc, message);
-						MapLocation denLoc = new MapLocation(data[0], data[1]);
-						if(data[2] == 1){
-							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-								targetDens[targetDenSize] = denLoc;
-								targetDenSize++;
-								numDensToHunt++;
-							}
-						} else {
-							if(!Util.containsMapLocation(killedDens, denLoc, targetDenSize)){
-								killedDens[killedDenSize] = targetDens[bestIndex];
-								killedDenSize++;
-							}
-							if(Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
-								targetDens[bestIndex] = null;
-								numDensToHunt--;
-							}
-						}
-						/*
-						 * int[] data = purpose.decode(senderloc, message);
-						 * if(rc.getRoundNum() < roundToStopHuntingDens &&
-						 * numDensToHunt > 0){ densToHunt[denArraySize] = new
-						 * MapLocation(data[0],data[1]); numDensToHunt++;
-						 * denArraySize++; } else{ if(rc.getRoundNum() <
-						 * roundToStopHuntingDens){ huntingDen = true;
-						 * numDensToHunt++; targetLocation = new
-						 * MapLocation(data[0],data[1]);
-						 * broadcastTargetLocation(allies); } else
-						 * if(!huntingDen){ targetLocation = new
-						 * MapLocation(data[0],data[1]);
-						 * broadcastTargetLocation(allies); } } } else if
-						 * (purpose == MessageEncode.STOP_BEING_MOBILE){ int[]
-						 * data = purpose.decode(senderloc, message); alpha =
-						 * new MapLocation(data[0],data[1]); isMobileArchon =
-						 * false;
-						 */
-					} else if (purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF) {
-						int[] data = purpose.decode(senderLoc, message);
-						MapLocation targetLoc = new MapLocation(data[0], data[1]);
-						if (targetLocation == null || data[2] == 1 || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
-							targetLocation = targetLoc;
-							targetIsNeutral = false;
-						}
-					}
-//					else if (purpose == MessageEncode.CRUNCH_TIME){
+//	private static void updateInfoFromScouts(RobotInfo[] enemies) throws GameActionException { // make this work with multiple locations
+//		Signal[] signals = rc.emptySignalQueue();
+//		//updateTurretList(signals, enemies);
+//		for (Signal signal : signals) {
+//			if (signal.getTeam() == us) {
+//				int[] message = signal.getMessage();
+//				if (message != null) {
+//					MapLocation senderLoc = signal.getLocation();
+//					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+//					if (purpose == MessageEncode.DEN_NOTIF) {
 //						int[] data = purpose.decode(senderLoc, message);
-//						if(data[2] > 3){
-//							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
-//							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
-//							runAwayRound = rc.getRoundNum();
+//						MapLocation denLoc = new MapLocation(data[0], data[1]);
+//						if(data[2] == 1){
+//							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
+//									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+//								targetDens[targetDenSize] = denLoc;
+//								targetDenSize++;
+//								numDensToHunt++;
+//							}
+//						} else {
+//							if(!Util.containsMapLocation(killedDens, denLoc, targetDenSize)){
+//								killedDens[killedDenSize] = targetDens[bestIndex];
+//								killedDenSize++;
+//							}
+//							if(Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+//								targetDens[bestIndex] = null;
+//								numDensToHunt--;
+//							}
+//						}
+//						/*
+//						 * int[] data = purpose.decode(senderloc, message);
+//						 * if(rc.getRoundNum() < roundToStopHuntingDens &&
+//						 * numDensToHunt > 0){ densToHunt[denArraySize] = new
+//						 * MapLocation(data[0],data[1]); numDensToHunt++;
+//						 * denArraySize++; } else{ if(rc.getRoundNum() <
+//						 * roundToStopHuntingDens){ huntingDen = true;
+//						 * numDensToHunt++; targetLocation = new
+//						 * MapLocation(data[0],data[1]);
+//						 * broadcastTargetLocation(allies); } else
+//						 * if(!huntingDen){ targetLocation = new
+//						 * MapLocation(data[0],data[1]);
+//						 * broadcastTargetLocation(allies); } } } else if
+//						 * (purpose == MessageEncode.STOP_BEING_MOBILE){ int[]
+//						 * data = purpose.decode(senderloc, message); alpha =
+//						 * new MapLocation(data[0],data[1]); isMobileArchon =
+//						 * false;
+//						 */
+//					} else if (purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF) {
+//						int[] data = purpose.decode(senderLoc, message);
+//						MapLocation targetLoc = new MapLocation(data[0], data[1]);
+//						if (targetLocation == null || data[2] == 1 || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
+//							targetLocation = targetLoc;
+//							targetIsNeutral = false;
 //						}
 //					}
-//					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
-//						int[] data = purpose.decode(senderLoc, message);
-//						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-//						if(lastEnemyLoc == null || here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
-//							lastEnemyRound = rc.getRoundNum();
-//							lastEnemyLoc = enemyLoc;
-//						}
+////					else if (purpose == MessageEncode.CRUNCH_TIME){
+////						int[] data = purpose.decode(senderLoc, message);
+////						if(data[2] > 3){
+////							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
+////							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
+////							runAwayRound = rc.getRoundNum();
+////						}
+////					}
+////					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
+////						int[] data = purpose.decode(senderLoc, message);
+////						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+////						if(lastEnemyLoc == null || here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
+////							lastEnemyRound = rc.getRoundNum();
+////							lastEnemyLoc = enemyLoc;
+////						}
+////					}
+//				} else {// make this remove it from the array
+//					MapLocation signalLoc = signal.getLocation();
+//					int distToSignal = here.distanceSquaredTo(signalLoc);
+//					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+//					if (closestIndex != -1 && targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
+//						//rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+//						killedDens[killedDenSize] = targetDens[closestIndex];
+//						killedDenSize++;
+//						targetDens[closestIndex] = null;
+//						numDensToHunt--;
 //					}
-				} else {//AARON_IDENTIFIER make this remove it from the array
-					MapLocation signalLoc = signal.getLocation();
-					int distToSignal = here.distanceSquaredTo(signalLoc);
-					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-					if (closestIndex != -1 && targetDens[closestIndex].distanceSquaredTo(signalLoc) <= RobotType.SOLDIER.sensorRadiusSquared) {
-						//rc.setIndicatorString(1, "not gonig for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
-						killedDens[killedDenSize] = targetDens[closestIndex];
-						killedDenSize++;
-						targetDens[closestIndex] = null;
-						numDensToHunt--;
-					}
-				}
-			}
-		}
-	}
+//				}
+//			}
+//		}
+//	}
 	
 //	public static boolean updateTurretList(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 //		boolean updated = Bot.updateTurretList(signals);
