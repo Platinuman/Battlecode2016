@@ -149,7 +149,6 @@ public class Harass extends Bot {
 //			if(enemiesWithoutZombies.length > 0)
 //				Nav.goTo(Util.closest(enemiesWithoutZombies, here).location, new SafetyPolicyAvoidAllUnits(new RobotInfo[]{}));
 //		}
-
 		if (numEnemiesAttackingUs > 0) {
 			// we are in combat
 			if (numEnemiesAttackingUs == 1) {
@@ -167,7 +166,7 @@ public class Harass extends Bot {
 							tryToRetreat(enemiesInSight);
 					} else {
 						// check if we actually have some allied support. if so, we can keep fighting
-						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > 0) {
+						if (numOtherAlliesInAttackRange(loneAttacker.location, allies) > (loneAttacker.type == RobotType.BIGZOMBIE?5:0)) {
 							// an ally is helping us, so keep fighting the lone enemy
 							//rc.setIndicatorString(1, "can't win 1v1 but have " + allies.length + " allied support");
 							// TODO: archon test shooting zombies first instead (comment out two lines below)

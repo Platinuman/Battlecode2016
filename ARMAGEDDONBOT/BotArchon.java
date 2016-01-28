@@ -11,7 +11,7 @@ public class BotArchon extends Bot {
 	//static int maxRange;//dont use currently
 	static int numScoutsCreated = 0;
 	//static int numVipersCreated = 0;
-	static int numSoldiersCreated = 0;
+	static int numSoldiersCreated = 0;// , numTurretsCreated = 1; // so we build soldiers first
 	//static int numGuardsCreated = 0;
 	//static int lastEnemyRound;
 	static boolean targetIsNeutral;//false if chasing neutral
@@ -204,6 +204,8 @@ public class BotArchon extends Bot {
 			typeToBuild = RobotType.SCOUT;
 		//else if((numVipersCreated) * (MapAnalysis.mapDifficulty == 0 ?7:10)  <= numSoldiersCreated )//optimize with MapAnalysis and Team Memory
 		//	typeToBuild = RobotType.VIPER;
+//		else if(numTurretsCreated *15 <= numSoldiersCreated)
+//			typeToBuild = RobotType.TURRET;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}
@@ -411,7 +413,7 @@ public class BotArchon extends Bot {
 		for(int j = 0; j < targetDenSize; j++){
 			if(targetDens[j] == null)
 				continue;
-			if(rc.getMessageSignalCount() == 20)
+			if(rc.getMessageSignalCount() == 19)
 				break;
 			t = targetDens[j];
 			dens[(i%3)*2] = t.x;
@@ -425,8 +427,10 @@ public class BotArchon extends Bot {
 			i++;
 		}
 		//send the extras
-		myMsg = MessageEncode.RELAY_DEN_INFO.encode(dens);
-		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+		//if ((i-1) % 3 != 2){ // adding this check should increase efficiency , but it added 40 rounds instead wtf?
+			myMsg = MessageEncode.RELAY_DEN_INFO.encode(dens);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+		//}
 	}
 
 	// private static MapLocation chooseNextTarget(RobotInfo[] allies,
@@ -549,12 +553,15 @@ public class BotArchon extends Bot {
 //		case VIPER:
 //			numVipersCreated++;
 //			break;
+//		case TURRET:
+//			numTurretsCreated++;
+//			break;
 		default:
 			break;
 		}
 	}
 
-	private static void sendNewUnitImportantData() throws GameActionException {// New																			// Util
+	private static void sendNewUnitImportantData() throws GameActionException {
 		//int[] myMsg;
 		//if(alpha != null){
 		//	myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
