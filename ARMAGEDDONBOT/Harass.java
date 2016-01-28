@@ -477,14 +477,11 @@ public class Harass extends Bot {
 //			targetLoc = archonLoc;
 //			return;
 //		}
-		if(targetLoc == null){
-			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
-			for (RobotInfo zombie : zombies) {
-				if (zombie.type == RobotType.ZOMBIEDEN) {
-					targetLoc = zombie.location;
-				}
-			}
+		if(huntingDen){
+			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+			targetLoc = targetDens[bestIndex];
 		}
+		
 //		if(targetLoc == null){
 //			//targetLoc = archonLoc;
 //			/swarmingArchon = true;
