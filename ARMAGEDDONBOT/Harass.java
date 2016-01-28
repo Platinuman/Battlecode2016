@@ -664,7 +664,7 @@ public class Harass extends Bot {
 				if (message != null) {
 					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
 					int[] data;
-					MapLocation senderloc, loc;
+					MapLocation senderLoc, loc;
 					switch(purpose){
 					case BE_MY_GUARD:
 						if(isCreationTurn){
@@ -690,11 +690,11 @@ public class Harass extends Bot {
 						break;
 					case RELAY_DEN_INFO:
 						if(isCreationTurn) {
-							senderloc = signal.getLocation();
-							data = purpose.decode(senderloc, message);
+							senderLoc = signal.getLocation();
+							data = purpose.decode(senderLoc, message);
 							for(int i = 0; i< data.length; i +=2){
 								loc = new MapLocation(data[i], data[i+1]);
-								if(loc.equals(senderloc)){
+								if(loc.equals(senderLoc)){
 									break;
 								}
 								targetDens[targetDenSize]= loc;
@@ -709,8 +709,8 @@ public class Harass extends Bot {
 //						if(loc.equals(targetLoc)) targetLoc = null;
 //						break;
 //					case WARN_ABOUT_TURRETS:
-//						senderloc = signal.getLocation();
-//						data = purpose.decode(senderloc, message);
+//						senderLoc = signal.getLocation();
+//						data = purpose.decode(senderLoc, message);
 //						loc = new MapLocation(data[0], data[1]);
 //						if(!isLocationInTurretArray(loc)){
 //							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
@@ -719,11 +719,11 @@ public class Harass extends Bot {
 //						break;
 //					case RELAY_TURRET_INFO:
 //						if(rc.getRoundNum()-turnCreated > 10) break;
-//						senderloc = signal.getLocation();
-//						data = purpose.decode(senderloc, message);
+//						senderLoc = signal.getLocation();
+//						data = purpose.decode(senderLoc, message);
 //						for(int i = 0; i< data.length; i +=2){
 //							loc = new MapLocation(data[i], data[i+1]);
-//							if(loc.equals(senderloc)){
+//							if(loc.equals(senderLoc)){
 //								break;
 //							}
 //							if(!isLocationInTurretArray(loc)){
@@ -741,8 +741,8 @@ public class Harass extends Bot {
 //						break;
 					case DEN_NOTIF:
 						//if(type == RobotType.VIPER) break;
-						senderloc = signal.getLocation();
-						data = purpose.decode(senderloc, message);
+						senderLoc = signal.getLocation();
+						data = purpose.decode(senderLoc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(data[2] == 1){
 							//System.out.println("got a den notif");
@@ -785,8 +785,8 @@ public class Harass extends Bot {
 						break;
 //					case ENEMY_ARMY_NOTIF:
 //						if(type == RobotType.SOLDIER && huntingDen) break;
-//						senderloc = signal.getLocation();
-//						data = purpose.decode(senderloc, message);
+//						senderLoc = signal.getLocation();
+//						data = purpose.decode(senderLoc, message);
 //						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
 //						if (swarmingArchon && !isGuard || targetLoc == null
 //								|| (double) here.distanceSquaredTo(enemyLoc) < 1.5 * (here.distanceSquaredTo(targetLoc))) {
@@ -796,8 +796,8 @@ public class Harass extends Bot {
 //						break;
 					case PART_OR_NEUTRAL_NOTIF:
 						if(type != RobotType.ARCHON) break;
-						senderloc = signal.getLocation();
-						data = purpose.decode(senderloc, message);
+						senderLoc = signal.getLocation();
+						data = purpose.decode(senderLoc, message);
 						loc = new MapLocation(data[0], data[1]);
 						if (targetLoc == null || data[2] == 1 || here.distanceSquaredTo(targetLoc) > here.distanceSquaredTo(loc)) {
 							targetLoc = loc;
@@ -854,6 +854,15 @@ public class Harass extends Bot {
 				//				}
 			}
 		}
+		String dens = "";
+		if(targetDenSize > 0){
+			for(int i = 0; i < targetDenSize; i++){
+				MapLocation den = targetDens[i];
+				if(den != null)
+					dens += den.toString() + ", ";
+			}
+		}
+		rc.setIndicatorString(0, dens);
 	}
 
 //	public static void prepTargetLoc() {
