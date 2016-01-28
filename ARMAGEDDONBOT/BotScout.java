@@ -78,7 +78,7 @@ public class BotScout extends Bot {
 			//RobotInfo[] hostiles = Util.removeHarmlessUnits();
 			RobotInfo[] neutrals = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.NEUTRAL);
 			patience--;
-			//boolean turretsUpdated = updateTurretListAndDens(rc.emptySignalQueue(), enemies, Util.getUnitsOfType(allies, RobotType.SCOUT) != null);
+			updateTurretListAndDens(rc.emptySignalQueue(), zombies);
 			updateProgress();
 			//if(circlingLoc != null){
 			//	rc.setIndicatorString(0, circlingLoc.toString());
@@ -149,7 +149,7 @@ public class BotScout extends Bot {
 	 * they can see any turrets that haven't been seen before -notify units of
 	 * turrets that are no longer there
 	 */
-	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies, boolean seeScout) throws GameActionException {
+	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = false;
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
@@ -159,90 +159,118 @@ public class BotScout extends Bot {
 					int[] data;
 					MapLocation senderloc, loc;
 					switch(purpose){
-					case ENEMY_TURRET_DEATH:
-						data = purpose.decode(signal.getLocation(), message);
-						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
-						updated = true;
-						break;
-					case WARN_ABOUT_TURRETS:
-						senderloc = signal.getLocation();
-						data = purpose.decode(senderloc, message);
-						loc = new MapLocation(data[0], data[1]);
-						if(!isLocationInTurretArray(loc)){
-							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
-							turretSize++;
-						}
-						updated = true;
-						break;
-					case RELAY_TURRET_INFO:
-						senderloc = signal.getLocation();
-						data = purpose.decode(senderloc, message);
-						for(int i = 0; i< data.length; i +=2){
-							loc = new MapLocation(data[i], data[i+1]);
-							if(loc.equals(senderloc)){
-								break;
-							}
-							if(!isLocationInTurretArray(loc)){
-								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
-								turretSize++;
-							}
-						}
-						updated = true;
-						break;
+//					case ENEMY_TURRET_DEATH:
+//						data = purpose.decode(signal.getLocation(), message);
+//						removeLocFromTurretArray(new MapLocation(data[0],data[1]));
+//						updated = true;
+//						break;
+//					case WARN_ABOUT_TURRETS:
+//						senderloc = signal.getLocation();
+//						data = purpose.decode(senderloc, message);
+//						loc = new MapLocation(data[0], data[1]);
+//						if(!isLocationInTurretArray(loc)){
+//							enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+//							turretSize++;
+//						}
+//						updated = true;
+//						break;
+//					case RELAY_TURRET_INFO:
+//						senderloc = signal.getLocation();
+//						data = purpose.decode(senderloc, message);
+//						for(int i = 0; i< data.length; i +=2){
+//							loc = new MapLocation(data[i], data[i+1]);
+//							if(loc.equals(senderloc)){
+//								break;
+//							}
+//							if(!isLocationInTurretArray(loc)){
+//								enemyTurrets[turretSize]= new RobotInfo(0, them, RobotType.TURRET, loc,0,0,0,0,0,0,0);
+//								turretSize++;
+//							}
+//						}
+//						updated = true;
+//						break;
 					case DEN_NOTIF:
 						senderloc = signal.getLocation();
 						data = purpose.decode(senderloc, message);
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(data[2] == 1){
-							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+									//&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
 								targetDens[targetDenSize] = denLoc;
 								targetDenSize++;
 								numDensToHunt++;
 							}
-						} else if (!Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
-							//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
-							killedDens[killedDenSize] = denLoc;
-							killedDenSize++;
-							numDensToHunt--;
+						} else {
+							int deadDenIndex = Util.indexOfLocation(targetDens, targetDenSize, denLoc);
+							if(deadDenIndex != -1){
+								//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+								//killedDens[killedDenSize] = denLoc;
+								//killedDenSize++;
+								targetDens[deadDenIndex] = null;
+								numDensToHunt--;
+							}
 						}
 						break;
 					default:
+					}
+				} else { // our team, no message
+					MapLocation signalLoc = signal.getLocation();
+					//int distToSignal = here.distanceSquaredTo(signalLoc);
+					// if (type.sensorRadiusSquared *
+					// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
+					// && (targetLoc == null || distToSignal <
+					// here.distanceSquaredTo(targetLoc))) {// call
+					// // for
+					// // help
+					// targetLoc = signalLoc;
+					// huntingDen = false;
+					// return true;
+					// } else {// if a den has been killed don't go for it
+					// anymore
+					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+					//boolean wasAboutDen = closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared;
+					if (closestIndex != -1 ){//&& type != RobotType.VIPER){
+						//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
+						MapLocation killedDen = targetDens[closestIndex];
+						targetDens[closestIndex] = null;
+						//killedDens[killedDenSize] = killedDen;
+						//killedDenSize++;
+						numDensToHunt--;
 					}
 				}
 			}
 		}
 
-		for (int i = 0; i < turretSize; i++) {
-			MapLocation t = enemyTurrets[i].location;
-			if (rc.canSenseLocation(t)) {
-				RobotInfo bot = rc.senseRobotAtLocation(t);
-				if (bot == null || bot.type != RobotType.TURRET) {
-					removeLocFromTurretArray(t);
-					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
-							new int[] { t.x, t.y });
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					i--;
-					updated = true;
-				} else if (!seeScout && bot.location.distanceSquaredTo(here) < 82)
-					circlingLoc = bot.location;
-			}
-		}
-		for (RobotInfo e : enemies)
-			if (e.type == RobotType.TURRET) {
-				if (circlingLoc == null) {
-					circlingLoc = e.location;
-				}
-				if (!isLocationInTurretArray(e.location)) {
-					enemyTurrets[turretSize] = e;
-					turretSize++;
-					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
-					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
-					updated = true;
-				}
-			}
-		if (turretSize == 0)
-			circlingLoc = null;
+//		for (int i = 0; i < turretSize; i++) {
+//			MapLocation t = enemyTurrets[i].location;
+//			if (rc.canSenseLocation(t)) {
+//				RobotInfo bot = rc.senseRobotAtLocation(t);
+//				if (bot == null || bot.type != RobotType.TURRET) {
+//					removeLocFromTurretArray(t);
+//					int[] myMsg = MessageEncode.ENEMY_TURRET_DEATH.encode(
+//							new int[] { t.x, t.y });
+//					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+//					i--;
+//					updated = true;
+//				} else if (!seeScout && bot.location.distanceSquaredTo(here) < 82)
+//					circlingLoc = bot.location;
+//			}
+//		}
+//		for (RobotInfo e : enemies)
+//			if (e.type == RobotType.TURRET) {
+//				if (circlingLoc == null) {
+//					circlingLoc = e.location;
+//				}
+//				if (!isLocationInTurretArray(e.location)) {
+//					enemyTurrets[turretSize] = e;
+//					turretSize++;
+//					int[] myMsg = MessageEncode.WARN_ABOUT_TURRETS.encode(new int[] { e.location.x, e.location.y});
+//					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+//					updated = true;
+//				}
+//			}
+//		if (turretSize == 0)
+//			circlingLoc = null;
 		return updated;
 	}
 
@@ -315,9 +343,9 @@ public class BotScout extends Bot {
 				int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { denLoc.x, denLoc.y, 0});
 				//System.out.println("dead den");
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
-				killedDens[killedDenSize] = denLoc;
+				//killedDens[killedDenSize] = denLoc;
 				targetDens[i] = null;
-				killedDenSize++;
+				//killedDenSize++;
 				numDensToHunt--;
 			}
 		}
