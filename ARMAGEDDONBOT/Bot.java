@@ -16,7 +16,7 @@ public class Bot {
 	//public static MapLocation[] killedDens;
 	//public static int killedDenSize;
 	public static MapLocation targetLoc;
-	public static int bestIndex; //AARON_IDENTIFIER do we need this? not sure, but we definitely use it in Harass
+	public static int bestIndex; //AARON_IDENTIFIER do we need this? yes. tracks where in the array the closest den is
 	public static int numDensToHunt;
 	public static int turnCreated; 
 	public static Direction directionIAmMoving; //AARON_IDENTIFIER do we need this? yes (scouts call nav methods which need to access it)

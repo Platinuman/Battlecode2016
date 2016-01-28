@@ -745,8 +745,8 @@ public class Harass extends Bot {
 						MapLocation denLoc = new MapLocation(data[0], data[1]);
 						if(data[2] == 1){
 							//System.out.println("got a den notif");
-							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)
-									&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+									//&& !Util.containsMapLocation(killedDens, denLoc, killedDenSize)) {
 								targetDens[targetDenSize] = denLoc;
 								targetDenSize++;
 								numDensToHunt++;
@@ -762,21 +762,21 @@ public class Harass extends Bot {
 						} else {
 							//System.out.println("got a den death notif");
 							//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
-							killedDens[killedDenSize] = denLoc;
-							killedDenSize++;
+							//killedDens[killedDenSize] = denLoc;
+							//killedDenSize++;
 							int deadDenIndex = Util.indexOfLocation(targetDens, targetDenSize, denLoc);
 							if(deadDenIndex != -1){
 								targetDens[deadDenIndex] = null;
 								numDensToHunt--;
 								if(huntingDen && targetLoc.equals(denLoc)){
-									//rc.setIndicatorString(0, "here"); 
-									huntingDen = false;
-									targetLoc = null;
+									//rc.setIndicatorString(0, "here");
 									if (numDensToHunt > 0) {
-										huntingDen = true;
 										swarmingArchon = false;
 										bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 										targetLoc = targetDens[bestIndex];
+									} else {
+										huntingDen = false;
+										targetLoc = null;
 									}
 								}
 							}
@@ -793,11 +793,21 @@ public class Harass extends Bot {
 //							swarmingArchon = false;
 //						}
 //						break;
+					case PART_OR_NEUTRAL_NOTIF:
+						if(type != RobotType.ARCHON) break;
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						loc = new MapLocation(data[0], data[1]);
+						if (targetLoc == null || data[2] == 1 || here.distanceSquaredTo(targetLoc) > here.distanceSquaredTo(loc)) {
+							targetLoc = loc;
+							BotArchon.targetIsNeutral = false;
+						}
+						break;
 					default:
 					}
 				} else { // our team, no message
 					MapLocation signalLoc = signal.getLocation();
-					int distToSignal = here.distanceSquaredTo(signalLoc);
+					//int distToSignal = here.distanceSquaredTo(signalLoc);
 					// if (type.sensorRadiusSquared *
 					// GameConstants.BROADCAST_RANGE_MULTIPLIER >= distToSignal
 					// && (targetLoc == null || distToSignal <
@@ -810,23 +820,23 @@ public class Harass extends Bot {
 					// } else {// if a den has been killed don't go for it
 					// anymore
 					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
-					boolean wasAboutDen = closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared;
-					if (wasAboutDen ){//&& type != RobotType.VIPER){
+					//boolean wasAboutDen = closestIndex != -1 && signalLoc.distanceSquaredTo(targetDens[closestIndex]) <= type.sensorRadiusSquared;
+					if (closestIndex != -1 ){//&& type != RobotType.VIPER){
 						//rc.setIndicatorString(0, "not going for den at loc " + targetDens[closestIndex] + " on round " + rc.getRoundNum());
 						MapLocation killedDen = targetDens[closestIndex];
 						targetDens[closestIndex] = null;
-						killedDens[killedDenSize] = killedDen;
-						killedDenSize++;
+						//killedDens[killedDenSize] = killedDen;
+						//killedDenSize++;
 						numDensToHunt--;
 						if(huntingDen && targetLoc.equals(killedDen)){
 							//rc.setIndicatorString(0, "here"); 
-							huntingDen = false;
-							targetLoc = null;
 							if (numDensToHunt > 0) {
-								huntingDen = true;
 								swarmingArchon = false;
 								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 								targetLoc = targetDens[bestIndex];
+							} else {
+								huntingDen = false;
+								targetLoc = null;
 							}
 						}
 					}

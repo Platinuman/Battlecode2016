@@ -15,7 +15,7 @@ public class BotArchon extends Bot {
 	//static int numGuardsCreated = 0;
 	//static int lastEnemyRound;
 	static boolean targetIsNeutral;//false if chasing neutral
-	static MapLocation targetLocation;// partsLoc, denLoc, neutralLoc;
+	//static MapLocation targetLoc;// partsLoc, denLoc, neutralLoc;
 	static RobotType typeToBuild;
 	//static int lastSeenHostile;
 	//static MapLocation lastEnemyLoc;
@@ -95,7 +95,7 @@ public class BotArchon extends Bot {
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
 		RobotInfo[] hostiles = rc.senseHostileRobots(here, -1);
-		updateInfoFromScouts(hostiles);
+		Harass.updateInfoFromSignals(rc.emptySignalQueue());
 		//String s = "";
 		//for(int i = 0; i < turretSize; i++){
 		//	s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
@@ -107,19 +107,19 @@ public class BotArchon extends Bot {
 		
 		if(typeToBuild == null)
 			determineTypeToBuild();
-		updateTargetLocationMySelf(hostiles);
-		if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLocation) > type.sensorRadiusSquared)) {
+		updatetargetLocationMySelf(hostiles);
+		if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared)) {
 				buildUnitInDir(here.directionTo(center), typeToBuild);
 			typeToBuild = null;
 			return;
 		}
-		updateAndMoveTowardTargetLocation(hostiles);
+		updateAndMoveTowardtargetLoc(hostiles);
 		// else if targetDen is not null move towards it
 		/*
 		 * if(targetDen != null){ updateAndMoveTowardTargetDen(); }
 		 */
 		// if nothing else to do move toward nearest neutral/[part
-		//updateAndMoveTowardTargetLocation(hostiles);
+		//updateAndMoveTowardtargetLoc(hostiles);
 		//RobotInfo[] enemies = rc.senseNearbyRobots(type.sensorRadiusSquared, them);
 //		if (rc.isCoreReady()) {
 //			if (isMobileArchon) {
@@ -139,7 +139,7 @@ public class BotArchon extends Bot {
 //		updateInfoFromScouts(hostiles);
 //		hostiles = Util.removeHarmlessUnits(hostiles);
 //		//rc.setIndicatorString(0, "targetIsNeutral " + targetIsNeutral);
-//		//rc.setIndicatorString(1,"target loc is " + targetLocation);
+//		//rc.setIndicatorString(1,"target loc is " + targetLoc);
 //		if (rc.isCoreReady()) {
 //			if (hostiles.length > 0){
 //				//rc.setIndicatorDot(here, 255, 0, 0);
@@ -174,8 +174,8 @@ public class BotArchon extends Bot {
 //			//rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
 //			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 //			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
-//			updateTargetLocationMySelf(allies);
-//			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLocation) > Integer.MAX_VALUE)) {
+//			updatetargetLocMySelf(allies);
+//			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > Integer.MAX_VALUE)) {
 //					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
 //				typeToBuild = null;
 //				return;
@@ -185,7 +185,7 @@ public class BotArchon extends Bot {
 //			 * if(targetDen != null){ updateAndMoveTowardTargetDen(); }
 //			 */
 //			// if nothing else to do move toward nearest neutral/[part
-//			updateAndMoveTowardTargetLocation(hostiles);
+//			updateAndMoveTowardtargetLoc(hostiles);
 //		}
 //	}
 
@@ -207,7 +207,7 @@ public class BotArchon extends Bot {
 //		//rc.setIndicatorString(1, "help me pls on round " + rc.getRoundNum());
 //	}
 
-	private static void updateAndMoveTowardTargetLocation(RobotInfo[] hostiles) throws GameActionException {
+	private static void updateAndMoveTowardtargetLoc(RobotInfo[] hostiles) throws GameActionException {
 		// TODO moves toward closest safe parts or neutral
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostiles);
 //		if(runAwayFromThisLoc != null){
@@ -219,18 +219,18 @@ public class BotArchon extends Bot {
 //				return;
 //			}
 //		}
-		if (targetLocation != null &&targetLocation.equals(here)){
-			targetLocation = null;
+		if (targetLoc != null &&targetLoc.equals(here)){
+			targetLoc = null;
 			targetIsNeutral = false;
 		}
 		/*
-		if (targetLocation == null || !Combat.isSafe(targetLocation)) {
-			updateTargetLocationMySelf(hostiles);
+		if (targetLoc == null || !Combat.isSafe(targetLoc)) {
+			updatetargetLocMySelf(hostiles);
 		}
 		*/
 			
-		if (targetLocation != null)
-			Nav.goTo(targetLocation, theSafety);
+		if (targetLoc != null)
+			Nav.goTo(targetLoc, theSafety);
 //		else{
 //			int bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 //			if(bestIndex != -1)
@@ -245,16 +245,16 @@ public class BotArchon extends Bot {
 		if (neutrals.length > 0) {
 			rc.activate(neutrals[0].location);
 			sendNewUnitImportantData();
-			if (targetLocation != null && neutrals[0].location.equals(targetLocation)) {
+			if (targetLoc != null && neutrals[0].location.equals(targetLoc)) {
 				targetIsNeutral = false;
-				targetLocation = null;
+				targetLoc = null;
 			}
 			activated = true;
 		}
-//		if (targetIsNeutral && targetLocation != null && rc.canSense(targetLocation)) {
-//			RobotInfo neutralRobot = rc.senseRobotAtLocation(targetLocation);
+//		if (targetIsNeutral && targetLoc != null && rc.canSense(targetLoc)) {
+//			RobotInfo neutralRobot = rc.senseRobotAtLocation(targetLoc);
 //			if (neutralRobot == null || neutralRobot.team != Team.NEUTRAL) {
-//				targetLocation = null;
+//				targetLoc = null;
 //				targetIsNeutral = false;
 //			}
 //		}
@@ -315,12 +315,12 @@ public class BotArchon extends Bot {
 //						 * MapLocation(data[0],data[1]); numDensToHunt++;
 //						 * denArraySize++; } else{ if(rc.getRoundNum() <
 //						 * roundToStopHuntingDens){ huntingDen = true;
-//						 * numDensToHunt++; targetLocation = new
+//						 * numDensToHunt++; targetLoc = new
 //						 * MapLocation(data[0],data[1]);
-//						 * broadcastTargetLocation(allies); } else
-//						 * if(!huntingDen){ targetLocation = new
+//						 * broadcasttargetLoc(allies); } else
+//						 * if(!huntingDen){ targetLoc = new
 //						 * MapLocation(data[0],data[1]);
-//						 * broadcastTargetLocation(allies); } } } else if
+//						 * broadcasttargetLoc(allies); } } } else if
 //						 * (purpose == MessageEncode.STOP_BEING_MOBILE){ int[]
 //						 * data = purpose.decode(senderloc, message); alpha =
 //						 * new MapLocation(data[0],data[1]); isMobileArchon =
@@ -329,8 +329,8 @@ public class BotArchon extends Bot {
 //					} else if (purpose == MessageEncode.PART_OR_NEUTRAL_NOTIF) {
 //						int[] data = purpose.decode(senderLoc, message);
 //						MapLocation targetLoc = new MapLocation(data[0], data[1]);
-//						if (targetLocation == null || data[2] == 1 || here.distanceSquaredTo(targetLocation) > here.distanceSquaredTo(targetLoc)) {
-//							targetLocation = targetLoc;
+//						if (targetLoc == null || data[2] == 1 || here.distanceSquaredTo(targetLoc) > here.distanceSquaredTo(targetLoc)) {
+//							targetLoc = targetLoc;
 //							targetIsNeutral = false;
 //						}
 //					}
@@ -442,7 +442,7 @@ public class BotArchon extends Bot {
 	// return closest;
 	// }
 
-	private static boolean updateTargetLocationMySelf() throws GameActionException { // NEW
+	private static boolean updatetargetLocMySelf() throws GameActionException { // NEW
 																										// Harass???
 		RobotInfo[] neutrals = rc.senseNearbyRobots(-1, Team.NEUTRAL);
 		
@@ -468,7 +468,7 @@ public class BotArchon extends Bot {
 			}
 		}
 		if (closestLoc != null) {
-			targetLocation = closestLoc;
+			targetLoc = closestLoc;
 			return true;
 		}
 		return false;
