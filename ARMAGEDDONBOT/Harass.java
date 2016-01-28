@@ -473,10 +473,10 @@ public class Harass extends Bot {
 			updateViperTargetLocWithoutSignals();
 			return;
 		}
-		else*/ if (swarmingArchon && archonLoc != null){
-			targetLoc = archonLoc;
-			return;
-		}
+//		else*/ //if (swarmingArchon && archonLoc != null){
+//			targetLoc = archonLoc;
+//			return;
+//		}
 		if(targetLoc == null){
 			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
 			for (RobotInfo zombie : zombies) {
@@ -485,11 +485,11 @@ public class Harass extends Bot {
 				}
 			}
 		}
-		if(targetLoc == null && archonLoc != null && turretLoc == null){
-			targetLoc = archonLoc;
-			swarmingArchon = true;
-			huntingDen = false;
-		}
+//		if(targetLoc == null){
+//			//targetLoc = archonLoc;
+//			/swarmingArchon = true;
+//			huntingDen = false;
+//		}
 		else if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
 			// tell people a den has been killed only if it's the closest one to me
 			int ind = Util.closestLocation(targetDens, here, targetDenSize);
@@ -510,10 +510,11 @@ public class Harass extends Bot {
 				}
 			}
 		}
-		if (targetLoc == null || swarmingArchon && !isGuard && turretLoc != null){
-			targetLoc = turretLoc;
-			swarmingArchon = false;
-		}
+
+//		if (targetLoc == null || swarmingArchon && !isGuard && turretLoc != null){
+//			targetLoc = turretLoc;
+//			swarmingArchon = false;
+//		}
 	}
 
 //	private static void updateViperTargetLocWithoutSignals() {
@@ -916,19 +917,20 @@ public class Harass extends Bot {
 		if(wantToMove && rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
 			//startB = Clock.getBytecodeNum();
-			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee));
-			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 4){
-				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-				//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
-			}
+			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostilesICanSee);
+//			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 4){
+//				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
+//				//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+//			}
 			if (targetLoc != null) {
-				if(targetLoc == archonLoc && here.distanceSquaredTo(archonLoc) + 4 < type.sensorRadiusSquared && Util.isSurrounded(archonLoc) &&rc.isCoreReady()){
-					Nav.goAwayFrom(archonLoc, theSafety);
-					//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
-				} else if(rc.isCoreReady()){
+//				if(targetLoc == archonLoc && here.distanceSquaredTo(archonLoc) + 4 < type.sensorRadiusSquared && Util.isSurrounded(archonLoc) &&rc.isCoreReady()){
+//					Nav.goAwayFrom(archonLoc, theSafety);
+//					//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+//				} else 
+//				if(rc.isCoreReady()){
 					Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(hostilesICanSee));
 					//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
-				}
+//				}
 				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
 			Util.checkRubbleAndClear(here.directionTo(center), true);
