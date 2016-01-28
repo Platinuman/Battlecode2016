@@ -933,9 +933,11 @@ public class Harass extends Bot {
 //				}
 				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
-			Util.checkRubbleAndClear(here.directionTo(center), true);
-				//Nav.followFriends(friends, hostilesICanSee);
-				//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+			if (rc.isCoreReady()) {
+				Util.checkRubbleAndClear(here.directionTo(center), true);
+			}
+			// Nav.followFriends(friends, hostilesICanSee);
+			// bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
 			
 		}
 		//rc.setIndicatorString(0, "targetLoc = " + targetLoc);

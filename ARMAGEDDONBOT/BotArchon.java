@@ -98,30 +98,36 @@ public class BotArchon extends Bot {
 		Harass.updateInfoFromSignals(rc.emptySignalQueue());
 		//String s = "";
 		//for(int i = 0; i < turretSize; i++){
-		//	s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
-		//}
+		// s += "[" + enemyTurrets[i].location.x + ", " +
+		// enemyTurrets[i].location.y +"], ";
+		// }
 		repairBotMostInNeed();
-		if (activateNeutralIfPossible()) {
-			return;
-		}
-		
-		if(typeToBuild == null)
-			determineTypeToBuild();
-		updatetargetLocMySelf();
-		if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared)) {
+		if (rc.isCoreReady()) {
+			if (activateNeutralIfPossible()) {
+				return;
+			}
+
+			if (typeToBuild == null)
+				determineTypeToBuild();
+			updatetargetLocMySelf();
+			if (rc.isCoreReady() && rc.hasBuildRequirements(typeToBuild)
+					&& (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared)) {
 				buildUnitInDir(here.directionTo(center), typeToBuild);
-			typeToBuild = null;
-			return;
+				typeToBuild = null;
+				return;
+			}
+			updateAndMoveTowardtargetLoc(hostiles);
+
 		}
-		updateAndMoveTowardtargetLoc(hostiles);
 		// else if targetDen is not null move towards it
 		/*
 		 * if(targetDen != null){ updateAndMoveTowardTargetDen(); }
 		 */
 		// if nothing else to do move toward nearest neutral/[part
-		//updateAndMoveTowardtargetLoc(hostiles);
-		//RobotInfo[] enemies = rc.senseNearbyRobots(type.sensorRadiusSquared, them);
-//		if (rc.isCoreReady()) {
+		// updateAndMoveTowardtargetLoc(hostiles);
+		// RobotInfo[] enemies = rc.senseNearbyRobots(type.sensorRadiusSquared,
+		// them);
+		// if (rc.isCoreReady()) {
 //			if (isMobileArchon) {
 //				beMobileArchon(enemies);
 //			} else if (isAlphaArchon || here.distanceSquaredTo(alpha) <= 2) {
