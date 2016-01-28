@@ -42,15 +42,13 @@ public class BotScout extends Bot {
 			patience--;
 			updateTurretListAndDens(rc.emptySignalQueue(), zombies);
 			updateProgress();
-				MapLocation neutralArchonLoc = Util.getLocationOfType(neutrals, RobotType.ARCHON);
-			//boolean seeEnemyArchon = enemyArchonLocation != null;
-			boolean seeNeutralArchon = neutralArchonLoc != null;
-
-			if(seeNeutralArchon){
-				directionIAmMoving = here.directionTo(neutralArchonLoc);
-				patience = PATIENCESTART;
-				farthestLoc = here;
-			}
+//			MapLocation neutralArchonLoc = Util.getLocationOfType(neutrals, RobotType.ARCHON);
+//			boolean seeNeutralArchon = neutralArchonLoc != null;
+//			if(seeNeutralArchon){
+//				directionIAmMoving = here.directionTo(neutralArchonLoc);
+//				patience = PATIENCESTART;
+//				farthestLoc = here;
+//			}
 			if (rc.isCoreReady()) {
 
 					Nav.explore(zombies, allies);
@@ -135,7 +133,7 @@ public class BotScout extends Bot {
 		if (partOrNeutralLoc != null) {
 			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
 					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y , seeNeutralArchon ? 1 : 0});
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 4000);
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 80*80*2);
 		}
 	}
 
@@ -145,13 +143,9 @@ public class BotScout extends Bot {
 			if(targetDens[i] == null) continue;
 			denLoc = targetDens[i];
 			if (rc.canSenseLocation(denLoc) && (rc.senseRobotAtLocation(denLoc) == null || rc.senseRobotAtLocation(denLoc).type != RobotType.ZOMBIEDEN)) {
-				// tell people a den has been killed
 				int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { denLoc.x, denLoc.y, 0});
-				//System.out.println("dead den");
 				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
-				//killedDens[killedDenSize] = denLoc;
 				targetDens[i] = null;
-				//killedDenSize++;
 				numDensToHunt--;
 			}
 		}
