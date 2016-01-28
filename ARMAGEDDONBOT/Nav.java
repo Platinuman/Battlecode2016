@@ -358,12 +358,12 @@ public class Nav extends Bot {
 				continue;
 			}
 			double turretMod = 0;
-			if (isInRangeOfTurrets(retreatLoc)) {
-				if (spotToClear)
-					continue;
-				else
-					turretMod = 100;
-			}
+//			if (isInRangeOfTurrets(retreatLoc)) {
+//				if (spotToClear)
+//					continue;
+//				else
+//					turretMod = 100;
+//			}
 
 			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
@@ -380,7 +380,7 @@ public class Nav extends Bot {
 		if (bestRetreatDir != null) {
 			rc.move(bestRetreatDir);
 			lastRetreatDir = bestRetreatDir;
-			lastTurnFled = rc.getRoundNum();
+			//lastTurnFled = rc.getRoundNum();
 		}else if(spotToClear){
 			bestDistSq = -10000;
 			for (Direction dir : Direction.values()) {
@@ -388,8 +388,8 @@ public class Nav extends Bot {
 				if (rc.senseRubble(retreatLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH || type == RobotType.SCOUT || type == RobotType.TURRET || type == RobotType.TTM || rc.isLocationOccupied(retreatLoc) )
 					continue;
 				double turretMod = 0;
-				if(isInRangeOfTurrets(retreatLoc))
-					turretMod = 100;
+//				if(isInRangeOfTurrets(retreatLoc))
+//					turretMod = 100;
 				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
 				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 				double rubble = rc.senseRubble(retreatLoc);
@@ -404,7 +404,7 @@ public class Nav extends Bot {
 			if(rc.isCoreReady() && bestRetreatDir!=null )
 				Util.checkRubbleAndClear(bestRetreatDir,true);
 			    lastRetreatDir = bestRetreatDir;
-			    lastTurnFled = rc.getRoundNum();
+			    //lastTurnFled = rc.getRoundNum();
 
 		}
 //		if(bestRetreatDir==null && rc.isCoreReady()){
@@ -461,7 +461,7 @@ public class Nav extends Bot {
 
 	public static void explore(RobotInfo[] hostileRobots, RobotInfo[] allies) throws GameActionException {
 		// explore
-		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
+		safety = new SafetyPolicyAvoidAllUnits(hostileRobots);
 		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
 		if (directionIAmMoving == null) {
 			directionIAmMoving = center.directionTo(here);
