@@ -476,17 +476,17 @@ public class Harass extends Bot {
 //			targetLoc = archonLoc;
 //			return;
 //		}
-		if(huntingDen){
-			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-			targetLoc = targetDens[bestIndex];
-		}
+//		if(huntingDen){
+//			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+//			targetLoc = targetDens[bestIndex];
+//		}
 		
 //		if(targetLoc == null){
 //			//targetLoc = archonLoc;
 //			/swarmingArchon = true;
 //			huntingDen = false;
 //		}
-		else if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
+		if (huntingDen && rc.canSenseLocation(targetLoc) && (rc.senseRobotAtLocation(targetLoc) == null || rc.senseRobotAtLocation(targetLoc).type != RobotType.ZOMBIEDEN)) {
 			// tell people a den has been killed only if it's the closest one to me
 			int ind = Util.closestLocation(targetDens, here, targetDenSize);
 			if(ind != -1 && targetDens[ind].equals(targetLoc)){
@@ -662,28 +662,6 @@ public class Harass extends Bot {
 					int[] data;
 					MapLocation senderLoc, loc;
 					switch(purpose){
-					case BE_MY_GUARD:
-						if(isCreationTurn){
-							isGuard = true;
-							swarmingArchon = true;
-							huntingDen = false;
-						}
-						break;
-					case MOBILE_ARCHON_LOCATION:
-						if(type == RobotType.ARCHON) break;
-						data = purpose.decode(signal.getLocation(), message);
-						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
-						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc) || archonUpdate != rc.getRoundNum()){
-							archonLoc = newArchonLoc;
-							if(swarmingArchon)
-								targetLoc = archonLoc;
-							/*
-							if(targetLoc == null)
-								isGuard = true;
-							*/
-						}
-						archonUpdate = rc.getRoundNum();
-						break;
 					case RELAY_DEN_INFO:
 						if(isCreationTurn) {
 							senderLoc = signal.getLocation();
@@ -840,7 +818,6 @@ public class Harass extends Bot {
 						if(huntingDen && targetLoc.equals(killedDen)){
 							//rc.setIndicatorString(0, "here"); 
 							if (numDensToHunt > 0) {
-								swarmingArchon = false;
 								bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 								targetLoc = targetDens[bestIndex];
 							} else {
