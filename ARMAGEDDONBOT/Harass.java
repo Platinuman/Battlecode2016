@@ -866,7 +866,7 @@ public class Harass extends Bot {
 
 	public static void doHarass() throws GameActionException {
 		wantToMove = true;
-		String bytecodeIndicator = "";
+		//String bytecodeIndicator = "";
 		RobotInfo[] friends = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
 //		RobotInfo[] enemiesWithoutZombies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, them);
 		RobotInfo[] hostilesICanSee = rc.senseHostileRobots(here, type.sensorRadiusSquared);
@@ -881,58 +881,59 @@ public class Harass extends Bot {
 		}
 		// rc.setIndicatorString(0, "" + signals.length);
 		//boolean turretUpdated = updateTurretStuff(enemies);
-		if (crunching && (turretLoc == null || here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150)) {
-			crunching = false;
-			targetLoc = null;
-			huntingDen = false;
-		}
+//		if (crunching && (turretLoc == null || here.distanceSquaredTo(turretLoc) < type.sensorRadiusSquared || here.distanceSquaredTo(turretLoc) > 150)) {
+//			crunching = false;
+//			targetLoc = null;
+//			huntingDen = false;
+//		}
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
-		int startB = Clock.getBytecodeNum();
-		if(!crunching && numEnemiesAttackingUs == 0){
+	//	int startB = Clock.getBytecodeNum();
+		if(numEnemiesAttackingUs == 0){
 			Signal[] signals = rc.emptySignalQueue();
 			updateInfoFromSignals(signals);
 			updateTargetLocWithoutSignals();
 		}
-		int signalBytecode = Clock.getBytecodeNum() - startB;
-		bytecodeIndicator += "Signal Reading: " + signalBytecode;
+		//int signalBytecode = Clock.getBytecodeNum() - startB;
+		//bytecodeIndicator += "Signal Reading: " + signalBytecode;
 		//if(signalBytecode > 2000 && rc.getRoundNum() - turnCreated > 30) //System.out.println("signal used " + signalBytecode);
 		// starts here
-		if (crunching) {
-			crunch(hostilesICanSee,friends);
-		} else if (hostilesICanSee.length > 0) {
-			startB = Clock.getBytecodeNum();
+		//if (crunching) {
+		//	crunch(hostilesICanSee,friends);
+	//	} 
+		if (hostilesICanSee.length > 0) {
+			//startB = Clock.getBytecodeNum();
 			doMicro(hostilesICanSee, enemiesICanShoot, friends, enemiesAttackingUs, numEnemiesAttackingUs);
-			int microBytecode = Clock.getBytecodeNum() - startB;
-			bytecodeIndicator += " Micro: " + microBytecode;
+			//int microBytecode = Clock.getBytecodeNum() - startB;
+			//bytecodeIndicator += " Micro: " + microBytecode;
 			//if(microBytecode > 2000) System.out.println("micro used " + microBytecode);
 		}
 		if(wantToMove && rc.isCoreReady()){ // no enemies
 			// maybe uncomment this but only do it if we can't see a scout
-			startB = Clock.getBytecodeNum();
+			//startB = Clock.getBytecodeNum();
 			NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostilesICanSee));
 			if (turretLoc != null && here.distanceSquaredTo(turretLoc) < RobotType.TURRET.attackRadiusSquared + 4){
 				Nav.goTo(here.add(turretLoc.directionTo(here)), theSafety);
-				bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+				//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
 			}
 			if (targetLoc != null) {
 				if(targetLoc == archonLoc && here.distanceSquaredTo(archonLoc) + 4 < type.sensorRadiusSquared && Util.isSurrounded(archonLoc) &&rc.isCoreReady()){
 					Nav.goAwayFrom(archonLoc, theSafety);
-					bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+					//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
 				} else if(rc.isCoreReady()){
 					Nav.goTo(targetLoc, new SafetyPolicyAvoidAllUnits(hostilesICanSee));
-					bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+					//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
 				}
 				//if(navBytecode > 2000) System.out.println("nav used " + navBytecode);
 			}
-			else if(!Util.checkRubbleAndClear(here.directionTo(center), true)  && rc.isCoreReady()){
-				Nav.followFriends(friends, hostilesICanSee);
-				bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
-			}
+			Util.checkRubbleAndClear(here.directionTo(center), true);
+				//Nav.followFriends(friends, hostilesICanSee);
+				//bytecodeIndicator += " Nav: " + (Clock.getBytecodeNum() - startB);
+			
 		}
-		rc.setIndicatorString(0, "targetLoc = " + targetLoc);
+		//rc.setIndicatorString(0, "targetLoc = " + targetLoc);
 		//rc.setIndicatorString(1, "isGuard = " + isGuard);
-		rc.setIndicatorString(1, bytecodeIndicator);
+		//rc.setIndicatorString(1, bytecodeIndicator);
 //		String s = "";
 //		for(int i = 0; i < targetDenSize; i++){
 //			if(targetDens[i] != null)
@@ -940,6 +941,6 @@ public class Harass extends Bot {
 //		}
 //		rc.setIndicatorString(1, s + " " + targetDenSize);
 //		rc.setIndicatorString(2, "swarming archon = " + swarmingArchon);
-		if(Clock.getBytecodeNum() > 2500 && rc.getRoundNum() > turnCreated + 3) System.out.println("used " + Clock.getBytecodeNum() + " bytecode");
+		//if(Clock.getBytecodeNum() > 2500 && rc.getRoundNum() > turnCreated + 3) System.out.println("used " + Clock.getBytecodeNum() + " bytecode");
 	}
 }
