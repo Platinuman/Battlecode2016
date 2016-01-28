@@ -21,16 +21,6 @@ public class BotGuard extends Bot {
 	
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-//		rc.setIndicatorString(0, "");
-//		rc.setIndicatorString(1, "");
-//		rc.setIndicatorString(2, "");
-//		String s = "";
-//		for(int i = 0; i < turretSize; i++){
-//			s += "[" + enemyTurrets[i].location.x + ", " + enemyTurrets[i].location.y +"], "; 
-//		}
-//		rc.setIndicatorString(1, s + " " + turretSize);
-		//MessageEncode.readMessagesAndUpdateInfo();
-		//TODO make new data types in encode and use the to notify us when a bot is turtling
 		Harass.doHarass();
 	}
 	
