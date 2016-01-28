@@ -132,6 +132,15 @@ public class BotScout extends Bot {
 //		}
 //		rc.setIndicatorLine(here, here.add(directionIAmMoving), 255, 255, 255);
 //		return;
+			String dens = "";
+			if(targetDenSize > 0){
+				for(int i = 0; i < targetDenSize; i++){
+					MapLocation den = targetDens[i];
+					if(den != null)
+						dens += den.toString() + ", ";
+				}
+			}
+			rc.setIndicatorString(0, dens);
 	}
 
 	private static void updateProgress() {
@@ -358,7 +367,7 @@ public class BotScout extends Bot {
 					int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { hostileLoc.x, hostileLoc.y, 1});
 					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
 				}
-				return true;
+//				return true;
 			}
 		}
 		return false;
