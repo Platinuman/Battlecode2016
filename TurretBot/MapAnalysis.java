@@ -66,7 +66,7 @@ public class MapAnalysis extends Bot {
 				alpha = loc;
 			}
 		}
-		return center;
+		return alpha;
 	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);

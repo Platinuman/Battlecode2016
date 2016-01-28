@@ -147,7 +147,7 @@ public class BotTurret extends Bot {
 				}
 			} else {
 				MapLocation enemyLocation = signals[i].getLocation();
-				if (false && rc.canAttackLocation(enemyLocation)) {
+				if (rc.canAttackLocation(enemyLocation)) {
 					rc.attackLocation(enemyLocation);
 					return;
 				}

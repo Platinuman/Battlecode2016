@@ -44,8 +44,8 @@ public class BotScout extends Bot {
 		
 	}
 	private static void broadcastEnemies() throws GameActionException{
-		RobotInfo[] enemyRobots = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
-			Arrays.sort(enemyRobots, new Comparator<RobotInfo>() {
+		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
+		Arrays.sort(enemyRobots, new Comparator<RobotInfo>() {
 		    public int compare(RobotInfo idx1, RobotInfo idx2) {
 		        return (int) (100*(idx1.attackPower-idx2.attackPower) + (-idx1.health+idx2.health));
 		    }
