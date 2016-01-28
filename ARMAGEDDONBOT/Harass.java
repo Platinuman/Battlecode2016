@@ -660,6 +660,7 @@ public class Harass extends Bot {
 
 	public static void updateInfoFromSignals(Signal[] signals) throws GameActionException{
 		prepTargetLoc();
+		boolean isCreationTurn = rc.getRoundNum() == turnCreated;
 		for(Signal signal: signals){
 			if(signal.getTeam() == us){
 				int[] message = signal.getMessage();
@@ -669,7 +670,7 @@ public class Harass extends Bot {
 					MapLocation senderloc, loc;
 					switch(purpose){
 					case BE_MY_GUARD:
-						if(rc.getRoundNum() - turnCreated < 10){
+						if(isCreationTurn){
 							isGuard = true;
 							swarmingArchon = true;
 							huntingDen = false;
@@ -688,6 +689,20 @@ public class Harass extends Bot {
 							*/
 						}
 						archonUpdate = rc.getRoundNum();
+						break;
+					case RELAY_DEN_INFO:
+						if(isCreationTurn) {
+							senderloc = signal.getLocation();
+							data = purpose.decode(senderloc, message);
+							for(int i = 0; i< data.length; i +=2){
+								loc = new MapLocation(data[i], data[i+1]);
+								if(loc.equals(senderloc)){
+									break;
+								}
+								targetDens[targetDenSize]= loc;
+								targetDenSize++;
+							}
+						}
 						break;
 //					case ENEMY_TURRET_DEATH:
 //						data = purpose.decode(signal.getLocation(), message);
