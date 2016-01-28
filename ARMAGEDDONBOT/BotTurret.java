@@ -52,10 +52,8 @@ public class BotTurret extends Bot {
 		if (turretType == 1) { // OFFENSIVE
 			// MessageEncode.readMessagesAndUpdateInfo();
 			targetLoc = center; // for now
-			Signal[] signals = rc.emptySignalQueue();
-			Harass.updateInfoFromSignals(signals);
-			boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
-			Harass.updateTargetLocWithoutSignals();
+			//boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+			//Harass.updateTargetLocWithoutSignals();
 			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
 			// Harass.updateTargetLoc();
 			// this should set its target
@@ -67,8 +65,8 @@ public class BotTurret extends Bot {
 		RobotInfo[] enemies = rc.senseHostileRobots(here, type.sensorRadiusSquared);
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		Signal[] signals = rc.emptySignalQueue();
-		boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
-		Harass.updateTargetLocWithoutSignals();
+		Harass.updateInfoFromSignals(signals);
+		//Harass.updateTargetLocWithoutSignals();
 		// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
 //		for(Signal s: signals){
 //			Harass.updateTargetLoc(s, canSeeHostiles);
@@ -81,14 +79,22 @@ public class BotTurret extends Bot {
 		if (turretType == 1 && targetLoc != null) {
 			if (!isTTM) {
 				// shoot anything in range and use scout
-				attackIfApplicable(signals);
-				if (enemies.length == 0 && type.sensorRadiusSquared < here.distanceSquaredTo(targetLoc)) {
+				//attackIfApplicable(signals);
+				int closestDen = Util.closestLocation(targetDens, here, targetDenSize);
+				if (closestDen != -1){
+					targetLoc = targetDens[closestDen];
+				} else {
+					targetLoc = center;
+				}
+				if(rc.isWeaponReady() && type.attackRadiusSquared >= here.distanceSquaredTo(targetLoc))
+					Combat.turretAttack(enemies, closestDen);
+				else if (enemies.length == 0 && type.attackRadiusSquared < here.distanceSquaredTo(targetLoc)) {
 					rc.pack();
 					isTTM = true;
 				}
 			} else {
 				if (rc.isCoreReady()) {
-					if (RobotType.TURRET.sensorRadiusSquared > here.distanceSquaredTo(targetLoc)) {
+					if (RobotType.TURRET.attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
 						rc.unpack();
 						isTTM = false;
 					} else {
@@ -113,7 +119,7 @@ public class BotTurret extends Bot {
 
 		}
 	}
-
+	
 	// NEW OPTIMIZE ALL OF THIS
 
 	private static void chooseTurretType() {

@@ -65,23 +65,22 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
        int bestDistSq = 999999;
        int bestIndex = -1;
        for (int i = 0; i < size; i++) {
-    	   if(locs[i] == null){
-    		   continue;
+    	   if(locs[i] != null){
+    		   int distSq = toHere.distanceSquaredTo(locs[i]);
+    		   if (distSq < bestDistSq) {
+    			   bestDistSq = distSq;
+    			   //closest = locs[i];
+    			   bestIndex = i;
+    		   }
     	   }
-           int distSq = toHere.distanceSquaredTo(locs[i]);
-           if (distSq < bestDistSq) {
-               bestDistSq = distSq;
-               //closest = locs[i];
-               bestIndex = i;
-           }
        }
        return bestIndex;
    }
-      
+
    public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
-		RobotInfo ret = null;
-		double minHealth = 1e99;
-		for (int i = 0; i < robots.length; i++) {
+	   RobotInfo ret = null;
+	   double minHealth = 1e99;
+	   for (int i = 0; i < robots.length; i++) {
 			if ((int)robots[i].health != (int)robots[i].maxHealth &&  robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
 				minHealth = robots[i].health;
 				ret = robots[i];

@@ -41,13 +41,14 @@ public class Combat extends Bot { //NEW up to you guys what to do here, but plea
 		}
 		return targetLocation;
 	}
+	
 	public static void shootAtNearbyEnemies() throws GameActionException {
 		RobotType type = rc.getType();
 		int attackRadiusSq = type.attackRadiusSquared;
-		RobotInfo[] enemies = rc.senseNearbyRobots(attackRadiusSq, them);
+		//RobotInfo[] enemies = rc.senseNearbyRobots(attackRadiusSq, them);
 		RobotInfo[] zombies = rc.senseNearbyRobots(attackRadiusSq, Team.ZOMBIE);
 
-		RobotInfo target = chooseTarget(enemies,0);
+		RobotInfo target = null;
 		RobotInfo zombieTarget = chooseTarget(zombies,0);
 		if (zombieTarget != null
 				&& (type == RobotType.GUARD || target == null || zombieTarget.type == RobotType.ZOMBIEDEN)) {
@@ -91,6 +92,16 @@ public class Combat extends Bot { //NEW up to you guys what to do here, but plea
 		}
 
 		return true;
+	}
+	public static void turretAttack(RobotInfo[] zombies, int closestDen) throws GameActionException {
+		if(zombies.length > 0){
+			RobotInfo target = chooseTarget(zombies,0);
+			if (target != null) {
+				rc.attackLocation(target.location);
+			}
+		} else if (closestDen != -1){
+			rc.attackLocation(targetDens[closestDen]);
+		}
 	}
 
 //	public static void retreat(MapLocation enemyLoc) throws GameActionException {

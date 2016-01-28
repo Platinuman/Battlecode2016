@@ -12,12 +12,10 @@ public class MapAnalysis extends Bot {
 	protected static int mapDifficulty = 1; //0 = can turtle, 1 = cannot turtle
 	protected static int mapSize = 0;
 
-	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
-		mapSymmetry = MapSymmetry.UNKNOWN;// lol this needs to be fixed
-		if(true){
-			return;
-		}
-		switch (ourArchons.length) {
+	private static void determineMapSymmetry(MapLocation[] ourArchons){//, MapLocation[] theirArchons) {
+		mapSymmetry = MapSymmetry.UNKNOWN;
+
+		/*switch (ourArchons.length) {
 		case 1:
 			if (ourArchons[0].x == theirArchons[0].x || ourArchons[0].y == theirArchons[0].y) {
 				return;
@@ -40,21 +38,21 @@ public class MapAnalysis extends Bot {
 				return;
 			}
 			return;
-		}
+		}*/
 	}
 
-	private static void setCenter(MapLocation[] ourArchons, MapLocation[] theirArchons) {
+	private static void setCenter(MapLocation[] ourArchons){//, MapLocation[] theirArchons) {
 		int xavg = 0, yavg = 0;
 		for (int i = 0; i < ourArchons.length; i++) {
 			xavg += ourArchons[i].x;
 			yavg += ourArchons[i].y;
 		}
-		for (int i = 0; i < theirArchons.length; i++) {
-			xavg += theirArchons[i].x;
-			yavg += theirArchons[i].y;
-		}
+	//	for (int i = 0; i < theirArchons.length; i++) {
+	//		xavg += theirArchons[i].x;
+	//		yavg += theirArchons[i].y;
+	//	}
 		
-		center = new MapLocation(Math.round(xavg / (ourArchons.length+theirArchons.length)), Math.round(yavg /(ourArchons.length+theirArchons.length)));
+		center = new MapLocation(Math.round(xavg / (ourArchons.length)), Math.round(yavg /(ourArchons.length)));
 		//System.out.println("center at: " + center.x + ", " + center.y);
 	}
 	private static void determineMapDifficulty(){
@@ -85,11 +83,11 @@ public class MapAnalysis extends Bot {
 	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);
-		MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
-		Bot.initialEnemyArchonLocs = theirArchons;
-		setCenter(ourArchons,theirArchons);
+		//MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
+		//Bot.initialEnemyArchonLocs = theirArchons;
+		setCenter(ourArchons);//,theirArchons);
 		//guessMapSize(ourArchons,theirArchons);
-		determineMapSymmetry(ourArchons, theirArchons);
+		determineMapSymmetry(ourArchons);//, theirArchons);
 		//System.out.println(mapSymmetry + "");
 		zombieRounds = rc.getZombieSpawnSchedule().getRounds();
 		determineMapDifficulty();
