@@ -103,6 +103,17 @@ public class BotTurret extends Bot {
 					}
 				}
 			}
+			String dens = "";
+			if(targetDenSize > 0){
+				for(int i = 0; i < targetDenSize; i++){
+					MapLocation den = targetDens[i];
+					if(den != null)
+						dens += den.toString() + ", ";
+				}
+			}
+			rc.setIndicatorString(0, dens);
+			if(targetLoc != null)
+				rc.setIndicatorString(1, "targetLoc = " + targetLoc.toString());
 //		} else if (turretType == 0) {
 //
 //			if (!isTTM) {

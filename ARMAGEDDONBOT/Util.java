@@ -166,18 +166,18 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 //    	return true;
 //    }
 
-    private static int getRoundsUntilNextZombieSpawn() {
-    	// TODO Auto-generated method stub
-    	int[] schedule = MapAnalysis.zombieRounds;
-    	int nextRound = 9999;
-    	int currentRound = rc.getRoundNum();
-    	for(int i = 0; i < schedule.length; i++)
-    		if(currentRound < schedule[i]){
-    			nextRound = schedule[i];
-    			break;
-    		}
-    	return nextRound - currentRound;
-    }
+//    private static int getRoundsUntilNextZombieSpawn() {
+//    	// TODO Auto-generated method stub
+//    	int[] schedule = MapAnalysis.zombieRounds;
+//    	int nextRound = 9999;
+//    	int currentRound = rc.getRoundNum();
+//    	for(int i = 0; i < schedule.length; i++)
+//    		if(currentRound < schedule[i]){
+//    			nextRound = schedule[i];
+//    			break;
+//    		}
+//    	return nextRound - currentRound;
+//    }
 
     public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
     	for(int i = 0; i < size; i++){
