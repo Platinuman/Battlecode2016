@@ -51,8 +51,8 @@ public class BotArchon extends Bot {
 			typeToBuild = RobotType.SCOUT;
 		else if(false)
 			typeToBuild = RobotType.GUARD;
-		else if (false)//rc.getRoundNum() > 800)
-			typeToBuild = RobotType.SOLDIER;
+		else if (false)
+			typeToBuild = RobotType.TURRET;
 		else
 			typeToBuild = RobotType.SOLDIER;
 	}

@@ -476,10 +476,10 @@ public class Harass extends Bot {
 //			targetLoc = archonLoc;
 //			return;
 //		}
-//		if(huntingDen){
-//			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-//			targetLoc = targetDens[bestIndex];
-//		}
+		if(huntingDen){
+			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+			targetLoc = targetDens[bestIndex];
+		}
 		
 //		if(targetLoc == null){
 //			//targetLoc = archonLoc;

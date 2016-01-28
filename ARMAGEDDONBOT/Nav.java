@@ -20,9 +20,13 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			case ARCHON:
 				break;
 			case ZOMBIEDEN:
-				if (enemy.type.attackRadiusSquared + 0 >= loc.distanceSquaredTo(enemy.location))// hardcoded
+				try{
+				if (enemy.type.attackRadiusSquared + (Util.isSurrounded(enemy.location) ? 2:0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
 					return false;
 				break;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			default:
 				if (enemy.type.attackRadiusSquared +((type == RobotType.SCOUT)
 						? 10 : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
@@ -235,8 +239,8 @@ public class Nav extends Bot {
 			}
 			// checkRubbleAndClear(here.directionTo(dest));
 		}
-		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET) {
-			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
+		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.ARCHON) {
+			if (here.distanceSquaredTo(dest) <= type.attackRadiusSquared ) {
 				Util.checkRubbleAndClear(here.directionTo(dest), true);
 				return;
 			} 
