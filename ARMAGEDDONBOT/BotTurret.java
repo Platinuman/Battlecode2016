@@ -127,105 +127,105 @@ public class BotTurret extends Bot {
 //		turretType = 1;
 //	}
 
-	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
-		Direction dir = Direction.NORTH;
-		boolean moved = false;
-		boolean startedAsTTM = isTTM;
-		for (int i = 0; i < 8; i++) {
-			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)
-					&& rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.TURRET.sensorRadiusSquared);
-				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-				if (distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range
-						&& theSafety.isSafeToMoveTo(newLoc)) {
-					if (!isTTM) {
-						rc.pack();
-						isTTM = true;
-						break;
-					} else if (rc.canMove(dir)) {
-						rc.move(dir);
-						moved = true;
-						break;
-					}
-				}
-			}
-			dir = dir.rotateLeft();
-		}
-		if (startedAsTTM && !moved) {
-			rc.unpack();
-			isTTM = false;
-		}
-	}
+//	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
+//		Direction dir = Direction.NORTH;
+//		boolean moved = false;
+//		boolean startedAsTTM = isTTM;
+//		for (int i = 0; i < 8; i++) {
+//			MapLocation newLoc = here.add(dir);
+//			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)
+//					&& rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+//				double distanceToAlpha = newLoc.distanceSquaredTo(alpha);
+//				RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.TURRET.sensorRadiusSquared);
+//				NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
+//				if (distanceToAlpha > here.distanceSquaredTo(alpha) && distanceToAlpha < range
+//						&& theSafety.isSafeToMoveTo(newLoc)) {
+//					if (!isTTM) {
+//						rc.pack();
+//						isTTM = true;
+//						break;
+//					} else if (rc.canMove(dir)) {
+//						rc.move(dir);
+//						moved = true;
+//						break;
+//					}
+//				}
+//			}
+//			dir = dir.rotateLeft();
+//		}
+//		if (startedAsTTM && !moved) {
+//			rc.unpack();
+//			isTTM = false;
+//		}
+//	}
+//
+//	private static boolean updateMaxRange(Signal[] signals) {
+//		boolean rangeUpdated = false;
+//		for (int i = 0; i < signals.length; i++) {
+//			if (signals[i].getTeam() == them) {
+//				continue;
+//			}
+//			int[] message = signals[i].getMessage();
+//			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
+//				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
+//				range = decodedMessage[0]; // System.out.println(range);
+//				rangeUpdated = true;
+//				break;
+//			}
+//		}
+//		return rangeUpdated;
+//	}
+//
+//	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
+//		if (rc.isWeaponReady()) {
+//			Combat.shootAtNearbyEnemies();
+//		}
+//		if (rc.isWeaponReady()) {
+//			shootWithoutThinking(signals);
+//		}
+//	}
+//
+//	private static void shootWithoutThinking(Signal[] signals) throws GameActionException {
+//		for (int i = signals.length - 1; i >= 0; i--) {
+//			if (signals[i].getTeam() == us) {
+//				if (signals[i].getMessage() == null) {
+//					continue;
+//				}
+//				int[] message = signals[i].getMessage();
+//				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[i].getLocation(), message);
+//				if (msgType == MessageEncode.TURRET_TARGET) {
+//					MapLocation enemyLocation = new MapLocation(decodedMessage[2], decodedMessage[3]);
+//					if (rc.canAttackLocation(enemyLocation)) {
+//						rc.attackLocation(enemyLocation);
+//						return;
+//					}
+//				}
+//			} else {
+//				MapLocation enemyLocation = signals[i].getLocation();
+//				if (rc.canAttackLocation(enemyLocation)) {
+//					rc.attackLocation(enemyLocation);
+//					return;
+//				}
+//			}
+//
+//		}
+//	}
 
-	private static boolean updateMaxRange(Signal[] signals) {
-		boolean rangeUpdated = false;
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == them) {
-				continue;
-			}
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
-				range = decodedMessage[0]; // System.out.println(range);
-				rangeUpdated = true;
-				break;
-			}
-		}
-		return rangeUpdated;
-	}
-
-	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
-		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies();
-		}
-		if (rc.isWeaponReady()) {
-			shootWithoutThinking(signals);
-		}
-	}
-
-	private static void shootWithoutThinking(Signal[] signals) throws GameActionException {
-		for (int i = signals.length - 1; i >= 0; i--) {
-			if (signals[i].getTeam() == us) {
-				if (signals[i].getMessage() == null) {
-					continue;
-				}
-				int[] message = signals[i].getMessage();
-				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[i].getLocation(), message);
-				if (msgType == MessageEncode.TURRET_TARGET) {
-					MapLocation enemyLocation = new MapLocation(decodedMessage[2], decodedMessage[3]);
-					if (rc.canAttackLocation(enemyLocation)) {
-						rc.attackLocation(enemyLocation);
-						return;
-					}
-				}
-			} else {
-				MapLocation enemyLocation = signals[i].getLocation();
-				if (rc.canAttackLocation(enemyLocation)) {
-					rc.attackLocation(enemyLocation);
-					return;
-				}
-			}
-
-		}
-	}
-
-	private static int[] getIndicesOfTargetSignals(Signal[] signals) {
-		int[] indicesOfTargetSignals = new int[signals.length + 1];
-		int count = 0;
-		for (int i = 0; i < signals.length; i++) {
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (msgType == MessageEncode.TURRET_TARGET && signals[i].getTeam() == us) {
-				indicesOfTargetSignals[count] = i;
-				count++;
-			}
-		}
-		indicesOfTargetSignals[signals.length] = count;
-		return indicesOfTargetSignals;
-	}
+//	private static int[] getIndicesOfTargetSignals(Signal[] signals) {
+//		int[] indicesOfTargetSignals = new int[signals.length + 1];
+//		int count = 0;
+//		for (int i = 0; i < signals.length; i++) {
+//			int[] message = signals[i].getMessage();
+//			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//			if (msgType == MessageEncode.TURRET_TARGET && signals[i].getTeam() == us) {
+//				indicesOfTargetSignals[count] = i;
+//				count++;
+//			}
+//		}
+//		indicesOfTargetSignals[signals.length] = count;
+//		return indicesOfTargetSignals;
+//	}
 
 }
