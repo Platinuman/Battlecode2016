@@ -53,6 +53,7 @@ public class BotTurret extends Bot {
 			// MessageEncode.readMessagesAndUpdateInfo();
 			targetLoc = center; // for now
 			Signal[] signals = rc.emptySignalQueue();
+			Harass.updateInfoFromSignals(signals);
 			boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
 			Harass.updateTargetLocWithoutSignals();
 			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
