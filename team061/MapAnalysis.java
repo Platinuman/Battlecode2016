@@ -4,26 +4,18 @@ import battlecode.common.*;
 
 public class MapAnalysis extends Bot {
 	enum MapSymmetry {
-		ROTATION, VERTICAL, HORIZONTAL, UNKNOWN
+		ROTATION, REFLECTION, UNKNOWN
 	}
 
 	protected static MapSymmetry mapSymmetry = null;
 	protected static int[] zombieRounds = null;
-	protected static int mapDifficulty = 1; //0 = can turtle, 1 = cannot turtle
+	protected static int mapDifficulty = 0; //0 = can turtle, 1 = cannot turtle
 
 	private static void determineMapSymmetry(MapLocation[] ourArchons, MapLocation[] theirArchons) {
-		mapSymmetry = MapSymmetry.UNKNOWN;// lol this needs to be fixed
-		switch (ourArchons.length) {
-		case 1:
-			if (ourArchons[0].x == theirArchons[0].x || ourArchons[0].y == theirArchons[0].y) {
-				return;
-			}
-		default:
-			return;
-		}
+		mapSymmetry = null;// lol this needs to be fixed
 	}
 
-	private static void setCenter(MapLocation[] ourArchons, MapLocation[] theirArchons) {
+	private static void setCenter(MapLocation[] ourArchons, MapLocation[] theirArchons) { // not always center for reflective map
 		int xavg = 0, yavg = 0;
 		for (int i = 0; i < ourArchons.length; i++) {
 			xavg += ourArchons[i].x;
@@ -33,9 +25,8 @@ public class MapAnalysis extends Bot {
 			xavg += theirArchons[i].x;
 			yavg += theirArchons[i].y;
 		}
-		
 		center = new MapLocation(Math.round(xavg / (ourArchons.length+theirArchons.length)), Math.round(yavg /(ourArchons.length+theirArchons.length)));
-		//System.out.println("center at: " + center.x + ", " + center.y);
+
 	}
 	private static void determineMapDifficulty(){
 		int weakZombieCount = 0;
@@ -44,7 +35,7 @@ public class MapAnalysis extends Bot {
 		return; // for now
 		}
 		ZombieSpawnSchedule spawnSchedule = rc.getZombieSpawnSchedule();
-		for (int i = 0; i < zombieRounds.length; i++){
+		for (int i = 0; i < zombieRounds.length; i++){ // zombie counts for the first 500 rounds
 			if(zombieRounds[i] > 500){
 				break;
 			}
@@ -65,14 +56,25 @@ public class MapAnalysis extends Bot {
 			mapDifficulty = 1;
 		}
 	}
+	public static MapLocation getAlphaLocation(){
+		int maxDist = 0;
+		MapLocation alpha = null;
+		for (MapLocation loc : rc.getInitialArchonLocations(us)){
+			int dist = loc.distanceSquaredTo(center);
+			if (dist > maxDist){
+				maxDist = dist;
+				alpha = loc;
+			}
+		}
+		return alpha;
+	}
 	public static void analyze() {
 		MapLocation[] ourArchons = rc.getInitialArchonLocations(us);
 		MapLocation[] theirArchons = rc.getInitialArchonLocations(them);
-		Bot.initialEnemyArchonLocs = theirArchons;
 		determineMapSymmetry(ourArchons, theirArchons);
 		setCenter(ourArchons,theirArchons);
 		zombieRounds = rc.getZombieSpawnSchedule().getRounds();
-		determineMapDifficulty();
+		//determineMapDifficulty();
 		return;
 	}
 

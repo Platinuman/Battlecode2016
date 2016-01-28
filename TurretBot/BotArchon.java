@@ -28,7 +28,7 @@ public class BotArchon extends Bot {
 		if (MapAnalysis.mapDifficulty == 0) {
 			maxRange = 4;
 			alpha = MapAnalysis.getAlphaLocation();
-			if(here.equals(alpha)){
+			if(here.equals(rc.getInitialArchonLocations(us)[0])){
 				isAlphaArchon = true;
 				rc.setIndicatorString(0, "I am the Darth Jar Jar. Fear me.");
 				rc.setIndicatorString(1,
@@ -164,7 +164,7 @@ public class BotArchon extends Bot {
 //				Nav.runAway(enemies);
 //			}
 			if (rc.isCoreReady()) {
-				if (here.distanceSquaredTo(alpha) <= 2) {
+				if (here.distanceSquaredTo(alpha) <= 5) {
 					aarons_shitty_strat();
 				} else {
 					NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);

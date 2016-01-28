@@ -19,19 +19,8 @@ class SafetyPolicyAvoidAllUnits extends Bot implements NavSafetyPolicy {
 			switch (enemy.type) {
 			case ARCHON:
 				break;
-			case ZOMBIEDEN:
-				if (enemy.type.attackRadiusSquared + 2 >= loc.distanceSquaredTo(enemy.location)
-						- ((type == RobotType.ARCHON) ? 24 : 0))// hardcoded
-					return false;
-				break;
-			case TURRET:
-				if (enemy.type.attackRadiusSquared +((type != RobotType.SCOUT)? 10 + ((type == RobotType.ARCHON) ? 30 : 0) : 0) >= loc.distanceSquaredTo(enemy.location)){
-					return false;
-				}
-				break;
 			default:
-				if (enemy.type.attackRadiusSquared +((enemy.type != RobotType.SCOUT && type == RobotType.SCOUT)
-						? 10 : 0) >= loc.distanceSquaredTo(enemy.location))// hardcoded
+				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location))
 					return false;
 				break;
 			}
@@ -54,32 +43,21 @@ public class Nav extends Bot {
 	}
 
 	private static BugState bugState;
-	public static WallSide bugWallSide = null;
+	public static WallSide bugWallSide = WallSide.LEFT;
 	private static int bugStartDistSq;
 	private static Direction bugLastMoveDir;
 	private static Direction bugLookStartDir;
 	private static int bugRotationCount;
 	private static int bugMovesSinceSeenObstacle = 0;
-	private static int bugMovesSinceMadeProgress = 0;
+
 	private static boolean move(Direction dir) throws GameActionException {
-		if (rc.canMove(dir)) {
-			if(type == RobotType.SCOUT || type == RobotType.TTM || type == RobotType.TURRET|| rc.senseRubble(here.add(dir)) < GameConstants.RUBBLE_SLOW_THRESH){
-			rc.move(dir);
-			}
-			else{
-				rc.clearRubble(dir);
-			}
-			return true;
-		}
-		return false;
+		rc.move(dir);
+		return true;
 	}
 
-	private static boolean checkRubble(int threshold) {
-		if (rc.getType() == RobotType.TTM) {
-			return false;
-		}
-		double rubbleCount = Util.rubbleBetweenHereAndThere(here, dest);
-		return rubbleCount <= threshold;
+	private static boolean checkRubble(Direction dir) {
+		double rubbleCount = rc.senseRubble(rc.getLocation().add(dir));
+		return rubbleCount >= GameConstants.RUBBLE_OBSTRUCTION_THRESH && rubbleCount <= 1000; // hard-coded
 	}
 
 	private static boolean canMove(Direction dir) {
@@ -119,30 +97,27 @@ public class Nav extends Bot {
 		bugLookStartDir = here.directionTo(dest);
 		bugRotationCount = 0;
 		bugMovesSinceSeenObstacle = 0;
-		bugMovesSinceMadeProgress = 0;
-		if (bugWallSide == null) {
-			// try to intelligently choose on which side we will keep the wall
-			Direction leftTryDir = bugLastMoveDir.rotateLeft();
-			for (int i = 0; i < 3; i++) {
-				if (!canMove(leftTryDir))
-					leftTryDir = leftTryDir.rotateLeft();
-				else
-					break;
-			}
-			Direction rightTryDir = bugLastMoveDir.rotateRight();
-			for (int i = 0; i < 3; i++) {
-				if (!canMove(rightTryDir))
-					rightTryDir = rightTryDir.rotateRight();
-				else
-					break;
-			}
-			if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
-				bugWallSide = WallSide.RIGHT;
-			} else {
-				bugWallSide = WallSide.LEFT;
-			}
-		}
 
+		// try to intelligently choose on which side we will keep the wall
+		Direction leftTryDir = bugLastMoveDir.rotateLeft();
+		for (int i = 0; i < 3; i++) {
+			if (!canMove(leftTryDir))
+				leftTryDir = leftTryDir.rotateLeft();
+			else
+				break;
+		}
+		Direction rightTryDir = bugLastMoveDir.rotateRight();
+		for (int i = 0; i < 3; i++) {
+			if (!canMove(rightTryDir))
+				rightTryDir = rightTryDir.rotateRight();
+			else
+				break;
+		}
+		if (dest.distanceSquaredTo(here.add(leftTryDir)) < dest.distanceSquaredTo(here.add(rightTryDir))) {
+			bugWallSide = WallSide.RIGHT;
+		} else {
+			bugWallSide = WallSide.LEFT;
+		}
 	}
 
 	private static Direction findBugMoveDir() throws GameActionException {
@@ -218,16 +193,12 @@ public class Nav extends Bot {
 		// Debug.indicate("nav", 0, "bugMovesSinceSeenObstacle = " +
 		// bugMovesSinceSeenObstacle + "; bugRotatoinCount = " +
 		// bugRotationCount);
+
 		// Check if we can stop bugging at the *beginning* of the turn
-//		rc.setIndicatorString(2, "I've been bugging for " +bugMovesSinceMadeProgress+ "turns.");
-//		rc.setIndicatorString(1, "bugMovesSinceSeenObstacle = " +
-//				 bugMovesSinceSeenObstacle + "; bugRotatoinCount = " +
-//				 bugRotationCount);
 		if (bugState == BugState.BUG) {
 			if (canEndBug()) {
 				// Debug.indicateAppend("nav", 1, "ending bug; ");
 				bugState = BugState.DIRECT;
-				bugMovesSinceMadeProgress = 0;
 			}
 		}
 
@@ -236,7 +207,7 @@ public class Nav extends Bot {
 		if (bugState == BugState.DIRECT) {
 			if (!tryMoveDirect()) {
 				// Debug.indicateAppend("nav", 1, "starting to bug; ");
-				if (type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM &&  !rc.isLocationOccupied(here.add(here.directionTo(dest)))&&checkRubble(2000)) {
+				if (checkRubble(here.directionTo(dest))) {
 					rc.clearRubble(here.directionTo(dest));
 				} else {
 					bugState = BugState.BUG;
@@ -246,37 +217,76 @@ public class Nav extends Bot {
 			// checkRubbleAndClear(here.directionTo(dest));
 			// Debug.indicateAppend("nav", 1, "successful direct move; ");
 		}
-		if (rc.isCoreReady() &&  type != RobotType.SCOUT && type != RobotType.TURRET && type != RobotType.TTM) {
-			if (here.distanceSquaredTo(dest) < type.attackRadiusSquared) {
-				Util.checkRubbleAndClear(here.directionTo(dest), true);
-				return;
-			} else if (bugState == BugState.BUG && bugMovesSinceMadeProgress > 20) {
-				if (Util.checkRubbleAndClear(here.directionTo(dest), true)) {
-					return;
-				}
-			}
 
-		}
 		// If that failed, or if bugging, bug
-		
 		if (bugState == BugState.BUG) {
 			// Debug.indicateAppend("nav", 1, "bugging; ");
 			bugTurn();
-			bugMovesSinceMadeProgress++;
 		}
 	}
 
-	// private static void runAway() throws GameActionException {
-	// Direction away =
-	// here.directionTo(Util.centroidOfUnits(rc.senseHostileRobots(here, -1)));
-	// if (rc.canMove(away)) {
-	// rc.move(away);
-	// } else if (rc.canMove(away.rotateLeft())) {
-	// rc.move(away.rotateLeft());
-	// } else if (rc.canMove(away.rotateRight())) {
-	// rc.move(away.rotateRight());
-	// }
-	// }
+	public static void runAway(RobotInfo[] unfriendly) throws GameActionException {
+		Direction bestRetreatDir = null;
+		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
+		double bestDistSq = -10000;
+		boolean spotToClear = false;
+		for (Direction dir : Direction.values()) {
+			MapLocation retreatLoc = here.add(dir);
+			if (!rc.canMove(dir)) {
+				if (rc.senseRubble(retreatLoc) > GameConstants.RUBBLE_OBSTRUCTION_THRESH && type != RobotType.SCOUT
+						&& type != RobotType.TURRET && type != RobotType.TTM && !rc.isLocationOccupied(retreatLoc))
+					spotToClear = true;
+				continue;
+			}
+			double turretMod = 0;
+			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
+			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
+			double rubble = rc.senseRubble(retreatLoc);
+			double rubbleMod = rubble < GameConstants.RUBBLE_SLOW_THRESH ? 0
+					: rubble * 2.3 / GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+			double wallMod = wallModCalc(retreatLoc, dir);
+			// rc.setIndicatorString(2, ""+rubbleMod);
+			if (distSq - rubbleMod - turretMod + wallMod  > bestDistSq) {
+				bestDistSq = distSq - rubbleMod + wallMod - turretMod;
+				bestRetreatDir = dir;
+			}
+		}
+		if (bestRetreatDir != null) {
+			rc.move(bestRetreatDir);
+		} else if (spotToClear) {
+			bestDistSq = -10000;
+			for (Direction dir : Direction.values()) {
+				MapLocation retreatLoc = here.add(dir);
+				if (rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH || type == RobotType.SCOUT
+						|| type == RobotType.TURRET || type == RobotType.TTM || rc.isLocationOccupied(retreatLoc))
+					continue;
+				double turretMod = 0;
+				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
+				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
+				double rubble = rc.senseRubble(retreatLoc);
+				double rubbleMod = rubble < GameConstants.RUBBLE_SLOW_THRESH ? 0
+						: rubble * 2.3 / GameConstants.RUBBLE_OBSTRUCTION_THRESH;
+				double wallMod = wallModCalc(retreatLoc, dir);
+				if (distSq - rubbleMod - turretMod + wallMod  > bestDistSq) {
+					bestDistSq = distSq - rubbleMod + wallMod - turretMod;
+					bestRetreatDir = dir;
+				}
+			}
+			if (rc.isCoreReady() && bestRetreatDir != null)
+				Util.checkRubbleAndClear(bestRetreatDir, true);
+		}
+	}
+
+	private static double wallModCalc(MapLocation retreatLoc, Direction dir) throws GameActionException {
+		double mod = 0;
+		while (here.distanceSquaredTo(retreatLoc) < type.sensorRadiusSquared && rc.onTheMap(retreatLoc)
+				&& rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			retreatLoc = retreatLoc.add(dir);
+			mod += 1.0;
+		}
+		return mod;
+
+	}
 
 	public static void goTo(MapLocation theDest, NavSafetyPolicy theSafety) throws GameActionException {
 		if (!theDest.equals(dest)) {
@@ -292,238 +302,4 @@ public class Nav extends Bot {
 		bugMove();
 	}
 
-	private static boolean tryMoveDirectScout(Direction toDest) throws GameActionException {
-		// Direction toDest = here.directionTo(dest);
-
-		if (canMove(toDest) && rc.onTheMap(here.add(toDest, (int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
-			move(toDest);
-			return true;
-		}
-
-		Direction[] dirs = new Direction[((BotScout.patience > BotScout.PATIENCESTART / 2) ? 4 : 2)];
-		Direction dirLeft = toDest.rotateLeft();
-		Direction dirRight = toDest.rotateRight();
-		dirs[0] = dirLeft;
-		dirs[1] = dirRight;
-		if(BotScout.patience > BotScout.PATIENCESTART / 2){
-			dirs[2] = dirLeft.rotateLeft();
-			dirs[3] = dirRight.rotateRight();
-		}
-		boolean notSafeToMoveAhead = false;
-		for (Direction dir : dirs) {
-			if(dir == directionIAmMoving){
-				if (canMove(dir) )
-					if( rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0))))) {
-						move(dir);
-						return true;
-					}
-					else notSafeToMoveAhead = true;
-			}else if (canMove(dir)
-					&& (notSafeToMoveAhead || rc.onTheMap(here.add(dir,(int) (Math.sqrt(type.sensorRadiusSquared / 2.0)))))) {
-				move(dir);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/*	public static void fleeNumerical(RobotInfo[]unfriendly){
-		Direction bestRetreatDir = chooseNumericalyRetreat(unfriendly);
-		if (bestRetreatDir != null && rc.isCoreReady() && rc.canMove(bestRetreatDir)) {
-			rc.move(bestRetreatDir);
-		}
-		}
-	private static Direction chooseNumericalyRetreat(RobotInfo[] unfriendly) {
-		Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-				Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
-		int[] directionWeights = {0,0,0,0,0,0,0,0};
-		for(int i =0;i<directionWeights.length;i++){
-		directionWeights[i] =
-				+ // #enemies that can shoot this spot
-				+ // rubble level
-				+ // how soon you will run into wall
-				+ //
-				+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0)?50:0);
-		}
-		return bestWeight(directions,directionWeights);
-	}
-	private static Direction bestWeight(Direction[] directions,int[] directionWeights){
-		int bestIndex = Integer.MIN_VALUE;
-		for(int i = 0; i < directionWeights.length; i++) {
-			if(directionWeights[i] > directionWeights[bestIndex]) {
-				bestIndex = i;
-			}
-		}
-		return directions[bestIndex];
-	}
-	*/
-	public static void flee(RobotInfo[] unfriendly,RobotInfo[] allies) throws GameActionException {
-		Direction bestRetreatDir = null;
-		RobotInfo currentClosestEnemy = Util.closest(unfriendly, here);
-		double bestDistSq = -10000;
-		boolean spotToClear = false;
-		for (Direction dir : Direction.values()) {
-			MapLocation retreatLoc = here.add(dir);
-			if (!rc.canMove(dir)){
-				if(rc.senseRubble(retreatLoc)>GameConstants.RUBBLE_OBSTRUCTION_THRESH &&type!= RobotType.SCOUT && type!= RobotType.TURRET && type!= RobotType.TTM&& !rc.isLocationOccupied(retreatLoc))
-					spotToClear = true;
-				continue;
-			}
-			double turretMod = 0;
-			if (isInRangeOfTurrets(retreatLoc)) {
-				if (spotToClear)
-					continue;
-				else
-					turretMod = 100;
-			}
-
-			RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
-			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
-			double rubble = rc.senseRubble(retreatLoc);
-			double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
-			double wallMod = wallModCalc(retreatLoc,dir);
-			double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-			//rc.setIndicatorString(2, ""+rubbleMod);
-			if (distSq-rubbleMod-turretMod+wallMod+allyMod > bestDistSq) {
-				bestDistSq = distSq-rubbleMod+wallMod+allyMod;
-				bestRetreatDir = dir;
-			}
-		}
-		if (bestRetreatDir != null) {
-			rc.move(bestRetreatDir);
-		}else if(spotToClear){
-			bestDistSq = -10000;
-			for (Direction dir : Direction.values()) {
-				MapLocation retreatLoc = here.add(dir);
-				if (rc.senseRubble(retreatLoc)<GameConstants.RUBBLE_OBSTRUCTION_THRESH || type == RobotType.SCOUT || type == RobotType.TURRET || type == RobotType.TTM || rc.isLocationOccupied(retreatLoc) )
-					continue;
-				double turretMod = 0;
-				if(isInRangeOfTurrets(retreatLoc))
-					turretMod = 100;
-				RobotInfo closestEnemy = Util.closest(unfriendly, retreatLoc);
-				int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
-				double rubble = rc.senseRubble(retreatLoc);
-				double rubbleMod = rubble<GameConstants.RUBBLE_SLOW_THRESH?0:rubble*2.3/GameConstants.RUBBLE_OBSTRUCTION_THRESH;
-				double wallMod = wallModCalc(retreatLoc,dir);
-				double allyMod = Harass.numOtherAlliesInAttackRange(here.add(dir), allies);
-				if (distSq-rubbleMod-turretMod+wallMod+allyMod> bestDistSq) {
-					bestDistSq = distSq-rubbleMod+wallMod+allyMod;
-					bestRetreatDir = dir;
-				}
-			}
-			if(rc.isCoreReady() && bestRetreatDir!=null )
-				Util.checkRubbleAndClear(bestRetreatDir,true);
-		}
-//		if(bestRetreatDir==null && rc.isCoreReady()){
-//			bestRetreatDir = Util.closest(unfriendly, here).location.directionTo(here);
-//			if(rc.canMove(bestRetreatDir)){
-//			System.out.println("had to do a simple run");
-//				rc.move(bestRetreatDir);
-//			}
-//		}
-	}
-	private static double wallModCalc(MapLocation retreatLoc,Direction dir) throws GameActionException{
-		double mod = 0;
-		while(here.distanceSquaredTo(retreatLoc)<type.sensorRadiusSquared&&rc.onTheMap(retreatLoc)&&rc.senseRubble(retreatLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH){
-			retreatLoc = retreatLoc.add(dir);
-			mod+=1.0;
-
-		}
-		return mod;
-
-	}
-	// public static void explore() throws GameActionException { // NEW INTO
-	// HARASS
-	// // explore
-	// RobotInfo[] hostileRobots = rc.senseHostileRobots(here,
-	// type.sensorRadiusSquared);
-	// RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared,
-	// us);
-	// NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(
-	// Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-	// if (rc.isCoreReady()) {
-	// if (type != RobotType.SCOUT && allies.length > 1) {
-	// directionIAmMoving = here.directionTo(Util.centroidOfUnits(allies));
-	// }
-	// if (directionIAmMoving == null) {
-	// int fate = rand.nextInt(1000);
-	// directionIAmMoving = Direction.values()[fate % 8];
-	// }
-	// boolean moved = Nav.moveInDir(directionIAmMoving, theSafety);
-	// if (!moved) {
-	// for (int i = 0; i < 8; i++) {
-	// directionIAmMoving = directionIAmMoving.rotateRight();
-	// moved = Nav.moveInDir(directionIAmMoving, theSafety);
-	// if (moved) {
-	// break;
-	// }
-	// }
-	// }
-	// if (!moved && hostileRobots.length > 0) {
-	// flee(hostileRobots);
-	// // Combat.retreat(Util.closest(hostileRobots, here).location);
-	// }
-	// }
-	// }
-
-	public static void explore(RobotInfo[] hostileRobots, RobotInfo[] allies) throws GameActionException {
-		// explore
-		safety = new SafetyPolicyAvoidAllUnits(Util.combineTwoRIArrays(enemyTurrets, turretSize, hostileRobots));
-		RobotInfo[] scouts = Util.getUnitsOfType(allies, RobotType.SCOUT);
-		if (directionIAmMoving == null) {
-			directionIAmMoving = center.directionTo(here);
-			BotScout.patience = BotScout.PATIENCESTART; 
-			BotScout.farthestLoc = here;
-		} else if(scouts.length > 0 && rc.getRoundNum() - turnCreated > 15){
-			Direction tempDirection = Util.centroidOfUnits(scouts).directionTo(here);
-			directionIAmMoving = (new Direction[] {
-					tempDirection.rotateLeft(),
-					tempDirection,
-					tempDirection.rotateRight() })[rand.nextInt(3)];
-			BotScout.patience = BotScout.PATIENCESTART; 
-			BotScout.farthestLoc = here;
-		} else if (BotScout.patience < 1)
-			scrambleDirectionIAmMoving();
-		//		} else if(hostileRobots.length > 0 && directionIAmMoving == here.directionTo(Util.centroidOfUnits(hostileRobots)))
-		//			directionIAmMoving = directionIAmMoving.rotateRight();
-		if(tryMoveDirectScout(directionIAmMoving))return;
-		else{
-			scrambleDirectionIAmMoving();
-		}
-		if( tryMoveDirectScout(directionIAmMoving)) return;
-		if(hostileRobots.length > 0)
-			flee(hostileRobots,allies);
-		// Combat.retreat(Util.closest(hostileRobots, here).location);
-	}
-
-	private static void scrambleDirectionIAmMoving() {
-		directionIAmMoving = (new Direction[] {
-				directionIAmMoving.opposite().rotateLeft(),
-				directionIAmMoving.opposite().rotateRight() })[rand.nextInt(2)];
-		BotScout.patience = BotScout.PATIENCESTART; 
-		BotScout.farthestLoc = here;
-	}
-
-	public static void goAwayFrom(MapLocation loc, NavSafetyPolicy theSafety) throws GameActionException{
-		int farthestDist = -1;
-		MapLocation bestLoc = null;
-		for(Direction dir: Direction.values()){
-			if(!rc.canMove(dir))
-				continue;
-			MapLocation newLoc = here.add(dir);
-			if(rc.onTheMap(newLoc) && loc.distanceSquaredTo(newLoc) > farthestDist){
-				bestLoc = newLoc;
-				farthestDist = loc.distanceSquaredTo(newLoc);
-			}
-		}
-		if(bestLoc != null)
-			Nav.goTo(bestLoc, theSafety);
-	}
-
-	public static void followFriends(RobotInfo[] friends, RobotInfo[] enemies) throws GameActionException {
-		 NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
-		if(friends.length > 0){
-			Nav.goTo(Util.centroidOfUnits(friends), theSafety);
-		}
-	}
 }

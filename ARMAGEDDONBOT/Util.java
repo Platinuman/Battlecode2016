@@ -27,8 +27,6 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		Direction dirLeft = dir.rotateLeft();
 		Direction dirRight = dir.rotateRight();
-		dirLeft = dir.rotateLeft();
-		dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
 			rubble = rc.senseRubble(here.add(dirLeft));
 			if ( rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
@@ -45,7 +43,6 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		return false;
 	}
-	
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;
         int bestDistSq = 999999;
