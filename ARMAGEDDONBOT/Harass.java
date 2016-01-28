@@ -496,9 +496,9 @@ public class Harass extends Bot {
 			if(ind != -1 && targetDens[ind].equals(targetLoc)){
 				if (targetLoc != null) {
 					rc.broadcastSignal(12800);
-					killedDens[killedDenSize] = targetDens[bestIndex];
+					//killedDens[killedDenSize] = targetDens[bestIndex];
 					targetDens[bestIndex] = null;
-					killedDenSize++;
+					//killedDenSize++;
 					numDensToHunt--;
 				}
 				targetLoc = null;
