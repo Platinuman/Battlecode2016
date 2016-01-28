@@ -75,6 +75,7 @@ public class BotScout extends Bot {
 
 	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
 		boolean updated = false;
+		boolean isCreationTurn = rc.getRoundNum() == turnCreated;
 		for (Signal signal : signals) {
 			if (signal.getTeam() == us) {
 				int[] message = signal.getMessage();
@@ -83,7 +84,6 @@ public class BotScout extends Bot {
 					int[] data;
 					MapLocation senderloc, loc;
 					switch(purpose){
-
 					case DEN_NOTIF:
 						senderloc = signal.getLocation();
 						data = purpose.decode(senderloc, message);
@@ -101,6 +101,23 @@ public class BotScout extends Bot {
 								targetDens[deadDenIndex] = null;
 								numDensToHunt--;
 								updated = true;
+							}
+						}
+						break;
+					case RELAY_DEN_INFO:
+						if(isCreationTurn) {
+							senderloc = signal.getLocation();
+							data = purpose.decode(senderloc, message);
+							for(int i = 0; i< data.length; i +=2){
+								loc = new MapLocation(data[i], data[i+1]);
+								if(loc.equals(senderloc)){
+									break;
+								}
+								if(!Util.containsMapLocation(targetDens, loc, targetDenSize)){
+									targetDens[targetDenSize]= loc;
+									targetDenSize++;
+									numDensToHunt++;
+								}
 							}
 						}
 						break;
