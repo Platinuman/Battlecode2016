@@ -37,7 +37,7 @@ public class BotArchon extends Bot {
 				determineTypeToBuild();
 			updateTargetLocMySelf();
 			if (rc.isCoreReady() && rc.hasBuildRequirements(typeToBuild)
-					&& (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared || Util.rubbleBetweenHereAndThere(here, targetLoc) > GameConstants.RUBBLE_OBSTRUCTION_THRESH)) {
+					&& (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared || Util.rubbleBetweenHereAndThere(here, targetLoc) > GameConstants.RUBBLE_OBSTRUCTION_THRESH) || numScoutsCreated == 0) {
 				buildUnitInDir(here.directionTo(center), typeToBuild);
 				typeToBuild = null;
 				return;
@@ -47,7 +47,7 @@ public class BotArchon extends Bot {
 		}
 	}
 	private static void determineTypeToBuild() {
-		if(numScoutsCreated * 15 <= numSoldiersCreated)
+		if(numScoutsCreated * 30 <= numSoldiersCreated)
 			typeToBuild = RobotType.SCOUT;
 		else if(false)
 			typeToBuild = RobotType.GUARD;
