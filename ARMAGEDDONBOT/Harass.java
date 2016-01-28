@@ -697,8 +697,18 @@ public class Harass extends Bot {
 								if(loc.equals(senderLoc)){
 									break;
 								}
-								targetDens[targetDenSize]= loc;
-								targetDenSize++;
+								if(!Util.containsMapLocation(targetDens, loc, targetDenSize)){
+									targetDens[targetDenSize]= loc;
+									targetDenSize++;
+									if (!isGuard
+											&& (!huntingDen || here.distanceSquaredTo(loc) < here.distanceSquaredTo(targetLoc)) //test this
+											&& type != RobotType.ARCHON) {
+										targetLoc = loc;
+										bestIndex = targetDenSize - 1;
+										huntingDen = true;
+										swarmingArchon = false;
+									}
+								}
 							}
 						}
 						break;
@@ -775,6 +785,7 @@ public class Harass extends Bot {
 										swarmingArchon = false;
 										bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 										targetLoc = targetDens[bestIndex];
+										huntingDen = true;
 									} else {
 										huntingDen = false;
 										targetLoc = null;

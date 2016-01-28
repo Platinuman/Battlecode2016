@@ -109,7 +109,7 @@ public class BotArchon extends Bot {
 
 			if (typeToBuild == null)
 				determineTypeToBuild();
-			updatetargetLocMySelf();
+			updateTargetLocMySelf();
 			if (rc.isCoreReady() && rc.hasBuildRequirements(typeToBuild)
 					&& (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > type.sensorRadiusSquared)) {
 				buildUnitInDir(here.directionTo(center), typeToBuild);
@@ -180,7 +180,7 @@ public class BotArchon extends Bot {
 //			//rc.setIndicatorString(0,"numSoldiersCreated = " + numSoldiersCreated);
 //			//rc.setIndicatorString(1,"numScoutsCreated = " + numScoutsCreated);
 //			//rc.setIndicatorString(2,"numVipersCreated = " + numVipersCreated);
-//			updatetargetLocMySelf(allies);
+//			updateTargetLocMySelf(allies);
 //			if (rc.hasBuildRequirements(typeToBuild) && (!targetIsNeutral || here.distanceSquaredTo(targetLoc) > Integer.MAX_VALUE)) {
 //					buildUnitInDir(here.directionTo(center), typeToBuild, allies);
 //				typeToBuild = null;
@@ -231,7 +231,7 @@ public class BotArchon extends Bot {
 		}
 		/*
 		if (targetLoc == null || !Combat.isSafe(targetLoc)) {
-			updatetargetLocMySelf(hostiles);
+			updateTargetLocMySelf(hostiles);
 		}
 		*/
 			
@@ -448,7 +448,7 @@ public class BotArchon extends Bot {
 	// return closest;
 	// }
 
-	private static boolean updatetargetLocMySelf() throws GameActionException { // NEW
+	private static boolean updateTargetLocMySelf() throws GameActionException { // NEW
 																										// Harass???
 		RobotInfo[] neutrals = rc.senseNearbyRobots(-1, Team.NEUTRAL);
 		
