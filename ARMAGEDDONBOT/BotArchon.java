@@ -308,22 +308,22 @@ public class BotArchon extends Bot {
 							targetIsNeutral = false;
 						}
 					}
-					else if (purpose == MessageEncode.CRUNCH_TIME){
-						int[] data = purpose.decode(senderLoc, message);
-						if(data[2] > 3){
-							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
-							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
-							runAwayRound = rc.getRoundNum();
-						}
-					}
-					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
-						int[] data = purpose.decode(senderLoc, message);
-						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
-						if(lastEnemyLoc == null || here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
-							lastEnemyRound = rc.getRoundNum();
-							lastEnemyLoc = enemyLoc;
-						}
-					}
+//					else if (purpose == MessageEncode.CRUNCH_TIME){
+//						int[] data = purpose.decode(senderLoc, message);
+//						if(data[2] > 3){
+//							runAwayFromThisLoc = new MapLocation(data[0], data[1]);
+//							//rc.setIndicatorString(0, "running away from " + runAwayFromThisLoc);
+//							runAwayRound = rc.getRoundNum();
+//						}
+//					}
+//					else if (purpose == MessageEncode.ENEMY_ARMY_NOTIF){
+//						int[] data = purpose.decode(senderLoc, message);
+//						MapLocation enemyLoc = new MapLocation(data[0], data[1]);
+//						if(lastEnemyLoc == null || here.distanceSquaredTo(enemyLoc) < here.distanceSquaredTo(lastEnemyLoc) * 1.5 || rc.getRoundNum() - lastEnemyRound > 50){
+//							lastEnemyRound = rc.getRoundNum();
+//							lastEnemyLoc = enemyLoc;
+//						}
+//					}
 				} else {
 					MapLocation signalLoc = signal.getLocation();
 					int distToSignal = here.distanceSquaredTo(signalLoc);
@@ -372,14 +372,29 @@ public class BotArchon extends Bot {
 	private static void broadcastTargetDen(RobotInfo[] allies) throws GameActionException { // New INTO MESSAGE ENCODE
 		/*if (!haveEnoughFighters(allies))
 			return;*/
-		for(MapLocation den: targetDens){
-			if(den == null)
+		int myMsg[];
+		int[] dens = {here.x, here.y,here.x, here.y,here.x, here.y};
+		MapLocation t;
+		int i =0;
+		for(int j = 0; j < targetDenSize; j++){
+			if(targetDens[j] == null)
 				continue;
-			if(rc.getMessageSignalCount() == 19)
+			if(rc.getMessageSignalCount() == 20)
 				break;
-			int[] msg = MessageEncode.DEN_NOTIF.encode(new int[] { den.x, den.y , 1});
-			rc.broadcastMessageSignal(msg[0], msg[1], 2);
+			t = targetDens[j];
+			dens[(i%3)*2] = t.x;
+			dens[(i%3)*2+1] = t.y;
+			if(i % 3 == 2){
+				//send
+				myMsg = MessageEncode.RELAY_DEN_INFO.encode(dens);
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+				dens = new int[]{here.x, here.y,here.x, here.y,here.x, here.y};
+			}
+			i++;
 		}
+		//send the extras
+		myMsg = MessageEncode.RELAY_DEN_INFO.encode(dens);
+		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
 
 	// private static MapLocation chooseNextTarget(RobotInfo[] allies,
@@ -509,7 +524,7 @@ public class BotArchon extends Bot {
 	}
 
 	private static void sendNewUnitImportantData(RobotInfo[] allies) throws GameActionException {// New																			// Util
-		int[] myMsg;
+		//int[] myMsg;
 		//if(alpha != null){
 		//	myMsg = MessageEncode.ALPHA_ARCHON_LOCATION.encode(new int[] { alpha.x, alpha.y });
 		//	rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
@@ -519,29 +534,29 @@ public class BotArchon extends Bot {
 //		else if (numDensToHunt > 0)
 		if (numDensToHunt > 0)
 			broadcastTargetDen(allies);
-		else if (lastEnemyLoc != null){
-			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });
-			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 0);
-		}
+//		else if (lastEnemyLoc != null){
+//			myMsg = MessageEncode.ENEMY_ARMY_NOTIF.encode(new int[] { lastEnemyLoc.x, lastEnemyLoc.y, 0 });
+//			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 0);
+//		}
 		// now notify them of turrets
-		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
-		MapLocation t;
-		for(int i = 0; i < turretSize; i++){
-			if(rc.getMessageSignalCount() == 19)
-				break;
-			t = enemyTurrets[i].location;
-			turretLocs[(i%3)*2] = t.x;
-			turretLocs[(i%3)*2+1] = t.y;
-			if(i % 3 == 2){
-				//send
-				myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
-				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
-				turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y};
-			}
-		}
-		//send the extras
-		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
-		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+//		int[] turretLocs = {here.x, here.y,here.x, here.y,here.x, here.y};
+//		MapLocation t;
+//		for(int i = 0; i < turretSize; i++){
+//			if(rc.getMessageSignalCount() == 19)
+//				break;
+//			t = enemyTurrets[i].location;
+//			turretLocs[(i%3)*2] = t.x;
+//			turretLocs[(i%3)*2+1] = t.y;
+//			if(i % 3 == 2){
+//				//send
+//				myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
+//				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
+//				turretLocs = new int[]{here.x, here.y,here.x, here.y,here.x, here.y};
+//			}
+//		}
+//		//send the extras
+//		myMsg = MessageEncode.RELAY_TURRET_INFO.encode(turretLocs);
+//		rc.broadcastMessageSignal(myMsg[0], myMsg[1], 2);
 	}
 
 	private static void notifySoldierTheyShouldGuard() throws GameActionException{
