@@ -51,12 +51,10 @@ public class BotArchon extends Bot {
 			typeToBuild = RobotType.SCOUT;
 		else if(false)
 			typeToBuild = RobotType.GUARD;
-		else if (rc.getRoundNum() < 800){
+		else if (false)//rc.getRoundNum() > 800)
 			typeToBuild = RobotType.SOLDIER;
-		}
-		else{
-			typeToBuild = RobotType.TURRET;
-		}
+		else
+			typeToBuild = RobotType.SOLDIER;
 	}
 	private static void updateAndMoveTowardtargetLoc(RobotInfo[] hostiles) throws GameActionException {
 		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(hostiles);
@@ -101,7 +99,7 @@ public class BotArchon extends Bot {
 		for(int j = 0; j < targetDenSize; j++){
 			if(targetDens[j] == null)
 				continue;
-			if(rc.getMessageSignalCount() == 20)
+			if(rc.getMessageSignalCount() == 19)
 				break;
 			t = targetDens[j];
 			dens[(i%3)*2] = t.x;
@@ -171,7 +169,7 @@ public class BotArchon extends Bot {
 			break;
 		}
 	}
-	private static void sendNewUnitImportantData() throws GameActionException {// New																			// Util
+	private static void sendNewUnitImportantData() throws GameActionException {
 		if (targetDenSize > 0)
 			broadcastTargetDen();
 	}
