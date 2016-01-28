@@ -16,10 +16,10 @@ public class Bot {
 	//public static MapLocation[] killedDens;
 	//public static int killedDenSize;
 	public static MapLocation targetLoc;
-	public static int bestIndex;  //AARON_IDENTIFIER do we need this?
-	//public static int numDensToHunt;
-	//public static int turnCreated; 
-	public static Direction directionIAmMoving; //AARON_IDENTIFIER do we need this?
+	public static int bestIndex; //AARON_IDENTIFIER do we need this? not sure, but we definitely use it in Harass
+	public static int numDensToHunt;
+	public static int turnCreated; 
+	public static Direction directionIAmMoving; //AARON_IDENTIFIER do we need this? yes (scouts call nav methods which need to access it)
 	//public static MapLocation[] initialEnemyArchonLocs;
 	// TODO: get rid of this stupid directions thing and use direction order and dir.ordinal()
 	protected static Direction[] directions = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
@@ -31,7 +31,7 @@ public class Bot {
 	
 	protected static void init(RobotController theRC) throws GameActionException {
 		rc = theRC;
-		//turnCreated = rc.getRoundNum();
+		turnCreated = rc.getRoundNum();
 		us = rc.getTeam();
 		//them = us.opponent();
 		//initialEnemyArchonLocs = rc.getInitialArchonLocations(them); Set in MapAnalysis
@@ -40,7 +40,7 @@ public class Bot {
 		type = rc.getType();
 		targetDens = new MapLocation[10000];
 		//killedDens = new MapLocation[10000];
-		targetDenSize = bestIndex = numDensToHunt = killedDenSize = 0;
+		targetDenSize = bestIndex = 0;//numDensToHunt = killedDenSize = 0;
 		MapAnalysis.analyze();
 		//enemyTurrets = new RobotInfo[64];
 		//turretSize = 0;

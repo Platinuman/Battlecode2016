@@ -7,14 +7,14 @@ public class Harass extends Bot {
 	// Implement those and the rest of these methods are helper methods for the
 	// big ones.
 	// Once again Optimization.
-	static MapLocation turretLoc, targetLoc, archonLoc;
+	static MapLocation targetLoc, archonLoc;
 	static boolean targetUpdated, archonUpdated, huntingDen, crunching, wantToMove;
 	static int archonUpdate;
 	static boolean swarmingArchon;
 	static boolean isGuard;
 
 	private static boolean canWin1v1(RobotInfo enemy) {
-		if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN)
+		if (enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 		// TODO: check viper infection statuses, also if you are a viper
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
@@ -37,7 +37,7 @@ public class Harass extends Bot {
 
 	public static boolean canWin1v1AfterMovingTo(MapLocation loc, RobotInfo enemy) {
 		// TODO:!!! take range difference into account! soldiers can kite basically everything
-		if (enemy.type == RobotType.ARCHON ||enemy.type == RobotType.ZOMBIEDEN)
+		if (enemy.type == RobotType.ZOMBIEDEN)
 			return true;
 		int numAttacksAfterFirstToKillEnemy = (int) ((enemy.health - 0.001) / type.attackPower);
 		int turnsTillWeCanAttack;
@@ -62,21 +62,14 @@ public class Harass extends Bot {
 	}
 
 	public static boolean isSafeToMoveTo(MapLocation loc, RobotInfo[] enemies) {
-
 		RobotInfo loneAttacker = null;
 		int numAttackers = 0;
 		for (RobotInfo enemy : enemies) {
-			switch (enemy.type) {
-			case ARCHON:
-				break;
-			default:
-				if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
-					numAttackers++;
-					if (numAttackers > 1)
-						return false;
-					loneAttacker = enemy;
-				}
-				break;
+			if (enemy.type.attackRadiusSquared >= loc.distanceSquaredTo(enemy.location)) {
+				numAttackers++;
+				if (numAttackers > 1)
+					return false;
+				loneAttacker = enemy;
 			}
 		}
 
@@ -98,9 +91,9 @@ public class Harass extends Bot {
 				continue;
 
 			MapLocation retreatLoc = here.add(dir);
-			if(Util.isInRangeOfTurrets(retreatLoc)){
-				continue;
-			}
+//			if(Util.isInRangeOfTurrets(retreatLoc)){
+//				continue;
+//			}
 			RobotInfo closestEnemy = Util.closest(enemies, retreatLoc); // TODO: put this back in, maybe only if there aren't tons of enemies?
 			int distSq = retreatLoc.distanceSquaredTo(closestEnemy.location);
 			double rubble = rc.senseRubble(retreatLoc);
@@ -681,6 +674,7 @@ public class Harass extends Bot {
 						}
 						break;
 					case MOBILE_ARCHON_LOCATION:
+						if(type == RobotType.ARCHON) break;
 						data = purpose.decode(signal.getLocation(), message);
 						MapLocation newArchonLoc = new MapLocation(data[0], data[1]);
 						if(archonLoc == null || here.distanceSquaredTo(newArchonLoc) < here.distanceSquaredTo(archonLoc) || archonUpdate != rc.getRoundNum()){
@@ -757,8 +751,9 @@ public class Harass extends Bot {
 								targetDens[targetDenSize] = denLoc;
 								targetDenSize++;
 								numDensToHunt++;
-								if (!isGuard && (!huntingDen //test this
-										|| here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc))) {
+								if (!isGuard
+										&& (!huntingDen || here.distanceSquaredTo(denLoc) < here.distanceSquaredTo(targetLoc)) //test this
+										&& type != RobotType.ARCHON) {
 									targetLoc = denLoc;
 									bestIndex = targetDenSize - 1;
 									huntingDen = true;
