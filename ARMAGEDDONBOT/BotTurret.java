@@ -4,12 +4,12 @@ import battlecode.common.*;
 
 public class BotTurret extends Bot {
 	protected static MapLocation targetLoc;
-	protected static MapLocation alpha;
-	static MapLocation[] lastScoutNotifiedArray;
-	static int currentIndexOfLastArray = 0;
-	static int lastTimeTargetChanged;
-	protected static int range; // NEW not necessary for mobile
-	protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
+	//protected static MapLocation alpha;
+	//static MapLocation[] lastScoutNotifiedArray;
+	//static int currentIndexOfLastArray = 0;
+	//static int lastTimeTargetChanged;
+	//protected static int range; // NEW not necessary for mobile
+	//protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
 	protected static boolean isTTM;
 
 	public static void loop(RobotController theRC) throws GameActionException {
@@ -28,28 +28,28 @@ public class BotTurret extends Bot {
 	private static void init() throws GameActionException {
 		// TODO have bot choose what type of turret it is
 		// if it is a mobile turret it needs to have a target loc
-		chooseTurretType();
+		//chooseTurretType();
 		isTTM = false;
 		// MessageEncode.getMobileArchonLocation(); //NEW This should be a
 		// method
-		if (turretType == 0) { // WE ARE TURTLING
-			range = 2;
-			Signal[] signals = rc.emptySignalQueue();
-			for (int i = 0; i < signals.length; i++) {
-				if (signals[i].getTeam() == them) {
-					continue;
-				}
-				int[] message = signals[i].getMessage();
-				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
-					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
-							message);
-					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
-					break;
-				}
-			}
-		}
-		if (turretType == 1) { // OFFENSIVE
+//		if (turretType == 0) { // WE ARE TURTLING
+//			range = 2;
+//			Signal[] signals = rc.emptySignalQueue();
+//			for (int i = 0; i < signals.length; i++) {
+//				if (signals[i].getTeam() == them) {
+//					continue;
+//				}
+//				int[] message = signals[i].getMessage();
+//				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
+//					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
+//							message);
+//					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+//					break;
+//				}
+//			}
+//		}
+		//if (turretType == 1) { // OFFENSIVE
 			// MessageEncode.readMessagesAndUpdateInfo();
 			targetLoc = center; // for now
 			//boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
@@ -76,7 +76,7 @@ public class BotTurret extends Bot {
 		// MessageEncode.updateRange(); //NEW update the range and get list of
 		// possible targets in same loop to conserve bytecode
 
-		if (turretType == 1 && targetLoc != null) {
+//		if (turretType == 1 && targetLoc != null) {
 			if (!isTTM) {
 				// shoot anything in range and use scout
 				//attackIfApplicable(signals);
@@ -103,29 +103,29 @@ public class BotTurret extends Bot {
 					}
 				}
 			}
-		} else if (turretType == 0) {
-
-			if (!isTTM) {
-				attackIfApplicable(signals);
-				Boolean rangeUpdated = updateMaxRange(signals);
-				if (rc.isCoreReady()) {
-					moveToLocFartherThanAlphaIfPossible(here);
-				}
-			} else {
-				if (rc.isCoreReady()) {
-					moveToLocFartherThanAlphaIfPossible(here);
-				}
-			}
-
-		}
+//		} else if (turretType == 0) {
+//
+//			if (!isTTM) {
+//				attackIfApplicable(signals);
+//				Boolean rangeUpdated = updateMaxRange(signals);
+//				if (rc.isCoreReady()) {
+//					moveToLocFartherThanAlphaIfPossible(here);
+//				}
+//			} else {
+//				if (rc.isCoreReady()) {
+//					moveToLocFartherThanAlphaIfPossible(here);
+//				}
+//			}
+//
+//		}
 	}
 	
 	// NEW OPTIMIZE ALL OF THIS
 
-	private static void chooseTurretType() {
-		// We need to decide how we're going to choose this
-		turretType = 1;
-	}
+//	private static void chooseTurretType() {
+//		// We need to decide how we're going to choose this
+//		turretType = 1;
+//	}
 
 	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
 		Direction dir = Direction.NORTH;

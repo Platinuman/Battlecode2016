@@ -40,7 +40,7 @@ public class Bot {
 		type = rc.getType();
 		targetDens = new MapLocation[10000];
 		//killedDens = new MapLocation[10000];
-		targetDenSize = bestIndex = numDensToHunt = killedDenSize = 0;
+		targetDenSize = bestIndex = 0;//numDensToHunt = killedDenSize = 0;
 		MapAnalysis.analyze();
 		//enemyTurrets = new RobotInfo[64];
 		//turretSize = 0;
@@ -97,8 +97,7 @@ public class Bot {
 //		return updated;
 //	}
 //	
-	//AARON_IDENTIFIER someone make methods to do this stuff for dens :P
-	
+//AARON_IDENTIFIER someone make methods to do this stuff for dens :P
 //	public static boolean removeLocFromTurretArray(MapLocation loc) {
 //		for(int i = 0 ; i < turretSize; i++){
 //			if( enemyTurrets[i].location.equals(loc)){

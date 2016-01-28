@@ -31,7 +31,8 @@ public class BotViper extends Bot {
 //		rc.setIndicatorString(1, s + " " + turretSize);
 		//MessageEncode.readMessagesAndUpdateInfo();
 		//TODO make new data types in encode and use the to notify us when a bot is turtling
-		Harass.doHarass();
+		rc.disintegrate();
+		//Harass.doHarass();
 	}
 	
 	private static void init() throws GameActionException {
