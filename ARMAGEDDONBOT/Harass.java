@@ -221,7 +221,7 @@ public class Harass extends Bot {
 				}
 			} else { // more than one enemy
 				RobotInfo bestTarget = null;
-				double bestTargetingMetric = 0;
+				double bestTargetingMetric = -10000;
 				int maxAlliesAttackingAnEnemy = 0;
 				for (int i = 0; i < numEnemiesAttackingUs; i++) {
 					RobotInfo enemy = enemiesAttackingUs[i];
@@ -233,7 +233,9 @@ public class Harass extends Bot {
 								//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
-								-  enemy.type.movementDelay/300;
+								-  enemy.type.movementDelay/300
+								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
+								+ (enemy.type == RobotType.ZOMBIEDEN?enemy.health:0);
 							//	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 								//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
@@ -286,7 +288,7 @@ public class Harass extends Bot {
 			if(enemiesICanShoot.length == 1)
 				bestTarget = enemiesICanShoot[0];
 			else{
-				double bestTargetingMetric = 0;
+				double bestTargetingMetric = -10000;
 				int maxAlliesAttackingAnEnemy = 0;
 				for (RobotInfo enemy : enemiesICanShoot) {
 					int numAlliesAttackingEnemy = allies.length > enemiesICanShoot.length*3?allies.length / 2 + 1 : 1 + numOtherAlliesInAttackRange(enemy.location, allies);
@@ -297,7 +299,9 @@ public class Harass extends Bot {
 								//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
-								-  enemy.type.movementDelay/300;
+								-  enemy.type.movementDelay/300
+								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
+								+ (enemy.type == RobotType.ZOMBIEDEN?enemy.health:0);
 					          //	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 						//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
