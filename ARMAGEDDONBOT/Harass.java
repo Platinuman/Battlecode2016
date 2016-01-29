@@ -482,19 +482,19 @@ public class Harass extends Bot {
 //			targetLoc = archonLoc;
 //			return;
 //		}
-		int fate = rand.nextInt(1000);
-		if(huntingDen && numDensToHunt > 1 && fate < 100 && !Util.isSurrounded(here) && rc.canSenseLocation(targetLoc) && rc.senseNearbyRobots(targetLoc, type.attackRadiusSquared, us).length > 15){
-			rc.setIndicatorString(2, "moving on");
-			targetDens[bestIndex] = null;
-			numDensToHunt--;
-			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
-			targetLoc = targetDens[bestIndex];
-		}
-		
-		//if(huntingDen){
+		//int fate = rand.nextInt(1000);
+		//if(huntingDen && numDensToHunt > 1 && fate < 100 && !Util.isSurrounded(here) && rc.canSenseLocation(targetLoc) && rc.senseNearbyRobots(targetLoc, type.attackRadiusSquared, us).length > 15){
+		//	rc.setIndicatorString(2, "moving on");
+		//	targetDens[bestIndex] = null;
+		//	numDensToHunt--;
 		//	bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 		//	targetLoc = targetDens[bestIndex];
 		//}
+		
+		if(huntingDen && numDensToHunt > 1 && rc.isCoreReady()){
+			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+			targetLoc = targetDens[bestIndex];
+		}
 		
 //		if(targetLoc == null){
 //			//targetLoc = archonLoc;
