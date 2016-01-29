@@ -235,7 +235,7 @@ public class Harass extends Bot {
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
 								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
-								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 250)?enemy.health:0);
+								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 200 && rc.getRoundNum() > 100 && numDensToHunt < 5)?enemy.health:0);
 							//	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 								//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
@@ -301,7 +301,7 @@ public class Harass extends Bot {
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
 								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
-								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 250)?enemy.health:0);
+								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 200 && rc.getRoundNum() > 100 && numDensToHunt < 5)?enemy.health:0);
 					          //	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 						//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
