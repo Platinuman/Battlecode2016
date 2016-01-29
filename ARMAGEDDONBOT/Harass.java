@@ -474,14 +474,23 @@ public class Harass extends Bot {
 			updateViperTargetLocWithoutSignals();
 			return;
 		}
-//		else*/ //if (swarmingArchon && archonLoc != null){
+//		else*/ //if (swarmingArchon && archonLoc != null)
 //			targetLoc = archonLoc;
 //			return;
 //		}
-		if(huntingDen){
+		int fate = rand.nextInt(1000);
+		if(huntingDen && numDensToHunt > 1 && fate < 200 && !Util.isSurrounded(here) && rc.canSenseLocation(targetLoc) && rc.senseNearbyRobots(type.sensorRadiusSquared, us).length > 15){
+			rc.setIndicatorString(2, "moving on");
+			targetDens[bestIndex] = null;
+			numDensToHunt--;
 			bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
 			targetLoc = targetDens[bestIndex];
 		}
+		
+		//if(huntingDen){
+		//	bestIndex = Util.closestLocation(targetDens, here, targetDenSize);
+		//	targetLoc = targetDens[bestIndex];
+		//}
 		
 //		if(targetLoc == null){
 //			//targetLoc = archonLoc;
