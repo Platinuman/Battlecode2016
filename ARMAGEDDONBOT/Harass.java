@@ -235,7 +235,7 @@ public class Harass extends Bot {
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
 								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
-								+ (enemy.type == RobotType.ZOMBIEDEN?enemy.health:0);
+								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 250)?enemy.health:0);
 							//	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 								//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
@@ -301,7 +301,7 @@ public class Harass extends Bot {
 								+  enemy.type.attackRadiusSquared/2000
 								-  enemy.type.movementDelay/300
 								- (enemy.type == RobotType.ZOMBIEDEN?10000:0)
-								+ (enemy.type == RobotType.ZOMBIEDEN?enemy.health:0);
+								+ ((enemy.type == RobotType.ZOMBIEDEN && rc.getTeamParts() > 250)?enemy.health:0);
 					          //	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 						//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
@@ -904,10 +904,11 @@ public class Harass extends Bot {
 		//updateMoveIn(signals, enemies);
 		//boolean targetUpdated = updateTargetLoc(signals);
 	//	int startB = Clock.getBytecodeNum();
+		//if(numEnemiesAttackingUs == 0){
+		Signal[] signals = rc.emptySignalQueue();
+		updateInfoFromSignals(signals);
 		if(numEnemiesAttackingUs == 0){
-			Signal[] signals = rc.emptySignalQueue();
-			updateInfoFromSignals(signals);
-			updateTargetLocWithoutSignals();
+		updateTargetLocWithoutSignals();
 		}
 		//int signalBytecode = Clock.getBytecodeNum() - startB;
 		//bytecodeIndicator += "Signal Reading: " + signalBytecode;
