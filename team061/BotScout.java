@@ -1,16 +1,15 @@
 package team061;
 
-import java.util.*;
-
 import battlecode.common.*;
 
 public class BotScout extends Bot {
-	static MapLocation alpha;
-	static MapLocation dest;
-	static int range;
+	protected static int scoutType;
+	static MapLocation circlingLoc, farthestLoc;
+	static int circlingTime, lastRoundNotifiedOfArmy, lastRoundNotifiedOfPN;
+	static int lastCrunchRound;
+	static int patience, PATIENCESTART;
 
 	public static void loop(RobotController theRC) throws GameActionException {
-
 		Bot.init(theRC);
 		init();
 		while (true) {
@@ -24,90 +23,160 @@ public class BotScout extends Bot {
 	}
 
 	private static void init() throws GameActionException {
-		rc.setIndicatorString(0, "We see.");
-		range = 3;
-		alpha = MapAnalysis.getAlphaLocation();
+		circlingTime = 0;
+		scoutType = 0;
+		lastRoundNotifiedOfArmy = 0;
+		lastRoundNotifiedOfPN = 0;
+		lastCrunchRound = 0;
+		PATIENCESTART = 20;
+		patience = PATIENCESTART; 
+		farthestLoc = here;
+		directionIAmMoving = center.directionTo(here);
 	}
-	
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
-		Signal[] signals = rc.emptySignalQueue();
-		updateMaxRange(signals);
-		if (rc.isCoreReady()) {
-			moveToLocFartherThanAlphaIfPossible(here);
-		}
-		if (rc.isCoreReady()) {
-			Util.checkRubbleAndClear(here.directionTo(alpha),true);
-		}
-		broadcastEnemies();
-		
+			RobotInfo[] zombies = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.ZOMBIE);
+			RobotInfo[] allies = rc.senseNearbyRobots(here, type.sensorRadiusSquared, us);
+			RobotInfo[] neutrals = rc.senseNearbyRobots(type.sensorRadiusSquared, Team.NEUTRAL);
+			patience--;
+			updateTurretListAndDens(rc.emptySignalQueue(), zombies);
+			updateProgress();
+//			MapLocation neutralArchonLoc = Util.getLocationOfType(neutrals, RobotType.ARCHON);
+//			boolean seeNeutralArchon = neutralArchonLoc != null;
+//			if(seeNeutralArchon){
+//				directionIAmMoving = here.directionTo(neutralArchonLoc);
+//				patience = PATIENCESTART;
+//				farthestLoc = here;
+//			}
+			if (rc.isCoreReady()) {
+
+					Nav.explore(zombies, allies);
+			}
+			notifySoldiersOfZombieDen(zombies);
+			String dens = "";
+			if(targetDenSize > 0){
+				for(int i = 0; i < targetDenSize; i++){
+					MapLocation den = targetDens[i];
+					if(den != null)
+						dens += den.toString() + ", ";
+				}
+			}
+			rc.setIndicatorString(0, dens);
 	}
-	private static void broadcastEnemies() throws GameActionException{
-		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
-		Arrays.sort(enemyRobots, new Comparator<RobotInfo>() {
-		    public int compare(RobotInfo idx1, RobotInfo idx2) {
-		        return (int) (100*(idx1.attackPower-idx2.attackPower) + (-idx1.health+idx2.health));
-		    }
-		});
-		for (int i = Integer.max(0,enemyRobots.length-20); i < enemyRobots.length; i++) {
-			MapLocation loc = enemyRobots[i].location;
-			int[] message = MessageEncode.TURRET_TARGET.encode(new int[] { loc.x, loc.y });
-			rc.broadcastMessageSignal(message[0], message[1],15);//(int)GameConstants.BROADCAST_RANGE_MULTIPLIER*RobotType.SCOUT.sensorRadiusSquared);
+
+	private static void updateProgress() {
+		Direction dirFromBest = farthestLoc.directionTo(here);
+		if(dirFromBest == directionIAmMoving || dirFromBest == directionIAmMoving.rotateLeft() || dirFromBest == directionIAmMoving.rotateRight()){
+			patience = PATIENCESTART; 
+			farthestLoc = here;
 		}
 	}
-	private static void moveToLocFartherThanAlphaIfPossible(MapLocation here) throws GameActionException {
-		Direction dir = here.directionTo(center);
-		boolean shouldMove = false;
-		Direction bestDir = dir;
-		int nearestScout = distToNearestScout(here);
-		int distanceToAlpha = here.distanceSquaredTo(alpha);
-		int bestScore = distanceToAlpha - nearestScout;
-		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.SCOUT.sensorRadiusSquared);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-		for (int i = 0; i < 8; i++) {
-			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)) {
-				int newDistanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				if (newDistanceToAlpha <= range && theSafety.isSafeToMoveTo(newLoc)) {
-					int newNearestScout = distToNearestScout(newLoc);
-					int score = newDistanceToAlpha - newNearestScout;
-					if (score > bestScore) {
-						bestScore = score;
-						bestDir = dir;
-						shouldMove = true;
+
+	public static boolean updateTurretListAndDens(Signal[] signals, RobotInfo[] enemies) throws GameActionException {
+		boolean updated = false;
+		boolean isCreationTurn = rc.getRoundNum() == turnCreated;
+		for (Signal signal : signals) {
+			if (signal.getTeam() == us) {
+				int[] message = signal.getMessage();
+				if (message != null) {
+					MessageEncode purpose = MessageEncode.whichStruct(message[0]);
+					int[] data;
+					MapLocation senderloc, loc;
+					switch(purpose){
+					case DEN_NOTIF:
+						senderloc = signal.getLocation();
+						data = purpose.decode(senderloc, message);
+						MapLocation denLoc = new MapLocation(data[0], data[1]);
+						if(data[2] == 1){
+							if (!Util.containsMapLocation(targetDens, denLoc, targetDenSize)){
+								targetDens[targetDenSize] = denLoc;
+								targetDenSize++;
+								numDensToHunt++;
+								updated = true;
+							}
+						} else {
+							int deadDenIndex = Util.indexOfLocation(targetDens, targetDenSize, denLoc);
+							if(deadDenIndex != -1){
+								targetDens[deadDenIndex] = null;
+								numDensToHunt--;
+								updated = true;
+							}
+						}
+						break;
+					case RELAY_DEN_INFO:
+						if(isCreationTurn) {
+							senderloc = signal.getLocation();
+							data = purpose.decode(senderloc, message);
+							for(int i = 0; i< data.length; i +=2){
+								loc = new MapLocation(data[i], data[i+1]);
+								if(loc.equals(senderloc)){
+									break;
+								}
+								if(!Util.containsMapLocation(targetDens, loc, targetDenSize)){
+									targetDens[targetDenSize]= loc;
+									targetDenSize++;
+									numDensToHunt++;
+								}
+							}
+						}
+						break;
+					default:
+					}
+				} else {
+					MapLocation signalLoc = signal.getLocation();
+					int closestIndex = Util.closestLocation(targetDens, signalLoc, targetDenSize);
+					if (closestIndex != -1) {
+						MapLocation killedDen = targetDens[closestIndex];
+						targetDens[closestIndex] = null;
+						numDensToHunt--;
+						updated = true;
 					}
 				}
 			}
-			dir = dir.rotateLeft();
 		}
-		if (rc.canMove(bestDir) && shouldMove) {
-			rc.move(bestDir);
+		return updated;
+	}
+
+	private static void notifyArchonOfPartOrNeutral(RobotInfo[] neutrals, boolean seeNeutralArchon) throws GameActionException {
+		MapLocation partOrNeutralLoc = null;
+		if (neutrals.length > 0) {
+			partOrNeutralLoc = neutrals[0].location;
+		} else {
+			MapLocation[] parts = rc.sensePartLocations(-1);
+			if (parts.length > 0)
+				partOrNeutralLoc = parts[0];
+		}
+		if (partOrNeutralLoc != null) {
+			int[] myMsg = MessageEncode.PART_OR_NEUTRAL_NOTIF
+					.encode(new int[] { partOrNeutralLoc.x, partOrNeutralLoc.y , seeNeutralArchon ? 1 : 0});
+			rc.broadcastMessageSignal(myMsg[0], myMsg[1], 80*80*2);
 		}
 	}
-	public static int distToNearestScout(MapLocation loc) throws GameActionException {
-		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(loc, RobotType.SCOUT.sensorRadiusSquared, us);
-		double nearestScout = 0;
-		for (int i = 0; i < nearbyAllies.length; i++) {
-			if (nearbyAllies[i].type == RobotType.SCOUT) {
-				nearestScout += 1000.0/nearbyAllies[i].location.distanceSquaredTo(loc);
+
+	private static boolean notifySoldiersOfZombieDen(RobotInfo[] hostileRobots) throws GameActionException { // first
+		MapLocation denLoc;
+		for(int i = targetDenSize; i --> 0;){
+			if(targetDens[i] == null) continue;
+			denLoc = targetDens[i];
+			if (rc.canSenseLocation(denLoc) && (rc.senseRobotAtLocation(denLoc) == null || rc.senseRobotAtLocation(denLoc).type != RobotType.ZOMBIEDEN)) {
+				int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { denLoc.x, denLoc.y, 0});
+				rc.broadcastMessageSignal(myMsg[0], myMsg[1], 12800);
+				targetDens[i] = null;
+				numDensToHunt--;
 			}
 		}
-		return (int)nearestScout;
-	}
-	private static void updateMaxRange(Signal[] signals) {
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == them) {
-				continue;
-			}
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(),message);
-				range = decodedMessage[0] - 1;
-				break;
+		for (RobotInfo hostileUnit : hostileRobots) {
+			if (hostileUnit.type == RobotType.ZOMBIEDEN) {
+				if (!Util.containsMapLocation(targetDens, hostileUnit.location, targetDenSize)) {
+					targetDens[targetDenSize] = hostileUnit.location;
+					targetDenSize++;
+					MapLocation hostileLoc = hostileUnit.location;
+					int[] myMsg = MessageEncode.DEN_NOTIF.encode(new int[] { hostileLoc.x, hostileLoc.y, 1});
+					rc.broadcastMessageSignal(myMsg[0], myMsg[1], 10000);
+				}
 			}
 		}
-		return;
+		return false;
 	}
 }

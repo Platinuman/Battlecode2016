@@ -3,14 +3,16 @@ package team061;
 import battlecode.common.*;
 
 public class BotTurret extends Bot {
-	static MapLocation alpha;
-	static int range;
-	static boolean isTTM;
-	// static MapLocation lastSignal;
-	// static int patience;
+	protected static MapLocation targetLoc;
+	//protected static MapLocation alpha;
+	//static MapLocation[] lastScoutNotifiedArray;
+	//static int currentIndexOfLastArray = 0;
+	//static int lastTimeTargetChanged;
+	//protected static int range; // NEW not necessary for mobile
+	//protected static int turretType; // NEW 0 = turtling; 1 = offensive; 2 = map control?
+	protected static boolean isTTM;
 
 	public static void loop(RobotController theRC) throws GameActionException {
-		Clock.yield();
 		Bot.init(theRC);
 		init();
 		while (true) {
@@ -24,156 +26,93 @@ public class BotTurret extends Bot {
 	}
 
 	private static void init() throws GameActionException {
-		rc.setIndicatorString(0, "We shoot.");
+		// TODO have bot choose what type of turret it is
+		// if it is a mobile turret it needs to have a target loc
+		//chooseTurretType();
 		isTTM = false;
-		range = 4;
-		// patience = 0;
-		alpha = MapAnalysis.getAlphaLocation();
-		// lastSignal = alpha;
+		// MessageEncode.getMobileArchonLocation(); //NEW This should be a
+		// method
+//		if (turretType == 0) { // WE ARE TURTLING
+//			range = 2;
+//			Signal[] signals = rc.emptySignalQueue();
+//			for (int i = 0; i < signals.length; i++) {
+//				if (signals[i].getTeam() == them) {
+//					continue;
+//				}
+//				int[] message = signals[i].getMessage();
+//				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
+//				if (signals[i].getTeam() == us && msgType == MessageEncode.ALPHA_ARCHON_LOCATION) {
+//					int[] decodedMessage = MessageEncode.ALPHA_ARCHON_LOCATION.decode(signals[i].getLocation(),
+//							message);
+//					alpha = new MapLocation(decodedMessage[0], decodedMessage[1]);
+//					break;
+//				}
+//			}
+//		}
+		//if (turretType == 1) { // OFFENSIVE
+			// MessageEncode.readMessagesAndUpdateInfo();
+			targetLoc = center; // for now
+			//boolean canSeeHostiles = rc.senseHostileRobots(here, type.sensorRadiusSquared).length > 0;
+			//Harass.updateTargetLocWithoutSignals();
+			// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
+			// Harass.updateTargetLoc();
+			// this should set its target
+//		}
 	}
 
 	private static void turn() throws GameActionException {
 		here = rc.getLocation();
+		RobotInfo[] enemies = rc.senseHostileRobots(here, type.sensorRadiusSquared);
+		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemies);
 		Signal[] signals = rc.emptySignalQueue();
-		updateMaxRange(signals);
-		if (!isTTM) {
-			attackIfApplicable(signals);
-		}
-		if (rc.isCoreReady()) {
-			moveToLocFartherThanAlphaIfPossible();
-		}
-		if (rc.isWeaponReady()) {
-			shootRandomly();
-		}
-	}
+		Harass.updateInfoFromSignals(signals);
+		//Harass.updateTargetLocWithoutSignals();
+		// TODO: UPDATE THINGS FROM SIGNALS (see the big Harass.updateInfoFromSignals method)
+//		for(Signal s: signals){
+//			Harass.updateTargetLoc(s, canSeeHostiles);
+//		}
+		//rc.setIndicatorString(1, "target at " + targetLoc.x + ", " + targetLoc.y);
 
-	private static void shootRandomly() throws GameActionException{
-		if (rc.getRoundNum() > 500) {
-			Direction trueAway = alpha.directionTo(here);
-			Direction away = trueAway;
-			MapLocation enemyLocation = here;
-			int count = 0;
-			while (count < 4 || rc.canAttackLocation(enemyLocation.add(away))) {
-				enemyLocation = enemyLocation.add(away);
-				away = (new Direction[] { trueAway, trueAway.rotateLeft(), trueAway.rotateRight(),
-						trueAway.rotateLeft().rotateLeft(), trueAway.rotateRight().rotateRight() })[rand.nextInt(5)];
-				count++;
-				if(rc.canSenseLocation(enemyLocation) && !rc.onTheMap(enemyLocation)){
-					return;
-				}
-			}
-			if (rc.canAttackLocation(enemyLocation)) {
-				rc.attackLocation(enemyLocation);
-				return;
-			}
-		}
-	}
+		// MessageEncode.updateRange(); //NEW update the range and get list of
+		// possible targets in same loop to conserve bytecode
 
-	private static void moveToLocFartherThanAlphaIfPossible() throws GameActionException {
-		Direction dir = here.directionTo(center);
-		boolean shouldMove = false;
-		Direction bestDir = dir;
-		int bestScore = 0;
-		int distanceToAlpha = here.distanceSquaredTo(alpha);
-		boolean startedAsTTM = isTTM;
-		RobotInfo[] enemyRobots = rc.senseHostileRobots(rc.getLocation(), RobotType.TURRET.sensorRadiusSquared);
-		NavSafetyPolicy theSafety = new SafetyPolicyAvoidAllUnits(enemyRobots);
-		for (int i = 0; i < 8; i++) {
-			MapLocation newLoc = here.add(dir);
-			if (rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc)
-					&& rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				int newDistanceToAlpha = newLoc.distanceSquaredTo(alpha);
-				if (newDistanceToAlpha > distanceToAlpha && newDistanceToAlpha <= range
-						&& theSafety.isSafeToMoveTo(newLoc)) {
-					if (newDistanceToAlpha > bestScore)
-						bestDir = dir;
-					bestScore = newDistanceToAlpha;
-					shouldMove = true;
-				}
-			}
-			dir = dir.rotateLeft();
-		}
-		if (shouldMove) {
+//		if (turretType == 1 && targetLoc != null) {
 			if (!isTTM) {
-				rc.pack();
-				isTTM = true;
+				// shoot anything in range and use scout
+				//attackIfApplicable(signals);
+				int closestDen = Util.closestLocation(targetDens, here, targetDenSize);
+				if (closestDen != -1){
+					targetLoc = targetDens[closestDen];
+				} else {
+					targetLoc = center;
+				}
+				if(rc.isWeaponReady() && type.attackRadiusSquared >= here.distanceSquaredTo(targetLoc))
+					Combat.turretAttack(enemies, closestDen);
+				else if (enemies.length == 0 && type.attackRadiusSquared < here.distanceSquaredTo(targetLoc)) {
+					rc.pack();
+					isTTM = true;
+				}
 			} else {
-				rc.move(bestDir);
-			}
-		} else if (startedAsTTM) {
-			rc.unpack();
-			isTTM = false;
-		}
-	}
-
-	private static void updateMaxRange(Signal[] signals) {
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == them) {
-				continue;
-			}
-			int[] message = signals[i].getMessage();
-			MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-			if (signals[i].getTeam() == us && msgType == MessageEncode.PROXIMITY_NOTIFICATION) {
-				int[] decodedMessage = MessageEncode.PROXIMITY_NOTIFICATION.decode(signals[i].getLocation(), message);
-				range = decodedMessage[0];
-				break;
-			}
-		}
-	}
-
-	private static void attackIfApplicable(Signal[] signals) throws GameActionException {
-		if (rc.isWeaponReady()) {
-			Combat.shootAtNearbyEnemies();
-		}
-		if (rc.isWeaponReady()) {
-			shootWithoutThinking(signals);
-		}
-	}
-
-	private static void shootWithoutThinking(Signal[] signals) throws GameActionException {
-		for (int i = signals.length - 1; i >= 0; i--) {
-			if (signals[i].getTeam() == us) {
-				int[] message = signals[i].getMessage();
-				MessageEncode msgType = MessageEncode.whichStruct(message[0]);
-				int[] decodedMessage = MessageEncode.TURRET_TARGET.decode(signals[i].getLocation(), message);
-				if (msgType == MessageEncode.TURRET_TARGET) {
-					MapLocation enemyLocation = new MapLocation(decodedMessage[0], decodedMessage[1]);
-					if (rc.canAttackLocation(enemyLocation)) {
-						rc.attackLocation(enemyLocation);
-						// lastSignal = enemyLocation;
-						// patience = rc.getRoundNum();
-						return;
+				if (rc.isCoreReady()) {
+					if (RobotType.TURRET.attackRadiusSquared > here.distanceSquaredTo(targetLoc)) {
+						rc.unpack();
+						isTTM = false;
+					} else {
+						//rc.setIndicatorString(2, "moving my butt");
+						Nav.goTo(targetLoc, theSafety);
 					}
 				}
-			} else {
-				MapLocation enemyLocation = signals[i].getLocation();
-				if (rc.canAttackLocation(enemyLocation)) {
-					rc.attackLocation(enemyLocation);
-					return;
+			}
+			String dens = "";
+			if(targetDenSize > 0){
+				for(int i = 0; i < targetDenSize; i++){
+					MapLocation den = targetDens[i];
+					if(den != null)
+						dens += den.toString() + ", ";
 				}
 			}
-		}
-		// if (lastSignal != alpha && rc.getRoundNum() - patience <= 27) {
-		// if (rc.canAttackLocation(lastSignal)) {
-		// rc.attackLocation(lastSignal);
-		// }
-		// }
-		// if (false && rc.getRoundNum() > 500) {
-		// Direction trueAway = alpha.directionTo(here);
-		// Direction away = trueAway;
-		// MapLocation enemyLocation = here;
-		// int count = 0;
-		// while (count < 4 || rc.canAttackLocation(enemyLocation.add(away))) {
-		// enemyLocation = enemyLocation.add(away);
-		// away = (new Direction[] { trueAway, trueAway.rotateLeft(),
-		// trueAway.rotateRight() })[rand.nextInt(3)];
-		// count++;
-		//
-		// }
-		// if (rc.canAttackLocation(enemyLocation)) {
-		// rc.attackLocation(enemyLocation);
-		// return;
-		// }
-		// }
+			rc.setIndicatorString(0, dens);
+			if(targetLoc != null)
+				rc.setIndicatorString(1, "targetLoc = " + targetLoc.toString());
 	}
 }
