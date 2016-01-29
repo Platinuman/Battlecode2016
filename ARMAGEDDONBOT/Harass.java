@@ -479,7 +479,7 @@ public class Harass extends Bot {
 //			return;
 //		}
 		int fate = rand.nextInt(1000);
-		if(huntingDen && numDensToHunt > 1 && fate < 100 && !Util.isSurrounded(here) && rc.canSenseLocation(targetLoc) && rc.senseNearbyRobots(type.sensorRadiusSquared, us).length > 15){
+		if(huntingDen && numDensToHunt > 1 && fate < 100 && !Util.isSurrounded(here) && rc.canSenseLocation(targetLoc) && rc.senseNearbyRobots(targetLoc, type.attackRadiusSquared, us).length > 15){
 			rc.setIndicatorString(2, "moving on");
 			targetDens[bestIndex] = null;
 			numDensToHunt--;
