@@ -233,7 +233,8 @@ public class Harass extends Bot {
 								//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
-								-  enemy.type.movementDelay/300;
+								-  enemy.type.movementDelay/300
+								+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
 								//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
@@ -296,8 +297,9 @@ public class Harass extends Bot {
 								//+ (enemy.team == Team.ZOMBIE?0:0.1) // shoot zombies last
 								+  enemy.attackPower/300
 								+  enemy.type.attackRadiusSquared/2000
-								-  enemy.type.movementDelay/300;
-								//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
+								-  enemy.type.movementDelay/300
+					          	+((enemy.type == RobotType.RANGEDZOMBIE)?.01:0);
+						//- ((type == RobotType.VIPER && enemy.type == RobotType.ARCHON && enemiesWithoutZombies.length < allies.length && enemy.health < 200)?(rc.getRoundNum()/500):0)
 								//+ ((type == RobotType.VIPER && enemy.viperInfectedTurns == 0 && enemy.team!=Team.ZOMBIE && enemy.type != RobotType.ARCHON)?50:0);// shoot non-infected first if viper
 						if (targetingMetric > bestTargetingMetric) {
 							bestTargetingMetric = targetingMetric;
@@ -320,7 +322,7 @@ public class Harass extends Bot {
 				// we can only think about engaging enemies with equal or shorter range
 				if (closestEnemy != null
 						&& (type.attackRadiusSquared >= closestEnemy.type.attackRadiusSquared
-							|| closestEnemy.type == RobotType.ARCHON)) {
+							/*|| closestEnemy.type == RobotType.ARCHON*/)) {
 					//we outrange them
 					//rc.setIndicatorString(2, "No core delay, we can see but not shoot, move to engage closest enemy");
 					int numAlliesFightingEnemy = numOtherAlliesInAttackRange(closestEnemy.location, allies);
