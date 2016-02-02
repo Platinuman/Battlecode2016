@@ -9,7 +9,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		Boolean surrounded = true;
 		for (int i = 0; i < 8; i++) {
 			MapLocation newLoc = loc.add(dir);
-			if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) ) {
+			if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc) && !rc.isLocationOccupied(newLoc) && rc.senseRubble(newLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 				surrounded = false;
 				break;
 			}
@@ -27,6 +27,8 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		Direction dirLeft = dir.rotateLeft();
 		Direction dirRight = dir.rotateRight();
+		dirLeft = dir.rotateLeft();
+		dirRight = dir.rotateRight();
 		for (int i = 0; i <= 4; i++) {
 			rubble = rc.senseRubble(here.add(dirLeft));
 			if ( rubble > 0 && (clearToughRubble || rubble <= toughRubble)) {
@@ -43,6 +45,7 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		}
 		return false;
 	}
+	
    public static RobotInfo closest(RobotInfo[] robots, MapLocation toHere) {
         RobotInfo closest = null;
         int bestDistSq = 999999;
@@ -62,22 +65,23 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
        int bestDistSq = 999999;
        int bestIndex = -1;
        for (int i = 0; i < size; i++) {
-    	   if(locs[i] != null){
-    		   int distSq = toHere.distanceSquaredTo(locs[i]);
-    		   if (distSq < bestDistSq) {
-    			   bestDistSq = distSq;
-    			   //closest = locs[i];
-    			   bestIndex = i;
-    		   }
+    	   if(locs[i] == null){
+    		   continue;
     	   }
+           int distSq = toHere.distanceSquaredTo(locs[i]);
+           if (distSq < bestDistSq) {
+               bestDistSq = distSq;
+               //closest = locs[i];
+               bestIndex = i;
+           }
        }
        return bestIndex;
    }
-
+      
    public static RobotInfo leastHealth(RobotInfo[] robots, int excludeArchons) {
-	   RobotInfo ret = null;
-	   double minHealth = 1e99;
-	   for (int i = 0; i < robots.length; i++) {
+		RobotInfo ret = null;
+		double minHealth = 1e99;
+		for (int i = 0; i < robots.length; i++) {
 			if ((int)robots[i].health != (int)robots[i].maxHealth &&  robots[i].health < minHealth && (excludeArchons == 0 || robots[i].type != RobotType.ARCHON)) {
 				minHealth = robots[i].health;
 				ret = robots[i];
@@ -150,34 +154,34 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		return new MapLocation(Math.round(xavg/robots.length), Math.round(yavg/robots.length));
     }
     
-//    public static boolean isDangerous(RobotType theType){
-//    	switch(theType){
-//    	case ARCHON:
-//    		return false;
-//    	case TTM:
-//    		return false;
-//    	case ZOMBIEDEN:
-//    		if(getRoundsUntilNextZombieSpawn() < 20) return true;
-//    		return false;
-//    	case SCOUT:
-//    		return false;
-//    	default:
-//    	}
-//    	return true;
-//    }
+    public static boolean isDangerous(RobotType theType){
+    	switch(theType){
+    	case ARCHON:
+    		return false;
+    	case TTM:
+    		return false;
+    	case ZOMBIEDEN:
+    		if(getRoundsUntilNextZombieSpawn() < 20) return true;
+    		return false;
+    	case SCOUT:
+    		return false;
+    	default:
+    	}
+    	return true;
+    }
 
-//    private static int getRoundsUntilNextZombieSpawn() {
-//    	// TODO Auto-generated method stub
-//    	int[] schedule = MapAnalysis.zombieRounds;
-//    	int nextRound = 9999;
-//    	int currentRound = rc.getRoundNum();
-//    	for(int i = 0; i < schedule.length; i++)
-//    		if(currentRound < schedule[i]){
-//    			nextRound = schedule[i];
-//    			break;
-//    		}
-//    	return nextRound - currentRound;
-//    }
+    private static int getRoundsUntilNextZombieSpawn() {
+    	// TODO Auto-generated method stub
+    	int[] schedule = MapAnalysis.zombieRounds;
+    	int nextRound = 9999;
+    	int currentRound = rc.getRoundNum();
+    	for(int i = 0; i < schedule.length; i++)
+    		if(currentRound < schedule[i]){
+    			nextRound = schedule[i];
+    			break;
+    		}
+    	return nextRound - currentRound;
+    }
 
     public static boolean containsMapLocation(MapLocation[] locs, MapLocation location, int size) {
     	for(int i = 0; i < size; i++){
@@ -268,20 +272,20 @@ public class Util extends Bot {//NEW generic methods for use by many classes, op
 		return totalRubble;
 	}
 
-//	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
-//		int newlength = 0;
-//		int[] inds = new int[hostiles.length];
-//		for (int i = 0; i < hostiles.length; i++){
-//			if(isDangerous(hostiles[i].type)){
-//				inds[newlength++] = i;
-//			}
-//		}
-//		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
-//		for (int j = 0; j < newlength; j++){
-//			harmfulUnits[j] = hostiles[inds[j]];
-//		}
-//		return harmfulUnits;
-//	}
+	public static RobotInfo[] removeHarmlessUnits(RobotInfo[] hostiles) {
+		int newlength = 0;
+		int[] inds = new int[hostiles.length];
+		for (int i = 0; i < hostiles.length; i++){
+			if(isDangerous(hostiles[i].type)){
+				inds[newlength++] = i;
+			}
+		}
+		RobotInfo[] harmfulUnits = new RobotInfo[newlength];
+		for (int j = 0; j < newlength; j++){
+			harmfulUnits[j] = hostiles[inds[j]];
+		}
+		return harmfulUnits;
+	}
 	
 	public static MapLocation getLocationOfType(RobotInfo[] array, RobotType t){
 		for(RobotInfo ri : array)

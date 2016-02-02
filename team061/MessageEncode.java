@@ -20,8 +20,7 @@ public enum MessageEncode {
 						// **NOTE** only can be used by bot that sees the turrets (because of distance restriction)
 	RELAY_TURRET_INFO	  (11,new int[]{1,2,1,2,1,2},3),// so archons can tell new things where all the turrets are
 	CRUNCH_TIME			  (12,new int[]{1,2,4},1),// approximate center of turret, number of turrets visible 
-	NEUTRAL_ARCHON		  (13,new int[]{1,2},0),// xloc, yloc
-	RELAY_DEN_INFO		  (14,new int[]{1,2,1,2,1,2},3);// for new units
+	NEUTRAL_ARCHON		  (13,new int[]{1,2},0);// xloc, yloc
 	//ZOMBIE_HORDE_NOTIF
 	//SCOUT_CHECKIN(4, new int[]{    }, 2),
 	//FOUND_PARTS(4, new int[]{5, 1, 2}, 1),		// num parts, xloc, yloc
@@ -209,7 +208,6 @@ public enum MessageEncode {
 		case 11:return RELAY_TURRET_INFO;
 		case 12:return CRUNCH_TIME;
 		case 13:return NEUTRAL_ARCHON;
-		case 14:return RELAY_DEN_INFO;
 
 		default: return null;
 		}
@@ -230,7 +228,6 @@ public enum MessageEncode {
 		case 11:return "RELAY_TURRET_INFO";
 		case 12:return "CRUNCH_TIME";
 		case 13:return "NEUTRAL_ARCHON";
-		case 14:return "RELAY_DEN_INFO";
 
 		default: return "@Nate update the toString you idiot";
 		}
