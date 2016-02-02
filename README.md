@@ -4,7 +4,7 @@
 
 F = < -sin(theta) / r , cos(theta) / r > (AKA Polar Vortex)
 
-2nd place
+The bot in team061 was 2nd place overall.
 
 [Strategy report](https://docs.google.com/document/d/132tMZHL0MaxyW_pqoHgDzkqlObx7lupAHxuFqhkuUyc/edit?usp=sharing)
 
