@@ -8,6 +8,8 @@ The bot in team061 was 2nd place overall.
 
 [Strategy report](https://docs.google.com/document/d/132tMZHL0MaxyW_pqoHgDzkqlObx7lupAHxuFqhkuUyc/edit?usp=sharing)
 
+P.S. Special thanks to The Duck (Greg McGlynn) for making his 2015 code public.
+
 
 ## Battlecode 2015
 
